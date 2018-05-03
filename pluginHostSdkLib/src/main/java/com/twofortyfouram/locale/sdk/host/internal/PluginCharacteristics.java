@@ -20,6 +20,7 @@ package com.twofortyfouram.locale.sdk.host.internal;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
+import com.twofortyfouram.locale.api.LocalePluginIntent;
 import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.spackle.AndroidSdkVersion;
@@ -107,7 +108,7 @@ public final class PluginCharacteristics {
 
     @NonNull
     private static Set<String> getConditionsRequiringBackwardsCompatibility() {
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
 
         set.add(Plugin.generateRegistryName("com.DriftingAway.Skim", //$NON-NLS-1$
                 "com.DriftingAway.Skim.EditActivity")); //$NON-NLS-1$
@@ -125,7 +126,7 @@ public final class PluginCharacteristics {
      * devices.
      */
 
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
 
         set.add(Plugin.generateRegistryName("com.dattasmoon.gtalkcontrol", //$NON-NLS-1$
                 "com.dattasmoon.gtalkcontrol.LocaleEdit")); //$NON-NLS-1$
@@ -280,7 +281,7 @@ public final class PluginCharacteristics {
 
     @NonNull
     private static Set<String> getConditionsThatDrainBattery() {
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
 
         set.add(Plugin.generateRegistryName("com.DriftingAway.Skim", //$NON-NLS-1$
                 "com.DriftingAway.Skim.EditActivity")); //$NON-NLS-1$
@@ -290,21 +291,21 @@ public final class PluginCharacteristics {
 
     @NonNull
     private static Set<String> getSettingsThatDrainBattery() {
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
 
         return set;
     }
 
     @NonNull
     private static Set<String> getConditionsThatDisruptConnectivity() {
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
 
         return set;
     }
 
     @NonNull
     private static Set<String> getSettingsThatDisruptConnectivity() {
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
 
         set.add(Plugin.generateRegistryName("com.codecarpet.apndroid.locale",
                 //$NON-NLS-1$
@@ -331,7 +332,7 @@ public final class PluginCharacteristics {
 
     @NonNull
     private static Set<String> getConditionsThatRequireConnectivity() {
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
 
         set.add(Plugin.generateRegistryName(
                 "com.twofortyfouram.locale",
@@ -342,14 +343,14 @@ public final class PluginCharacteristics {
 
     @NonNull
     private static Set<String> getSettingsThatRequireConnectivity() {
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
 
         return set;
     }
 
     @NonNull
     private static Set<String> getConditionsThatAreBuggy() {
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
 
         // Doesn't correctly request a requery, causing users to complain that Locale isn't working
         // unless they open the app. (Locale forces a query when the UI is launched).
@@ -362,7 +363,7 @@ public final class PluginCharacteristics {
 
     @NonNull
     private static Set<String> getSettingsThatAreBuggy() {
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
 
         //Doesn't correctly handle unified volume streams on Android 4.0+; doesn't handle volume bugs on HTC 2.3 devices; doesn't handle new vibrate settings in Android 4.2; etc.
         set.add(Plugin.generateRegistryName("com.akiware.locale.allvolumes",
@@ -374,14 +375,14 @@ public final class PluginCharacteristics {
 
     @NonNull
     private static Set<String> getConditionsThatAreBlacklisted() {
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
 
         return set;
     }
 
     @NonNull
     private static Set<String> getSettingsThatAreBlacklisted() {
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
 
         if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.JELLY_BEAN)) {
 
@@ -403,12 +404,12 @@ public final class PluginCharacteristics {
 
     @NonNull
     private static Map<String, Set<String>> getConditionsThatHaveAlternatives() {
-        final Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+        final Map<String, Set<String>> map = new HashMap<>();
 
         {
             final Set<String> builtInCalendarConditions;
             {
-                final Set<String> temp = new LinkedHashSet<String>();
+                final Set<String> temp = new LinkedHashSet<>();
                 temp.add(Plugin.generateRegistryName(
                         "com.twofortyfouram.locale",
                         "com.twofortyfouram.locale.ui.activities.CalendarConditionActivity"));
@@ -417,12 +418,12 @@ public final class PluginCharacteristics {
             }
 
             map.put(Plugin.generateRegistryName("org.acm.steidinger.calendar.localePlugin",
-                            "org.acm.steidinger.calendar.localePlugin.EditConditionActivity"),
+                    "org.acm.steidinger.calendar.localePlugin.EditConditionActivity"),
                     builtInCalendarConditions
             );
 
             map.put(Plugin.generateRegistryName("com.DroidMunkey.LocaleCalendarConditions",
-                            "com.DroidMunkey.LocaleCalendarConditions.EditActivity"),
+                    "com.DroidMunkey.LocaleCalendarConditions.EditActivity"),
                     builtInCalendarConditions
             );
         }
@@ -430,7 +431,7 @@ public final class PluginCharacteristics {
         {
             final Set<String> builtInLocationConditions;
             {
-                final Set<String> temp = new LinkedHashSet<String>();
+                final Set<String> temp = new LinkedHashSet<>();
                 temp.add(Plugin.generateRegistryName(
                         "com.twofortyfouram.locale",
                         "com.twofortyfouram.locale.ui.activities.LocationConditionActivity"));
@@ -439,68 +440,53 @@ public final class PluginCharacteristics {
             }
 
             map.put(Plugin.generateRegistryName("at.pansy.droid.locale.location",
-                            "at.pansy.droid.locale.location.EditActivity"),
-                    builtInLocationConditions
+                    "at.pansy.droid.locale.location.EditActivity"), builtInLocationConditions
             );
 
             map.put(Plugin.generateRegistryName("com.DroidMunkey.LocaleWifiConditions",
-                            "com.DroidMunkey.LocaleWifiConditions.EditActivity"),
-                    builtInLocationConditions
+                    "com.DroidMunkey.LocaleWifiConditions.EditActivity"), builtInLocationConditions
             );
 
             map.put(Plugin.generateRegistryName("com.hush.locale.cell_beta",
-                            "com.hush.locale.cell_beta.EditActivity"),
-                    builtInLocationConditions
+                    "com.hush.locale.cell_beta.EditActivity"), builtInLocationConditions
             );
 
             map.put(Plugin.generateRegistryName("com.joaomgcd.autolocation",
-                            "com.joaomgcd.autolocation.activity.ActivityConfigRequestGeofenceReport"),
+                    "com.joaomgcd.autolocation.activity.ActivityConfigRequestGeofenceReport"),
                     builtInLocationConditions
             );
 
             map.put(Plugin.generateRegistryName("com.kanetik.geofence",
-                            "com.kanetik.geofence.ui.EditActivity"),
-                    builtInLocationConditions
+                    "com.kanetik.geofence.ui.EditActivity"), builtInLocationConditions
             );
 
             map.put(Plugin.generateRegistryName("com.suttco.locale.condition.poi",
-                            "com.suttco.locale.condition.poi.EditActivity"),
-                    builtInLocationConditions
+                    "com.suttco.locale.condition.poi.EditActivity"), builtInLocationConditions
             );
 
             map.put(Plugin.generateRegistryName("net.appstalk.wifimatch",
-                            "net.appstalk.wifimatch.ui.EditActivity"),
-                    builtInLocationConditions
+                    "net.appstalk.wifimatch.ui.EditActivity"), builtInLocationConditions
             );
 
             map.put(Plugin.generateRegistryName("org.johanhil.ssid",
-                            "org.johanhil.ssid.EditActivity"),
-                    builtInLocationConditions
-            );
+                    "org.johanhil.ssid.EditActivity"), builtInLocationConditions);
         }
 
         {
             final Set<String> builtInMovementConditions;
             {
-                final Set<String> temp = new LinkedHashSet<String>();
-                temp.add(Plugin.generateRegistryName(
-                        "com.twofortyfouram.locale",
+                final Set<String> temp = new LinkedHashSet<>();
+                temp.add(Plugin.generateRegistryName("com.twofortyfouram.locale",
                         "com.twofortyfouram.locale.ui.activities.MovementConditionActivity"));
 
                 builtInMovementConditions = Collections.unmodifiableSet(temp);
             }
 
-            map.put(Plugin
-                            .generateRegistryName("com.jarettmillard.localeactivityplugin",
-                                    "com.jarettmillard.localeactivityplugin.EditActivity"),
-                    builtInMovementConditions
-            );
+            map.put(Plugin.generateRegistryName("com.jarettmillard.localeactivityplugin",
+                    "com.jarettmillard.localeactivityplugin.EditActivity"), builtInMovementConditions);
 
-            map.put(Plugin
-                            .generateRegistryName("com.kanetik.movement_detection",
-                                    "com.kanetik.movement_detection.ui.EditActivity"),
-                    builtInMovementConditions
-            );
+            map.put(Plugin.generateRegistryName("com.kanetik.movement_detection",
+                    "com.kanetik.movement_detection.ui.EditActivity"), builtInMovementConditions);
         }
 
         return map;
@@ -508,12 +494,12 @@ public final class PluginCharacteristics {
 
     @NonNull
     private static Map<String, Set<String>> getSettingsThatHaveAlternatives() {
-        final Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+        final Map<String, Set<String>> map = new HashMap<>();
 
         {
             final Set<String> builtInVolumeSettings;
             {
-                final Set<String> temp = new LinkedHashSet<String>();
+                final Set<String> temp = new LinkedHashSet<>();
                 temp.add(Plugin.generateRegistryName(
                         "com.twofortyfouram.locale",
                         "com.twofortyfouram.locale.ui.activities.VolumeSettingActivity"));
@@ -525,17 +511,17 @@ public final class PluginCharacteristics {
             }
 
             map.put(Plugin.generateRegistryName("com.akiware.locale.allvolumes",
-                            "com.akiware.locale.allvolumes.EditActivity"),
+                    "com.akiware.locale.allvolumes.EditActivity"),
                     builtInVolumeSettings
             );
 
             map.put(Plugin.generateRegistryName("com.olib.locplug.scenemode",
-                            "com.olib.locplug.scenemode.EditActivity"),
+                    "com.olib.locplug.scenemode.EditActivity"),
                     builtInVolumeSettings
             );
 
             map.put(Plugin.generateRegistryName("com.olib.locplug.scenemodepro",
-                            "com.olib.locplug.scenemodepro.EditActivity"),
+                    "com.olib.locplug.scenemodepro.EditActivity"),
                     builtInVolumeSettings
             );
         }
@@ -609,10 +595,10 @@ public final class PluginCharacteristics {
      * beta version of the plug-in API for Locale released in January 2009 was
      * slightly different from the final version of the API release in December
      * 2009. Prior to Locale 1.0,
-     * {@link com.twofortyfouram.locale.api.Intent#EXTRA_BUNDLE} didn't exist and
+     * {@link LocalePluginIntent#EXTRA_BUNDLE} didn't exist and
      * plug-ins stored and retrieved their extras directly from the
-     * {@link com.twofortyfouram.locale.api.Intent#ACTION_EDIT_SETTING} or
-     * {@link com.twofortyfouram.locale.api.Intent#ACTION_FIRE_SETTING} Intents.
+     * {@link LocalePluginIntent#ACTION_EDIT_SETTING} or
+     * {@link LocalePluginIntent#ACTION_FIRE_SETTING} Intents.
      * Although this backwards compatibility should only apply to Setting plug-ins
      * (since Conditions weren't supported until the API was finalized in Locale
      * 1.0), some plug-in developers copy-pasted their setting implementations to
@@ -776,7 +762,7 @@ public final class PluginCharacteristics {
      * candidate for blacklisting.</li>
      * <li>A plug-in that contains serious security flaws is a candidate for blacklisting.  One
      * example would be a plug-in that stores unencrypted login
-     * credentials in {@link com.twofortyfouram.locale.api.Intent#EXTRA_BUNDLE}.  Plug-ins are
+     * credentials in {@link LocalePluginIntent#EXTRA_BUNDLE}.  Plug-ins are
      * required to store such credentials in their own app private storage, rather than in the
      * Bundle.  Another example would be a plug-in that logs credentials to logcat.</li>
      * <li>A plug-in that can cost the user a large amount of money is a candidate for

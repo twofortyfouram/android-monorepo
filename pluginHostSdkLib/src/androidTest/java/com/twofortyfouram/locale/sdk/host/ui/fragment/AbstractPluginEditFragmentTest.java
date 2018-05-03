@@ -58,7 +58,7 @@ public final class AbstractPluginEditFragmentTest {
     public void newArgs_with_previous_values() {
         final Plugin plugin = PluginFixture.newDefaultPlugin();
         final PluginInstanceData pluginInstanceData = new PluginInstanceData(plugin.getType(),
-                plugin.getRegistryName(), new byte[]{},
+                plugin.getRegistryName(), new Bundle(),
                 "foo");  //$NON-NLS-1$
 
         final Bundle bundle = AbstractPluginEditFragment

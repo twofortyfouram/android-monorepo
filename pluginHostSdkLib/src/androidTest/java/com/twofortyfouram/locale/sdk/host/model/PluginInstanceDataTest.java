@@ -17,12 +17,16 @@
 
 package com.twofortyfouram.locale.sdk.host.model;
 
+import android.os.Bundle;
 import android.os.Parcel;
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.twofortyfouram.locale.api.LocalePluginIntent;
 import com.twofortyfouram.locale.sdk.host.test.fixture.PluginInstanceDataFixture;
+import com.twofortyfouram.spackle.bundle.BundleComparer;
 
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -32,7 +36,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
@@ -65,11 +68,11 @@ public final class PluginInstanceDataTest {
 
     @SmallTest
     @Test
-    public void getSerializedBundle() {
+    public void getBundle() {
         final PluginInstanceData data = PluginInstanceDataFixture.newDefaultPluginInstanceData();
 
-        assertArrayEquals(PluginInstanceDataFixture.getDefaultBundle(),
-                data.getSerializedBundle());
+        assertThat(BundleComparer.areBundlesEqual(PluginInstanceDataFixture.getDefaultBundle(),
+                data.getBundle()), is(true));
     }
 
     @SmallTest
@@ -77,7 +80,7 @@ public final class PluginInstanceDataTest {
     public void getSerializedBundle_copy() {
         final PluginInstanceData data = PluginInstanceDataFixture.newDefaultPluginInstanceData();
 
-        assertThat(data.getSerializedBundle(), not(sameInstance(data.getSerializedBundle())));
+        assertThat(data.getBundle(), not(sameInstance(data.getBundle())));
     }
 
     @SmallTest
@@ -103,11 +106,15 @@ public final class PluginInstanceDataTest {
                         PluginInstanceDataFixture.DEFAULT_BLURB)
         );
 
-        assertNotEquals(defaultData,
-                new PluginInstanceData(PluginInstanceDataFixture.DEFAULT_TYPE,
-                        PluginInstanceDataFixture.DEFAULT_REGISTRY_NAME, "bar".getBytes(),
-                        PluginInstanceDataFixture.DEFAULT_BLURB)
-        );
+        {
+            final Bundle bundle = new Bundle();
+            bundle.putString(LocalePluginIntent.EXTRA_STRING_JSON, new JSONObject().toString());
+            assertNotEquals(defaultData,
+                    new PluginInstanceData(PluginInstanceDataFixture.DEFAULT_TYPE,
+                            PluginInstanceDataFixture.DEFAULT_REGISTRY_NAME, bundle,
+                            PluginInstanceDataFixture.DEFAULT_BLURB)
+            );
+        }
 
         assertNotEquals(defaultData,
                 new PluginInstanceData(PluginInstanceDataFixture.DEFAULT_TYPE,

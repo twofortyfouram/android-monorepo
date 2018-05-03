@@ -15,7 +15,7 @@
   ~ specific language governing permissions and limitations under the License.
   -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <string name="com_twofortyfouram_locale_sdk_host_condition_name">Debug</string>
     <string name="com_twofortyfouram_locale_sdk_host_condition_satisfied">Satisfied</string>
@@ -23,5 +23,9 @@
     <string name="com_twofortyfouram_locale_sdk_host_condition_unknown">Unknown</string>
 
     <string name="com_twofortyfouram_locale_sdk_host_setting_name">Debug</string>
+
+    <!-- Suppress lint warnings, since this is the correct prefix. -->
+    <eat-comment />
+    <string name="com_twofortyfouram_log_tag" translatable="false" tools:ignore="ResourceName">pluginHostSdkLibTest</string>
 
 </resources>

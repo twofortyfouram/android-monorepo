@@ -33,6 +33,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  * it easy to assert that the Loader returns the expected result.
  */
 public class Junit4SupportLoaderTestCase {
+
     static {
         // Force class loading of AsyncTask on the main thread so that it's handlers are tied to
         // the main thread and responses from the worker thread get delivered on the main thread.
@@ -41,9 +42,13 @@ public class Junit4SupportLoaderTestCase {
         // results come in via the event loop.
         new AsyncTask<Void, Void, Void>() {
             @Override
-            protected Void doInBackground(Void... args) {return null;}
+            protected Void doInBackground(Void... args) {
+                return null;
+            }
+
             @Override
-            protected void onPostExecute(Void result) {}
+            protected void onPostExecute(Void result) {
+            }
         };
     }
 
@@ -56,7 +61,7 @@ public class Junit4SupportLoaderTestCase {
      */
     public <T> T getLoaderResultSynchronously(final Loader<T> loader) {
         // The test thread blocks on this queue until the loader puts it's result in
-        final ArrayBlockingQueue<T> queue = new ArrayBlockingQueue<T>(1);
+        final ArrayBlockingQueue<T> queue = new ArrayBlockingQueue<>(1);
 
         // This callback runs on the "main" thread and unblocks the test thread
         // when it puts the result into the blocking queue

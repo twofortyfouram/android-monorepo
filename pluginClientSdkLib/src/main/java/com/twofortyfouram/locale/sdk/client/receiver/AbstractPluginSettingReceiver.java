@@ -24,39 +24,48 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.AnyThread;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 
+import com.twofortyfouram.locale.api.LocalePluginIntent;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.AndroidSdkVersion;
 import com.twofortyfouram.spackle.bundle.BundleScrubber;
+
+import net.jcip.annotations.ThreadSafe;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * <p>Abstract superclass for a plug-in setting BroadcastReceiver implementation.</p>
  * <p>The plug-in receiver lifecycle is as follows:</p>
  * <ol>
- * <li>{@link #onReceive(android.content.Context, android.content.Intent)} is called by the Android
+ * <li>{@link #onReceive(Context, Intent)} is called by the Android
  * frameworks.
  * onReceive() will verify that the Intent is valid.  If the Intent is invalid, the receiver
  * returns
  * immediately.  If the Intent appears to be valid, then the lifecycle continues.</li>
- * <li>{@link #isBundleValid(android.os.Bundle)} is called to determine whether {@link
- * com.twofortyfouram.locale.api.Intent#EXTRA_BUNDLE EXTRA_BUNDLE} is valid. If the Bundle is
+ * <li>{@link #isJsonValid(JSONObject)} is called to determine whether {@link
+ * LocalePluginIntent#EXTRA_BUNDLE EXTRA_BUNDLE} is valid. If the Bundle is
  * invalid, then the
  * receiver returns immediately.  If the bundle is valid, then the lifecycle continues.</li>
  * <li>{@link #isAsync()} is called to determine whether the remaining work should be performed on
  * a
  * background thread.</li>
- * <li>{@link #firePluginSetting(android.content.Context, android.os.Bundle)} is called to trigger
+ * <li>{@link #firePluginSetting(Context, JSONObject)} is called to trigger
  * the plug-in setting's action.</li>
  * </ol>
  * <p>
  * Implementations of this BroadcastReceiver must be registered in the Android
  * Manifest with an Intent filter for
- * {@link com.twofortyfouram.locale.api.Intent#ACTION_FIRE_SETTING ACTION_FIRE_SETTING}. The
+ * {@link LocalePluginIntent#ACTION_FIRE_SETTING ACTION_FIRE_SETTING}. The
  * BroadcastReceiver must be exported, enabled, and cannot have permissions
  * enforced on it.
  * </p>
  */
+@ThreadSafe
 public abstract class AbstractPluginSettingReceiver extends AbstractAsyncReceiver {
 
     /*
@@ -64,7 +73,7 @@ public abstract class AbstractPluginSettingReceiver extends AbstractAsyncReceive
      * alternative of nested if statements is even worse :/
      */
     @Override
-    public final void onReceive(final Context context, final Intent intent) {
+    public final void onReceive(@NonNull final Context context, final Intent intent) {
         if (BundleScrubber.scrub(intent)) {
             return;
         }
@@ -76,10 +85,10 @@ public abstract class AbstractPluginSettingReceiver extends AbstractAsyncReceive
          * plug-in setting finishes.
          */
 
-        if (!com.twofortyfouram.locale.api.Intent.ACTION_FIRE_SETTING.equals(intent.getAction())) {
+        if (!LocalePluginIntent.ACTION_FIRE_SETTING.equals(intent.getAction())) {
             Lumberjack
                     .e("Intent action is not %s",
-                            com.twofortyfouram.locale.api.Intent.ACTION_FIRE_SETTING); //$NON-NLS-1$
+                            LocalePluginIntent.ACTION_FIRE_SETTING); //$NON-NLS-1$
             return;
         }
 
@@ -99,20 +108,39 @@ public abstract class AbstractPluginSettingReceiver extends AbstractAsyncReceive
         }
 
         final Bundle bundle = intent
-                .getBundleExtra(com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE);
+                .getBundleExtra(LocalePluginIntent.EXTRA_BUNDLE);
         if (BundleScrubber.scrub(intent)) {
             return;
         }
 
         if (null == bundle) {
             Lumberjack.e("%s is missing",
-                    com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE); //$NON-NLS-1$
+                    LocalePluginIntent.EXTRA_BUNDLE); //$NON-NLS-1$
             return;
         }
 
-        if (!isBundleValid(bundle)) {
+        final JSONObject jsonObject;
+        {
+            final String jsonString = bundle.getString(LocalePluginIntent.EXTRA_STRING_JSON);
+
+            if (null == jsonString) {
+                Lumberjack.v("%s is missing", LocalePluginIntent.EXTRA_STRING_JSON); //$NON-NLS
+                return;
+            }
+
+            try {
+                jsonObject = new JSONObject(jsonString);
+            } catch (final JSONException e) {
+                Lumberjack.e("%s=%s is invalid",
+                        LocalePluginIntent.EXTRA_STRING_JSON, jsonString); //$NON-NLS-1$
+                return;
+            }
+        }
+
+        if (!isJsonValid(jsonObject)) {
             Lumberjack.e("%s is invalid",
-                    com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE); //$NON-NLS-1$
+                    LocalePluginIntent.EXTRA_STRING_JSON); //$NON-NLS-1$
+            setResultCode(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
             return;
         }
 
@@ -123,11 +151,11 @@ public abstract class AbstractPluginSettingReceiver extends AbstractAsyncReceive
                 private final Context mContext = context;
 
                 @NonNull
-                private final Bundle mBundle = bundle;
+                private final JSONObject mJson = jsonObject;
 
                 @Override
                 public int runAsync() {
-                    firePluginSetting(mContext, mBundle);
+                    firePluginSetting(mContext, mJson);
                     return Activity.RESULT_OK;
                 }
 
@@ -135,29 +163,30 @@ public abstract class AbstractPluginSettingReceiver extends AbstractAsyncReceive
 
             goAsyncWithCallback(callback, isOrderedBroadcast());
         } else {
-            firePluginSetting(context, bundle);
+            firePluginSetting(context, jsonObject);
         }
     }
 
     /**
-     * <p>Gives the plug-in receiver an opportunity to validate the Bundle, to
+     * <p>Gives the plug-in receiver an opportunity to validate the JSON, to
      * ensure that a malicious application isn't attempting to pass
-     * an invalid Bundle.</p>
+     * an invalid JSON object.</p>
      * <p>
      * This method will be called on the BroadcastReceiver's Looper (normatively the main thread)
      * </p>
      *
-     * @param bundle The plug-in's Bundle previously returned by the edit
-     *               Activity.  {@code bundle} should not be mutated by this method.
-     * @return true if {@code bundle} appears to be valid.  false if {@code bundle} appears to be
+     * @param json The plug-in's JSON previously returned by the edit
+     *             Activity.  {@code json} should not be mutated by this method.
+     * @return true if {@code json} appears to be valid.  false if {@code json} appears to be
      * invalid.
      */
-    protected abstract boolean isBundleValid(@NonNull final Bundle bundle);
+    @MainThread
+    protected abstract boolean isJsonValid(@NonNull final JSONObject json);
 
     /**
      * Configures the receiver whether it should process the Intent in a
      * background thread. Plug-ins should return true if their
-     * {@link #firePluginSetting(android.content.Context, android.os.Bundle)} method performs any
+     * {@link #firePluginSetting(Context, JSONObject)} method performs any
      * sort of disk IO (ContentProvider query, reading SharedPreferences, etc.).
      * or other work that may be slow.
      * <p>
@@ -169,6 +198,7 @@ public abstract class AbstractPluginSettingReceiver extends AbstractAsyncReceive
      * thread. False if the plug-in should process the Intent on the
      * BroadcastReceiver's Looper (normatively the main thread).
      */
+    @MainThread
     protected abstract boolean isAsync();
 
     /**
@@ -179,9 +209,10 @@ public abstract class AbstractPluginSettingReceiver extends AbstractAsyncReceive
      * for BroadcastReceivers.
      *
      * @param context BroadcastReceiver context.
-     * @param bundle  The plug-in's Bundle previously returned by the edit
+     * @param json The plug-in's JSON previously returned by the edit
      *                Activity.
      */
+    @AnyThread
     protected abstract void firePluginSetting(@NonNull final Context context,
-            @NonNull final Bundle bundle);
+            @NonNull final JSONObject json);
 }

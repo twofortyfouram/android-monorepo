@@ -23,13 +23,15 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.twofortyfouram.assertion.BundleAssertions;
+import com.twofortyfouram.locale.api.LocalePluginIntent;
 import com.twofortyfouram.locale.sdk.client.ui.activity.IPluginActivity;
 import com.twofortyfouram.log.Lumberjack;
-import com.twofortyfouram.spackle.bundle.BundleComparer;
 import com.twofortyfouram.spackle.bundle.BundleScrubber;
 
 import net.jcip.annotations.Immutable;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
@@ -46,17 +48,18 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
  */
 @Immutable
 public final class PluginActivityDelegate<T extends Activity & IPluginActivity> {
+
     /**
      * @param intent Intent to check.
      * @return True if intent is a Locale plug-in edit Intent.
      */
-    public static boolean isLocalePluginIntent(@NonNull final Intent intent) {
+    public static boolean isLocalePluginEditIntent(@NonNull final Intent intent) {
         assertNotNull(intent, "intent"); //$NON-NLS-1$
 
         final String action = intent.getAction();
 
-        return com.twofortyfouram.locale.api.Intent.ACTION_EDIT_CONDITION.equals(action)
-                || com.twofortyfouram.locale.api.Intent.ACTION_EDIT_SETTING.equals(action);
+        return LocalePluginIntent.ACTION_EDIT_CONDITION.equals(action)
+                || LocalePluginIntent.ACTION_EDIT_SETTING.equals(action);
     }
 
     public void onCreate(@NonNull final T activity, @Nullable final Bundle savedInstanceState) {
@@ -64,58 +67,72 @@ public final class PluginActivityDelegate<T extends Activity & IPluginActivity> 
 
         final Intent intent = activity.getIntent();
 
-        if (isLocalePluginIntent(intent)) {
+        if (isLocalePluginEditIntent(intent)) {
             if (BundleScrubber.scrub(intent)) {
                 return;
             }
 
-            final Bundle previousBundle = activity.getPreviousBundle();
-            if (BundleScrubber.scrub(previousBundle)) {
-                return;
-            }
+            final JSONObject previousJson = activity.getPreviousJson();
 
             Lumberjack
-                    .v("Creating Activity with Intent=%s, savedInstanceState=%s, EXTRA_BUNDLE=%s",
-                            intent, savedInstanceState, previousBundle); //$NON-NLS-1$
+                    .v("Creating Activity with Intent=%s, savedInstanceState=%s, EXTRA_JSON=%s",
+                            intent, savedInstanceState, previousJson); //$NON-NLS-1$
         }
     }
 
     public void onPostCreate(@NonNull final T activity, @Nullable final Bundle savedInstanceState) {
         assertNotNull(activity, "activity"); //$NON-NLS-1$
 
-        if (PluginActivityDelegate.isLocalePluginIntent(activity.getIntent())) {
+        if (PluginActivityDelegate.isLocalePluginEditIntent(activity.getIntent())) {
             if (null == savedInstanceState) {
-                final Bundle previousBundle = activity.getPreviousBundle();
+                final JSONObject previousJson = activity.getPreviousJson();
                 final String previousBlurb = activity.getPreviousBlurb();
-                if (null != previousBundle && null != previousBlurb) {
-                    activity.onPostCreateWithPreviousResult(previousBundle, previousBlurb);
+                if (null != previousJson && null != previousBlurb) {
+                    activity.onPostCreateWithPreviousResult(previousJson, previousBlurb);
                 }
             }
         }
     }
 
     public void finish(@NonNull final T activity, final boolean isCancelled) {
-        if (PluginActivityDelegate.isLocalePluginIntent(activity.getIntent())) {
+        if (PluginActivityDelegate.isLocalePluginEditIntent(activity.getIntent())) {
             if (!isCancelled) {
-                final Bundle resultBundle = activity.getResultBundle();
+                final JSONObject resultJson = activity.getResultJson();
 
-                if (null != resultBundle) {
-                    BundleAssertions.assertSerializable(resultBundle);
+                if (null != resultJson) {
+                    // TODO: consider checking the size of the serialized form
 
-                    final String blurb = activity.getResultBlurb(resultBundle);
+                    final String blurb = activity.getResultBlurb(resultJson);
                     assertNotNull(blurb, "blurb"); //$NON-NLS-1$
 
-                    if (!BundleComparer.areBundlesEqual(resultBundle, activity.getPreviousBundle())
+                    final JSONObject previousJson = activity.getPreviousJson();
+
+                    // JSON string comparison is not ideal, although they will have both been
+                    // processed by the same parser so hopefully ordering will be consistent.
+                    // In the future this should be replaced with a more robust comparison.
+                    // Worse case scenario if this comparison isn't accurate is that an additional
+                    // save is performed that wasn't expected.
+                    // TODO: Implement real JSON comparison
+                    final String newResultJsonString = resultJson.toString();
+                    final String oldResultJsonString = null != previousJson ? previousJson
+                            .toString() : null;
+
+                    if (!newResultJsonString.equals(oldResultJsonString)
                             || !blurb.equals(activity.getPreviousBlurb())) {
+                        final Bundle resultBundle = new Bundle();
+                        resultBundle.putString(LocalePluginIntent.EXTRA_STRING_JSON,
+                                newResultJsonString);
+
                         final Intent resultIntent = new Intent();
-                        resultIntent.putExtra(com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE,
+                        resultIntent.putExtra(LocalePluginIntent.EXTRA_BUNDLE,
                                 resultBundle);
                         resultIntent.putExtra(
-                                com.twofortyfouram.locale.api.Intent.EXTRA_STRING_BLURB,
+                                LocalePluginIntent.EXTRA_STRING_BLURB,
                                 blurb);
 
                         activity.setResult(Activity.RESULT_OK, resultIntent);
                     }
+
                 }
             }
         }
@@ -123,22 +140,33 @@ public final class PluginActivityDelegate<T extends Activity & IPluginActivity> 
 
     @Nullable
     public final String getPreviousBlurb(@NonNull final T activity) {
-        final String blurb = activity.getIntent().getStringExtra(
-                com.twofortyfouram.locale.api.Intent.EXTRA_STRING_BLURB);
-
-        return blurb;
+        return activity.getIntent().getStringExtra(
+                LocalePluginIntent.EXTRA_STRING_BLURB);
     }
 
     @Nullable
-    public Bundle getPreviousBundle(@NonNull final T activity) {
+    public JSONObject getPreviousJson(@NonNull final T activity) {
         assertNotNull(activity, "activity"); //$NON-NLS-1$
 
         final Bundle bundle = activity.getIntent().getBundleExtra(
-                com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE);
+                LocalePluginIntent.EXTRA_BUNDLE);
 
-        if (null != bundle) {
-            if (activity.isBundleValid(bundle)) {
-                return bundle;
+        if (!BundleScrubber.scrub(bundle)) {
+            if (null != bundle) {
+                final String jsonString = bundle
+                        .getString(LocalePluginIntent.EXTRA_STRING_JSON);
+                if (null != jsonString) {
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = new JSONObject(jsonString);
+                    } catch (final JSONException e) {
+                        Lumberjack.e("Failed to parse %s as JSON", jsonString, e); //$NON-NLS
+                    }
+
+                    if (activity.isJsonValid(jsonObject)) {
+                        return jsonObject;
+                    }
+                }
             }
         }
 

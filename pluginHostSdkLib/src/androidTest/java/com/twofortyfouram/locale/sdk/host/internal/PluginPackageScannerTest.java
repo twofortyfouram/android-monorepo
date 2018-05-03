@@ -27,13 +27,13 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.spackle.AppBuildInfo;
-import com.twofortyfouram.test.assertion.MoarAsserts;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Collection;
 
+import static com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher.notInstantiable;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
@@ -45,7 +45,7 @@ public final class PluginPackageScannerTest {
     @SmallTest
     @Test
     public void nonInstantiable() {
-        MoarAsserts.assertNoninstantiable(PluginPackageScanner.class);
+        assertThat(PluginPackageScanner.class, notInstantiable());
     }
 
     @SmallTest
@@ -258,7 +258,8 @@ public final class PluginPackageScannerTest {
     }
 
     @NonNull
-    private static ResolveInfo getResolveInfoWithApplicationEnabled(final boolean isApplicationEnabled) {
+    private static ResolveInfo getResolveInfoWithApplicationEnabled(
+            final boolean isApplicationEnabled) {
         final ResolveInfo info = new ResolveInfo();
         info.activityInfo = new ActivityInfo();
         info.activityInfo.applicationInfo = new ApplicationInfo();
@@ -275,7 +276,8 @@ public final class PluginPackageScannerTest {
     }
 
     @NonNull
-    private static ResolveInfo getResolveInfoWithActivityExported(final boolean isActivityExported) {
+    private static ResolveInfo getResolveInfoWithActivityExported(
+            final boolean isActivityExported) {
         final ResolveInfo info = new ResolveInfo();
         info.activityInfo = new ActivityInfo();
         info.activityInfo.exported = isActivityExported;

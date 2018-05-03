@@ -64,7 +64,7 @@ public final class HostPackageUtil {
      */
     @NonNull
     private static Set<String> getPackageSet() {
-        final HashSet<String> packages = new LinkedHashSet<String>();
+        final HashSet<String> packages = new LinkedHashSet<>();
 
         packages.add("com.twofortyfouram.locale"); //$NON-NLS-1$
         packages.add("com.twofortyfouram.locale.example.host"); //$NON-NLS-1$

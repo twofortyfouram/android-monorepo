@@ -31,64 +31,32 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RestrictTo;
 import android.support.annotation.Size;
 
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.annotation.Slow.Speed;
+import com.twofortyfouram.locale.api.LocalePluginIntent;
 import com.twofortyfouram.locale.sdk.host.R;
 import com.twofortyfouram.log.Lumberjack;
 
 import net.jcip.annotations.Immutable;
+import net.jcip.annotations.ThreadSafe;
 
 import java.util.Locale;
 
 import static com.twofortyfouram.assertion.Assertions.assertNotEmpty;
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
-/**
- * Represents a plug-in for Locale.  A plug-in consists of an Android package name, an Activity
- * for
- * {@link
- * com.twofortyfouram.locale.api.Intent#ACTION_EDIT_CONDITION ACTION_EDIT_CONDITION} or {@link
- * com.twofortyfouram.locale.api.Intent#ACTION_EDIT_SETTING ACTION_EDIT_SETTING}, along with a
- * BroadcastReceiver for
- * {@link com.twofortyfouram.locale.api.Intent#ACTION_QUERY_CONDITION ACTION_QUERY_CONDITION} or
- * {@link
- * com.twofortyfouram.locale.api.Intent#ACTION_FIRE_SETTING ACTION_FIRE_SETTING}.
- * <p>
- * Note: This class does not validate the plug-in it represents. It is the
- * caller's responsibility to provide valid names during construction, and the
- * caller's responsibility to handle plug-ins that become invalid. This
- * lack of validation is an intentional design decision because packages on
- * Android can be installed, uninstalled, or changed at any time.
- */
+
 @Immutable
-public final class Plugin implements Parcelable {
+public final class Plugin implements IPlugin {
 
     /**
-     * Implements the {@link Parcelable} interface
+     * Implements the {@link Parcelable} interface.
      */
     @NonNull
-    public static final Parcelable.Creator<Plugin> CREATOR = new Parcelable.Creator<Plugin>() {
-        @Override
-        public Plugin createFromParcel(final Parcel in) {
-            final PluginType pluginType = PluginType.valueOf(in.readString());
-            final String packageName = in.readString();
-            final String activityClassName = in.readString();
-            final String receiverClassName = in.readString();
-            final int versionCode = in.readInt();
-            final PluginConfiguration configuration = in
-                    .readParcelable(this.getClass().getClassLoader());
-
-            return new Plugin(pluginType, packageName, activityClassName, receiverClassName,
-                    versionCode, configuration);
-        }
-
-        @Override
-        public Plugin[] newArray(final int size) {
-            return new Plugin[size];
-        }
-    };
+    public static final Parcelable.Creator<Plugin> CREATOR = new PluginParcelableCreator();
 
     /**
      * The type of plug-in.
@@ -105,8 +73,8 @@ public final class Plugin implements Parcelable {
     /**
      * The fully qualified class name of the plug-in's edit Activity.
      *
-     * @see com.twofortyfouram.locale.api.Intent#ACTION_EDIT_CONDITION
-     * @see com.twofortyfouram.locale.api.Intent#ACTION_EDIT_SETTING
+     * @see LocalePluginIntent#ACTION_EDIT_CONDITION
+     * @see LocalePluginIntent#ACTION_EDIT_SETTING
      */
     @NonNull
     private final String mActivityClassName;
@@ -114,8 +82,8 @@ public final class Plugin implements Parcelable {
     /**
      * The fully qualified class name of the plug-in's BroadcastReceiver.
      *
-     * @see com.twofortyfouram.locale.api.Intent#ACTION_QUERY_CONDITION
-     * @see com.twofortyfouram.locale.api.Intent#ACTION_FIRE_SETTING
+     * @see LocalePluginIntent#ACTION_QUERY_CONDITION
+     * @see LocalePluginIntent#ACTION_FIRE_SETTING
      */
     @NonNull
     private final String mReceiverClassName;
@@ -153,8 +121,9 @@ public final class Plugin implements Parcelable {
      * @param configuration     Configuration for the plug-in.
      */
     public Plugin(@NonNull final PluginType type, @NonNull @Size(min = 1) final String packageName,
-                  @Size(min = 1) @NonNull final String activityClassName, @NonNull @Size(min = 1) final String receiverClassName,
-                  final int versionCode, @NonNull final PluginConfiguration configuration) {
+            @Size(min = 1) @NonNull final String activityClassName,
+            @NonNull @Size(min = 1) final String receiverClassName,
+            final int versionCode, @NonNull final PluginConfiguration configuration) {
         assertNotNull(type, "type"); //$NON-NLS-1$
         assertNotEmpty(packageName, "packageName"); //$NON-NLS-1$
         assertNotEmpty(activityClassName, "activityClassName"); //$NON-NLS-1$
@@ -170,95 +139,81 @@ public final class Plugin implements Parcelable {
         mConfiguration = configuration;
     }
 
-    /**
-     * @return The plug-in's type.
-     */
     @NonNull
+    @Override
     public final PluginType getType() {
         return mType;
     }
 
-    /**
-     * @return The plug-in's registry name, as would be generated by
-     * {@link #generateRegistryName(String, String)}.
-     */
     @NonNull
+    @Override
     public final String getRegistryName() {
         return mRegistryName;
     }
 
-    /**
-     * @return The plug-in's package name. This is the Android definition of
-     * package (e.g. AndroidManifest), rather than the Java definition
-     * of package.
-     */
     @NonNull
+    @Override
     public final String getPackageName() {
         return mPackageName;
     }
 
-    /**
-     * @return The fully qualified class name of the plug-in's edit Activity.
-     */
     @NonNull
+    @Override
     public final String getActivityClassName() {
         return mActivityClassName;
     }
 
-    /**
-     * @return The fully qualified class name of the plug-in's
-     * BroadcastReceiver.
-     */
     @NonNull
+    @Override
     public final String getReceiverClassName() {
         return mReceiverClassName;
     }
 
-    /**
-     * @return The versionCode of the plug-in's package.
-     */
+    @Override
     public final int getVersionCode() {
         return mVersionCode;
     }
 
-    /**
-     * @return The plug-in's configuration.
-     */
     @NonNull
+    @Override
     public final PluginConfiguration getConfiguration() {
         return mConfiguration;
     }
 
-    /**
-     * Retrieves a human-readable version of the Plugin's name that would be
-     * appropriate to display to a user in a UI.
-     * <p>
-     * The results of this method may change after a configuration change (e.g.
-     * the system's locale is changed).
-     *
-     * @param context Application context.
-     * @return the display name of the plug-in.
-     */
     @NonNull
     @Slow(Speed.MILLISECONDS)
+    @Override
     public final String getActivityLabel(@NonNull final Context context) {
         assertNotNull(context, "context"); //$NON-NLS-1$
 
-        CharSequence name = getActivityClassName();
+        return getActivityLabel(context, this);
+    }
+
+    // TODO: Java 8 refactor this to the IPlugin interface.
+    @NonNull
+    @Slow(Speed.MILLISECONDS)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    /*package*/ static final String getActivityLabel(@NonNull final Context context,
+            @NonNull final IPlugin plugin) {
+        assertNotNull(context, "context"); //$NON-NLS-1$
+        assertNotNull(context, "plugin"); //$NON-NLS-1$
+
+        CharSequence name = plugin.getActivityClassName();
 
         final PackageManager packageManager = context.getPackageManager();
         try {
-            final ActivityInfo activityInfo = packageManager.getActivityInfo(getComponentName(), 0);
+            final ActivityInfo activityInfo = packageManager
+                    .getActivityInfo(newComponentName(plugin), 0);
 
             if (0 == activityInfo.labelRes && null != activityInfo.nonLocalizedLabel) {
                 name = activityInfo.nonLocalizedLabel;
             } else if (0 != activityInfo.labelRes) {
-                name = packageManager.getText(getPackageName(), activityInfo.labelRes,
+                name = packageManager.getText(plugin.getPackageName(), activityInfo.labelRes,
                         activityInfo.applicationInfo);
             }
 
             if (null == name || 0 == name.length()) {
-                name = getActivityClassName();
+                name = plugin.getActivityClassName();
             }
         } catch (final NameNotFoundException e) {
             /*
@@ -269,29 +224,30 @@ public final class Plugin implements Parcelable {
         return name.toString();
     }
 
-    /**
-     * Retrieves a human-viewable version of the plug-in's icon that would be
-     * appropriate to display to a user in a UI.
-     * <p>
-     * The results of this method may change after a configuration change (e.g.
-     * the system's locale is changed).
-     * <p>
-     * This method will scale the size of the icon if the dimension resource
-     * com_twofortyfouram_locale_sdk_host_plugin_icon_size exists.
-     *
-     * @param context Application context.
-     * @return the icon of the plug-in.
-     */
     @Nullable
+    @Slow(Speed.MILLISECONDS)
+    @Override
     public final Drawable getActivityIcon(@NonNull final Context context) {
         assertNotNull(context, "context"); //$NON-NLS-1$
+
+        return getActivityIcon(context, this);
+    }
+
+    // TODO: Java 8 refactor this to the IPlugin interface.
+    @Nullable
+    @Slow(Speed.MILLISECONDS)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    /*package*/ static final Drawable getActivityIcon(@NonNull final Context context,
+            @NonNull final IPlugin plugin) {
+        assertNotNull(context, "context"); //$NON-NLS
+        assertNotNull(plugin, "plugin"); //$NON-NLS
 
         final PackageManager packageManager = context.getPackageManager();
 
         Drawable icon = null;
         try {
             icon = packageManager
-                    .getActivityIcon(getComponentName());
+                    .getActivityIcon(newComponentName(plugin));
         } catch (final NameNotFoundException e) {
             icon = packageManager.getDefaultActivityIcon();
         }
@@ -307,7 +263,7 @@ public final class Plugin implements Parcelable {
                     || icon.getIntrinsicWidth() != size) {
                 Lumberjack
                         .always("WARNING: Plug-in %s Activity icon size %dx%d is inappropriate for current screen resolution.  Icon should be %dx%d pixels",
-                                getActivityClassName(), icon.getIntrinsicWidth(),
+                                plugin.getActivityClassName(), icon.getIntrinsicWidth(),
                                 icon.getIntrinsicHeight(), size, size); //$NON-NLS-1$
                 icon = new BitmapDrawable(res,
                         Bitmap.createScaledBitmap(
@@ -320,8 +276,8 @@ public final class Plugin implements Parcelable {
     }
 
     @NonNull
-    private ComponentName getComponentName() {
-        return new ComponentName(getPackageName(), getActivityClassName());
+    private static ComponentName newComponentName(@NonNull final IPlugin plugin) {
+        return new ComponentName(plugin.getPackageName(), plugin.getActivityClassName());
     }
 
     /**
@@ -340,7 +296,7 @@ public final class Plugin implements Parcelable {
      */
     @NonNull
     public static String generateRegistryName(@NonNull final String packageName,
-                                              @NonNull final String activityName) {
+            @NonNull final String activityName) {
         assertNotEmpty(packageName, "packageName"); //$NON-NLS-1$
         assertNotEmpty(activityName, "activityName"); //$NON-NLS-1$
 
@@ -423,5 +379,28 @@ public final class Plugin implements Parcelable {
 //$NON-NLS-1$
                         mType, mPackageName, mActivityClassName, mReceiverClassName, mVersionCode,
                         mConfiguration);
+    }
+
+    @ThreadSafe
+    private static final class PluginParcelableCreator implements Parcelable.Creator<Plugin> {
+
+        @Override
+        public Plugin createFromParcel(@NonNull final Parcel in) {
+            final PluginType pluginType = PluginType.valueOf(in.readString());
+            final String packageName = in.readString();
+            final String activityClassName = in.readString();
+            final String receiverClassName = in.readString();
+            final int versionCode = in.readInt();
+            final PluginConfiguration configuration = in
+                    .readParcelable(this.getClass().getClassLoader());
+
+            return new Plugin(pluginType, packageName, activityClassName, receiverClassName,
+                    versionCode, configuration);
+        }
+
+        @Override
+        public Plugin[] newArray(final int size) {
+            return new Plugin[size];
+        }
     }
 }

@@ -18,6 +18,8 @@
 package com.twofortyfouram.locale.sdk.host.test.fixture;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.RestrictTo;
+import android.support.annotation.VisibleForTesting;
 import android.support.test.InstrumentationRegistry;
 
 import com.twofortyfouram.locale.sdk.host.model.Plugin;
@@ -33,7 +35,10 @@ import net.jcip.annotations.ThreadSafe;
  * Fixture for the test plug-ins embedded in the test package.
  */
 @ThreadSafe
+@RestrictTo(RestrictTo.Scope.TESTS)
+@VisibleForTesting(otherwise = VisibleForTesting.NONE)
 public final class DebugPluginFixture {
+
     @NonNull
     public static Plugin getDebugPluginCondition() {
         return new Plugin(PluginType.CONDITION,

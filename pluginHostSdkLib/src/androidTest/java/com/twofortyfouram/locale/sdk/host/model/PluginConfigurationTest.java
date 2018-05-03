@@ -48,7 +48,7 @@ public final class PluginConfigurationTest {
     @Test
     public void getIsBackwardsCompatibilityEnabled_true() {
         final PluginConfiguration configuration = new PluginConfiguration(true, false, false,
-                false, false, false, new LinkedList<String>());
+                false, false, false, new LinkedList<>());
 
         assertThat(configuration.isBackwardsCompatibilityEnabled(), is(true));
     }
@@ -64,7 +64,7 @@ public final class PluginConfigurationTest {
     @Test
     public void isRequiresConnectivity_true() {
         final PluginConfiguration configuration = new PluginConfiguration(false, true, false,
-                false, false, false, new LinkedList<String>());
+                false, false, false, new LinkedList<>());
 
         assertThat(configuration.isRequiresConnectivity(),
                 is(true));
@@ -81,7 +81,7 @@ public final class PluginConfigurationTest {
     @Test
     public void isDisruptsConnectivity_true() {
         final PluginConfiguration configuration = new PluginConfiguration(false, false, true,
-                false, false, false, new LinkedList<String>());
+                false, false, false, new LinkedList<>());
 
         assertThat(configuration.isDisruptsConnectivity(), is(true));
     }
@@ -96,7 +96,7 @@ public final class PluginConfigurationTest {
     @Test
     public void isBuggy_true() {
         final PluginConfiguration configuration = new PluginConfiguration(false, false, false,
-                true, false, false, new LinkedList<String>());
+                true, false, false, new LinkedList<>());
 
         assertThat(configuration.isBuggy(), is(true));
     }
@@ -112,7 +112,7 @@ public final class PluginConfigurationTest {
     @Test
     public void isDrainsBattery_true() {
         final PluginConfiguration configuration = new PluginConfiguration(false, false, false,
-                false, true, false, new LinkedList<String>());
+                false, true, false, new LinkedList<>());
 
         assertThat(configuration.isDrainsBattery(), is(true));
     }
@@ -127,7 +127,7 @@ public final class PluginConfigurationTest {
     @Test
     public void isBlacklisted_true() {
         final PluginConfiguration configuration = new PluginConfiguration(false, false, false,
-                false, false, true, new LinkedList<String>());
+                false, false, true, new LinkedList<>());
 
         assertThat(configuration.isBlacklisted(), is(true));
     }
@@ -179,7 +179,7 @@ public final class PluginConfigurationTest {
 
         assertNotEquals(defaultConfiguration,
                 new PluginConfiguration(true, false, false, false, false, false,
-                        new LinkedList<String>()));
+                        new LinkedList<>()));
     }
 
     @SmallTest
@@ -190,7 +190,7 @@ public final class PluginConfigurationTest {
 
         assertNotEquals(defaultConfiguration,
                 new PluginConfiguration(false, true, false, false, false, false,
-                        new LinkedList<String>())
+                        new LinkedList<>())
         );
     }
 
@@ -202,7 +202,7 @@ public final class PluginConfigurationTest {
 
         assertNotEquals(defaultConfiguration,
                 new PluginConfiguration(false, false, true, false, false, false,
-                        new LinkedList<String>())
+                        new LinkedList<>())
         );
     }
 
@@ -214,7 +214,7 @@ public final class PluginConfigurationTest {
 
         assertNotEquals(defaultConfiguration,
                 new PluginConfiguration(false, false, false, true, false, false,
-                        new LinkedList<String>())
+                        new LinkedList<>())
         );
     }
 
@@ -226,7 +226,7 @@ public final class PluginConfigurationTest {
 
         assertNotEquals(defaultConfiguration,
                 new PluginConfiguration(false, false, false, false, true, false,
-                        new LinkedList<String>())
+                        new LinkedList<>())
         );
     }
 
@@ -238,7 +238,7 @@ public final class PluginConfigurationTest {
 
         assertNotEquals(defaultConfiguration,
                 new PluginConfiguration(false, false, false, false, false, true,
-                        new LinkedList<String>())
+                        new LinkedList<>())
         );
     }
 
@@ -248,7 +248,7 @@ public final class PluginConfigurationTest {
         final PluginConfiguration defaultConfiguration = PluginConfigurationFixture
                 .newPluginConfiguration();
 
-        final List<String> nonEmptyList = new LinkedList<String>();
+        final List<String> nonEmptyList = new LinkedList<>();
         nonEmptyList.add("foo");
 
         assertNotEquals(defaultConfiguration,

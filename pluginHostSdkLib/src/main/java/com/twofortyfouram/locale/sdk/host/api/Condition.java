@@ -25,29 +25,28 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.SystemClock;
-import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 import android.text.format.DateUtils;
 
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.annotation.Slow.Speed;
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.annotation.ConditionResult;
+import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.sdk.host.model.IPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.AndroidSdkVersion;
+import com.twofortyfouram.spackle.Clock;
 import com.twofortyfouram.spackle.ContextUtil;
-import com.twofortyfouram.spackle.ThreadUtil;
-import com.twofortyfouram.spackle.ThreadUtil.ThreadPriority;
+import com.twofortyfouram.spackle.HandlerThreadFactory;
+import com.twofortyfouram.spackle.HandlerThreadFactory.ThreadPriority;
 import com.twofortyfouram.spackle.bundle.BundleScrubber;
 
 import net.jcip.annotations.NotThreadSafe;
 import net.jcip.annotations.ThreadSafe;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -74,10 +73,13 @@ public final class Condition {
     private final Context mContext;
 
     @NonNull
-    private final Plugin mPlugin;
+    private final Clock mClock;
 
     @NonNull
-    private final HandlerThread mHandlerThread = ThreadUtil.newHandlerThread(
+    private final IPlugin mPlugin;
+
+    @NonNull
+    private final HandlerThread mHandlerThread = HandlerThreadFactory.newHandlerThread(
             Condition.class.getName(), ThreadPriority.BACKGROUND);
 
     /**
@@ -90,10 +92,13 @@ public final class Condition {
      * Constructs a new plug-in setting.
      *
      * @param context Application context.
+     * @param clock   Generic clock interface.
      * @param plugin  The plug-in details.
      */
-    public Condition(@NonNull final Context context, @NonNull final Plugin plugin) {
+    public Condition(@NonNull final Context context, @NonNull final Clock clock,
+            @NonNull final IPlugin plugin) {
         assertNotNull(context, "context"); //$NON-NLS-1$
+        assertNotNull(clock, "clock"); //$NON-NLS-1$
         assertNotNull(plugin, "plugin"); //$NON-NLS-1$
 
         if (PluginType.CONDITION != plugin.getType()) {
@@ -101,6 +106,7 @@ public final class Condition {
         }
 
         mContext = ContextUtil.cleanContext(context);
+        mClock = clock;
         mPlugin = plugin;
     }
 
@@ -111,27 +117,27 @@ public final class Condition {
      * @param previousState The previous query result of the plug-in, to be set as the initial
      *                      result code
      *                      when querying the plug-in.  This must be one of {@link
-     *                      com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_SATISFIED
+     *                      LocalePluginIntent#RESULT_CONDITION_SATISFIED
      *                      RESULT_CONDITION_SATISFIED}
      *                      ,
-     *                      {@link com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_UNSATISFIED
+     *                      {@link LocalePluginIntent#RESULT_CONDITION_UNSATISFIED
      *                      RESULT_CONDITION_UNSATISFIED}
      *                      , or
-     *                      {@link com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_UNKNOWN
+     *                      {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
      *                      RESULT_CONDITION_UNKNOWN}.
      *                      Plug-in implementations might use this
      *                      previous result code for hysteresis.  If no previous state is
      *                      available,
-     *                      pass {@link com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_UNKNOWN
+     *                      pass {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
      *                      RESULT_CONDITION_UNKNOWN}.
      * @return One of the Locale plug-in query results:
-     * {@link com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_SATISFIED
+     * {@link LocalePluginIntent#RESULT_CONDITION_SATISFIED
      * RESULT_CONDITION_SATISFIED}
      * ,
-     * {@link com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_UNSATISFIED
+     * {@link LocalePluginIntent#RESULT_CONDITION_UNSATISFIED
      * RESULT_CONDITION_UNSATISFIED}
      * , or
-     * {@link com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_UNKNOWN
+     * {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
      * RESULT_CONDITION_UNKNOWN}
      * .
      */
@@ -140,29 +146,11 @@ public final class Condition {
     public int query(@NonNull final PluginInstanceData data, @ConditionResult final int
             previousState) {
         assertNotNull(data, "data"); //$NON-NLS-1$
-        assertInRangeInclusive(previousState, com.twofortyfouram.locale.api.Intent.
-                RESULT_CONDITION_SATISFIED, com.twofortyfouram.locale.api.Intent.
+        assertInRangeInclusive(previousState, LocalePluginIntent.
+                RESULT_CONDITION_SATISFIED, LocalePluginIntent.
                 RESULT_CONDITION_UNKNOWN, "previousState");
 
-        final Bundle pluginBundle;
-        try {
-            /*
-             * Referring to the full class name, rather than using an import, works around JavaDoc
-             * warnings on BundleSerializer which is obfuscated out by the time the JavaDoc task
-             * runs.
-             */
-            pluginBundle = com.twofortyfouram.locale.sdk.host.internal.BundleSerializer
-                    .deserializeFromByteArray(data.getSerializedBundle());
-        } catch (final Exception e) {
-            /*
-             * If the Bundle could be serialized, it should be possible to deserialize.  One
-             * scenario where this could fail is if the Bundle was serialized on a newer version of
-             * Android and contained a Serializable class not available to the current version of
-             * Android.
-             */
-            Lumberjack.always("Error deserializing bundle", e);
-            return com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNKNOWN;
-        }
+        final Bundle pluginBundle = data.getBundle();
 
         return query(pluginBundle, previousState);
     }
@@ -180,27 +168,27 @@ public final class Condition {
      * @param previousState The previous query result of the plug-in, to be set as the initial
      *                      result code
      *                      when querying the plug-in.  This must be one of {@link
-     *                      com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_SATISFIED
+     *                      LocalePluginIntent#RESULT_CONDITION_SATISFIED
      *                      RESULT_CONDITION_SATISFIED}
      *                      ,
-     *                      {@link com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_UNSATISFIED
+     *                      {@link LocalePluginIntent#RESULT_CONDITION_UNSATISFIED
      *                      RESULT_CONDITION_UNSATISFIED}
      *                      , or
-     *                      {@link com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_UNKNOWN
+     *                      {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
      *                      RESULT_CONDITION_UNKNOWN}.
      *                      Plug-in implementations might use this
      *                      previous result code for hysteresis.  If no previous state is
      *                      available,
-     *                      pass {@link com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_UNKNOWN
+     *                      pass {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
      *                      RESULT_CONDITION_UNKNOWN}.
      * @return One of the Locale plug-in query results:
-     * {@link com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_SATISFIED
+     * {@link LocalePluginIntent#RESULT_CONDITION_SATISFIED
      * RESULT_CONDITION_SATISFIED}
      * ,
-     * {@link com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_UNSATISFIED
+     * {@link LocalePluginIntent#RESULT_CONDITION_UNSATISFIED
      * RESULT_CONDITION_UNSATISFIED}
      * , or
-     * {@link com.twofortyfouram.locale.api.Intent#RESULT_CONDITION_UNKNOWN
+     * {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
      * RESULT_CONDITION_UNKNOWN}
      * .
      */
@@ -209,8 +197,8 @@ public final class Condition {
     public int query(@NonNull final Bundle pluginBundle, @ConditionResult final int
             previousState) {
         assertNotNull(pluginBundle, "pluginBundle"); //$NON-NLS-1$
-        assertInRangeInclusive(previousState, com.twofortyfouram.locale.api.Intent.
-                RESULT_CONDITION_SATISFIED, com.twofortyfouram.locale.api.Intent.
+        assertInRangeInclusive(previousState, LocalePluginIntent.
+                RESULT_CONDITION_SATISFIED, LocalePluginIntent.
                 RESULT_CONDITION_UNKNOWN, "previousState");
 
         /*
@@ -221,7 +209,7 @@ public final class Condition {
         final Intent intent = newQueryIntent(mPlugin, pluginBundle);
 
         final QueryResultReceiver resultReceiver = new QueryResultReceiver();
-        final long startRealtimeMillis = SystemClock.elapsedRealtime();
+        final long startRealtimeMillis = mClock.getRealTimeMillis();
         mContext.sendOrderedBroadcast(intent, null, resultReceiver, mHandler,
                 previousState, null, null);
 
@@ -234,14 +222,13 @@ public final class Condition {
                 Lumberjack.e("Failed to receive ordered broadcast"); //$NON-NLS-1$
             } else {
                 Lumberjack.v("Query completed after %d [milliseconds]",
-                        SystemClock.elapsedRealtime() - startRealtimeMillis);
+                        mClock.getRealTimeMillis() - startRealtimeMillis); //$NON-NLS-1$
             }
         } catch (final InterruptedException e) {
             Lumberjack.e("Error waiting on plug-in%s", e); //$NON-NLS-1$
         }
 
-        @ConditionResult
-        final int conditionResult = resultReceiver.mQueryResult.get();
+        @ConditionResult final int conditionResult = resultReceiver.mQueryResult.get();
 
         return conditionResult;
     }
@@ -257,14 +244,14 @@ public final class Condition {
     }
 
     @NonNull
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    /*package*/ static Intent newQueryIntent(@NonNull final Plugin plugin,
+    @VisibleForTesting
+    /*package*/ static Intent newQueryIntent(@NonNull final IPlugin plugin,
             @NonNull final Bundle extraBundle) {
         assertNotNull(plugin, "plugin"); //$NON-NLS-1$
         assertNotNull(extraBundle, "extraBundle"); //$NON-NLS-1$
 
         final Intent intent = new Intent();
-        intent.setAction(com.twofortyfouram.locale.api.Intent.ACTION_QUERY_CONDITION);
+        intent.setAction(LocalePluginIntent.ACTION_QUERY_CONDITION);
         intent.setFlags(Intent.FLAG_FROM_BACKGROUND);
         if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.HONEYCOMB_MR1)) {
             addFlagsHoneycombMr1(intent);
@@ -274,7 +261,7 @@ public final class Condition {
          * intended recipient.
          */
         intent.setClassName(plugin.getPackageName(), plugin.getReceiverClassName());
-        intent.putExtra(com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE, extraBundle);
+        intent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, extraBundle);
 
         return intent;
     }
@@ -292,7 +279,7 @@ public final class Condition {
 
         @NonNull
         /* package */ final AtomicInteger mQueryResult = new AtomicInteger(
-                com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNKNOWN);
+                LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
 
         @Override
         public void onReceive(final Context context, final Intent intent) {
@@ -300,29 +287,29 @@ public final class Condition {
                 if (BundleScrubber.scrub(intent)) {
                     // TODO: In the future, errors should be signaled to the user of the SDK.
                     mQueryResult
-                            .set(com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNKNOWN);
+                            .set(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
                     return;
                 }
 
                 Lumberjack.v("Received %s", intent); //$NON-NLS-1$
 
                 switch (getResultCode()) {
-                    case com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_SATISFIED: {
+                    case LocalePluginIntent.RESULT_CONDITION_SATISFIED: {
                         Lumberjack.always("Got RESULT_CONDITION_SATISFIED"); //$NON-NLS-1$
                         mQueryResult
-                                .set(com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_SATISFIED);
+                                .set(LocalePluginIntent.RESULT_CONDITION_SATISFIED);
                         break;
                     }
-                    case com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNSATISFIED: {
+                    case LocalePluginIntent.RESULT_CONDITION_UNSATISFIED: {
                         Lumberjack.always("Got RESULT_CONDITION_UNSATISFIED"); //$NON-NLS-1$
                         mQueryResult
-                                .set(com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNSATISFIED);
+                                .set(LocalePluginIntent.RESULT_CONDITION_UNSATISFIED);
                         break;
                     }
-                    case com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNKNOWN: {
+                    case LocalePluginIntent.RESULT_CONDITION_UNKNOWN: {
                         Lumberjack.always("Got RESULT_CONDITION_UNKNOWN"); //$NON-NLS-1$
                         mQueryResult
-                                .set(com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNKNOWN);
+                                .set(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
                         break;
                     }
                     default: {
@@ -334,20 +321,12 @@ public final class Condition {
                         Lumberjack.w("Got unrecognized result code: %d",
                                 getResultCode()); //$NON-NLS-1$
                         mQueryResult
-                                .set(com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNKNOWN);
+                                .set(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
                     }
                 }
             } finally {
                 mLatch.countDown();
             }
         }
-    }
-
-    @IntDef({com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_SATISFIED, com.twofortyfouram
-            .locale.api.Intent.RESULT_CONDITION_UNKNOWN, com.twofortyfouram.locale.api.Intent
-            .RESULT_CONDITION_UNSATISFIED})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface ConditionResult {
-
     }
 }

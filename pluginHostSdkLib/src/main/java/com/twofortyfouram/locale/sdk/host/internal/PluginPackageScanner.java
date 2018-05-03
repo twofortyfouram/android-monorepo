@@ -25,19 +25,20 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.os.Build;
-import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.annotation.Slow.Speed;
+import com.twofortyfouram.locale.sdk.host.model.IPlugin;
 import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginConfiguration;
 import com.twofortyfouram.locale.sdk.host.model.PluginErrorRegister;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.AndroidSdkVersion;
+import com.twofortyfouram.spackle.Clock;
 import com.twofortyfouram.spackle.PermissionCompat;
 
 import net.jcip.annotations.ThreadSafe;
@@ -88,14 +89,15 @@ public final class PluginPackageScanner {
      */
     @NonNull
     @Slow(Speed.SECONDS)
-    public static Map<String, Plugin> loadPluginMap(@NonNull final Context context,
+    public static Map<String, IPlugin> loadPluginMap(@NonNull final Context context,
             @NonNull final PluginType type, @Nullable final String onlyForPackage) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotNull(type, "type"); //$NON-NLS-1$
 
-        final long start = SystemClock.elapsedRealtime();
+        final Clock clock = Clock.getInstance();
+        final long start = clock.getRealTimeMillis();
 
-        final Map<String, Plugin> result = new HashMap<String, Plugin>();
+        final Map<String, IPlugin> result = new HashMap<>();
         for (final ResolveInfo activityResolveInfo : findActivities(context, type,
                 onlyForPackage)) {
             final String pluginPackageName = activityResolveInfo.activityInfo.packageName;
@@ -118,7 +120,7 @@ public final class PluginPackageScanner {
                 final String registryName = Plugin.generateRegistryName(pluginPackageName,
                         activityResolveInfo.activityInfo.name);
 
-                final Plugin plugin = new Plugin(type, pluginPackageName,
+                final IPlugin plugin = new Plugin(type, pluginPackageName,
                         activityResolveInfo.activityInfo.name,
                         pluginReceiverInfos.get(0).activityInfo.name,
                         pluginVersionCode,
@@ -143,7 +145,7 @@ public final class PluginPackageScanner {
 
         Lumberjack
                 .v("Loaded plug-in map in %d milliseconds",
-                        SystemClock.elapsedRealtime() - start); //$NON-NLS-1$
+                        clock.getRealTimeMillis() - start); //$NON-NLS-1$
 
         return result;
     }
@@ -156,7 +158,7 @@ public final class PluginPackageScanner {
      * filter. May return an empty collection.
      */
     @NonNull
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */ static Collection<ResolveInfo> findActivities(@NonNull final Context context,
             @NonNull final PluginType type, @Nullable final String packageToFilterFor) {
         assertNotNull(context, "context"); //$NON-NLS-1$
@@ -177,7 +179,7 @@ public final class PluginPackageScanner {
          */
         if (!AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.HONEYCOMB)) {
             if (null == activities) {
-                activities = new ArrayList<ResolveInfo>(0);
+                activities = new ArrayList<>(0);
             }
         }
 
@@ -200,7 +202,7 @@ public final class PluginPackageScanner {
      * package filter. May return an empty collection.
      */
     @NonNull
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */ static List<ResolveInfo> findReceivers(@NonNull final Context context,
             @NonNull final PluginType type, @Nullable final String packageToFilterFor) {
         assertNotNull(context, "context"); //$NON-NLS-1$
@@ -221,7 +223,7 @@ public final class PluginPackageScanner {
          */
         if (!AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.HONEYCOMB)) {
             if (null == receivers) {
-                receivers = new ArrayList<ResolveInfo>(0);
+                receivers = new ArrayList<>(0);
             }
         }
 
@@ -284,7 +286,7 @@ public final class PluginPackageScanner {
      * @return Set of errors detected in the plug-in. If the plug-in has no
      * errors, then it is valid.
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */ static EnumSet<PluginErrorRegister> checkPluginForErrors(
             @NonNull final Context context,
             @NonNull final PluginType type,
@@ -347,7 +349,7 @@ public final class PluginPackageScanner {
         return errors;
     }
 
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */ static boolean isInstallLocationCorrect(@NonNull final Context context,
             @NonNull final ResolveInfo resolveInfo) {
         assertNotNull(context, "context"); //$NON-NLS-1$
@@ -376,18 +378,8 @@ public final class PluginPackageScanner {
                     == installLocation) {
                 isValid = false;
             }
-        } catch (final NameNotFoundException e) {
+        } catch (final NameNotFoundException | IOException | XmlPullParserException e) {
             // Was it uninstalled?
-        } catch (final XmlPullParserException e) {
-            /*
-             * Because reading the Android Manifest of the package is hacky,
-             * allow processing of the plug-in to continue
-             */
-        } catch (final IOException e) {
-            /*
-             * Because reading the Android Manifest of the package is hacky,
-             * allow processing of the plug-in to continue
-             */
         }
 
         return isValid;
@@ -401,7 +393,7 @@ public final class PluginPackageScanner {
      * @return True if the plug-in is targeting at least the same SDK version of
      * the host application.
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */ static boolean isTargetSdkCorrect(@NonNull final Context context,
             @NonNull final ResolveInfo info) {
         assertNotNull(context, "context"); //$NON-NLS-1$
@@ -423,7 +415,7 @@ public final class PluginPackageScanner {
      * @return True if the application is enabled. False if the application is
      * disabled.
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */ static boolean isApplicationEnabled(@NonNull final ResolveInfo info) {
         assertNotNull(info, "info"); //$NON-NLS-1$
 
@@ -435,7 +427,7 @@ public final class PluginPackageScanner {
      * @return True if the Activity is enabled. False if the Activity is
      * disabled.
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */ static boolean isComponentEnabled(@NonNull final ResolveInfo info) {
         assertNotNull(info, "info"); //$NON-NLS-1$
 
@@ -447,7 +439,7 @@ public final class PluginPackageScanner {
      * @return True if the component is exported. False if the component is not
      * exported.
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */ static boolean isComponentExported(@NonNull final ResolveInfo info) {
         assertNotNull(info, "info"); //$NON-NLS-1$
 
@@ -459,7 +451,7 @@ public final class PluginPackageScanner {
      * @return True if the component does not require a permission the host does
      * not have.
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */ static boolean isComponentPermissionGranted(@NonNull final Context context,
             @NonNull final ResolveInfo info) {
         assertNotNull(context, "context"); //$NON-NLS-1$

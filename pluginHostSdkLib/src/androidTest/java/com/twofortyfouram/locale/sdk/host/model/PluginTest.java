@@ -34,14 +34,14 @@ import com.twofortyfouram.locale.sdk.host.test.setting.ui.activity.PluginSetting
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.LinkedList;
+import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 @RunWith(AndroidJUnit4.class)
 public final class PluginTest {
@@ -88,50 +88,127 @@ public final class PluginTest {
 
     @SmallTest
     @Test
-    public void testEquals() {
+    public void equals_null() {
+        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+
+        assertThat(defaultPlugin, not(equalTo(null)));
+    }
+
+    @SmallTest
+    @Test
+    public void equals_different_object_type() {
+        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+
+        assertThat(defaultPlugin, not(equalTo(new Object())));
+    }
+
+    @SmallTest
+    @Test
+    public void equals_same_object() {
+        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+
+        assertThat(defaultPlugin, is(defaultPlugin));
+    }
+
+    @SmallTest
+    @Test
+    public void equals_different_object() {
         final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
         final Plugin defaultPlugin2 = PluginFixture.newDefaultPlugin();
 
-        assertEquals(defaultPlugin, defaultPlugin);
-        assertEquals(defaultPlugin, defaultPlugin2);
+        assertThat(defaultPlugin, is(defaultPlugin2));
+    }
 
-        assertEquals(defaultPlugin, new Plugin(PluginType.CONDITION,
-                PluginFixture.DEFAULT_PACKAGE, PluginFixture.DEFAULT_ACTIVITY,
-                PluginFixture.DEFAULT_RECEIVER, PluginFixture.DEFAULT_VERSION_CODE,
-                PluginFixture.DEFAULT_CONFIGURATION));
+    @SmallTest
+    @Test
+    public void equals_different_type() {
+        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
-        assertNotEquals(defaultPlugin, new Plugin(PluginType.SETTING,
+        final Plugin differentPlugin = new Plugin(PluginType.SETTING,
                 PluginFixture.DEFAULT_PACKAGE, PluginFixture.DEFAULT_ACTIVITY,
-                PluginFixture.DEFAULT_RECEIVER, PluginFixture.DEFAULT_VERSION_CODE,
-                PluginFixture.DEFAULT_CONFIGURATION));
-        assertNotEquals(defaultPlugin, new Plugin(PluginType.CONDITION,
-                "foo", //$NON-NLS-1$
-                PluginFixture.DEFAULT_ACTIVITY, PluginFixture.DEFAULT_RECEIVER,
+                PluginFixture.DEFAULT_RECEIVER,
                 PluginFixture.DEFAULT_VERSION_CODE,
-                PluginFixture.DEFAULT_CONFIGURATION)
-        );
-        assertNotEquals(defaultPlugin, new Plugin(PluginType.CONDITION,
-                PluginFixture.DEFAULT_PACKAGE, "foo", //$NON-NLS-1$
-                PluginFixture.DEFAULT_RECEIVER, PluginFixture.DEFAULT_VERSION_CODE,
-                PluginFixture.DEFAULT_CONFIGURATION));
-        assertNotEquals(defaultPlugin, new Plugin(PluginType.CONDITION,
-                PluginFixture.DEFAULT_PACKAGE, PluginFixture.DEFAULT_ACTIVITY, "foo",
+                PluginFixture.DEFAULT_CONFIGURATION);
+
+        assertThat(defaultPlugin, not(differentPlugin));
+    }
+
+    @SmallTest
+    @Test
+    public void equals_different_package() {
+        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+
+        final Plugin differentPlugin = new Plugin(PluginType.CONDITION,
+                PluginFixture.DEFAULT_PACKAGE + "foo", PluginFixture.DEFAULT_ACTIVITY,
+                PluginFixture.DEFAULT_RECEIVER,
                 PluginFixture.DEFAULT_VERSION_CODE,
-                PluginFixture.DEFAULT_CONFIGURATION)
-        ); //$NON-NLS-1$
-        assertNotEquals(defaultPlugin, new Plugin(PluginType.CONDITION,
+                PluginFixture.DEFAULT_CONFIGURATION);
+
+        assertThat(defaultPlugin, not(differentPlugin));
+    }
+
+    @SmallTest
+    @Test
+    public void equals_different_activity() {
+        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+
+        final Plugin differentPlugin = new Plugin(PluginType.CONDITION,
+                PluginFixture.DEFAULT_PACKAGE, PluginFixture.DEFAULT_ACTIVITY + "foo",
+                PluginFixture.DEFAULT_RECEIVER,
+                PluginFixture.DEFAULT_VERSION_CODE,
+                PluginFixture.DEFAULT_CONFIGURATION);
+
+        assertThat(defaultPlugin, not(differentPlugin));
+    }
+
+    @SmallTest
+    @Test
+    public void equals_different_receiver() {
+        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+
+        final Plugin differentPlugin = new Plugin(PluginType.CONDITION,
+                PluginFixture.DEFAULT_PACKAGE, PluginFixture.DEFAULT_ACTIVITY,
+                PluginFixture.DEFAULT_RECEIVER + "foo",
+                PluginFixture.DEFAULT_VERSION_CODE,
+                PluginFixture.DEFAULT_CONFIGURATION);
+
+        assertThat(defaultPlugin, not(differentPlugin));
+    }
+
+    @SmallTest
+    @Test
+    public void equals_different_version() {
+        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+
+        final Plugin differentPlugin = new Plugin(PluginType.CONDITION,
                 PluginFixture.DEFAULT_PACKAGE, PluginFixture.DEFAULT_ACTIVITY,
                 PluginFixture.DEFAULT_RECEIVER,
                 PluginFixture.DEFAULT_VERSION_CODE + 1,
-                PluginFixture.DEFAULT_CONFIGURATION)
-        );
-        assertNotEquals(defaultPlugin, new Plugin(PluginType.CONDITION,
-                        PluginFixture.DEFAULT_PACKAGE, PluginFixture.DEFAULT_ACTIVITY,
-                        PluginFixture.DEFAULT_RECEIVER, PluginFixture.DEFAULT_VERSION_CODE,
-                        new PluginConfiguration(true, false, false, false, false, false,
-                                new LinkedList<String>())
-                )
-        );
+                PluginFixture.DEFAULT_CONFIGURATION);
+
+        assertThat(defaultPlugin, not(differentPlugin));
+    }
+
+    @SmallTest
+    @Test
+    public void equals_different_configuration() {
+        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+
+        final Plugin differentPlugin = new Plugin(PluginType.CONDITION,
+                PluginFixture.DEFAULT_PACKAGE, PluginFixture.DEFAULT_ACTIVITY,
+                PluginFixture.DEFAULT_RECEIVER,
+                PluginFixture.DEFAULT_VERSION_CODE,
+                new PluginConfiguration(true, true, true, true, true, true,
+                        Collections.emptyList()));
+
+        assertThat(defaultPlugin, not(differentPlugin));
+    }
+
+    @SmallTest
+    @Test
+    public void hashCode_same() {
+        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        assertThat(defaultPlugin.hashCode(), is(defaultPlugin.hashCode()));
     }
 
     @SmallTest
@@ -216,6 +293,14 @@ public final class PluginTest {
         } finally {
             parcel.recycle();
         }
+    }
+
+    @SmallTest
+    @Test
+    public void parcelable_describe_contents() {
+        final Plugin plugin = PluginFixture.newDefaultPlugin();
+
+        assertThat(plugin.describeContents(), is(0));
     }
 
     @SmallTest

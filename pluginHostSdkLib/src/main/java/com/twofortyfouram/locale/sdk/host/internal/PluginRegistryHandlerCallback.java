@@ -24,21 +24,22 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.Size;
 import android.support.annotation.VisibleForTesting;
 
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.annotation.Slow.Speed;
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.sdk.host.model.IPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.ContextUtil;
-import com.twofortyfouram.spackle.ThreadUtil;
-import com.twofortyfouram.spackle.ThreadUtil.ThreadPriority;
+import com.twofortyfouram.spackle.HandlerThreadFactory;
 import com.twofortyfouram.spackle.bundle.BundleScrubber;
+
+import net.jcip.annotations.Immutable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,14 +50,14 @@ import java.util.concurrent.CountDownLatch;
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
 /**
- * Handler to process loading and monitoring for changes to Locale plug-ins.
+ * Handler Callback to process loading and monitoring for changes to Locale plug-ins.
  * <p/>
  * After the handler has been initialized, it must be destroyed.
  * <p/>
  * After the Handler is initialized, the public API to retrieve the loaded map
  * of plug-ins is by calling {@link #getConditions()} and {@link #getSettings()}.
  */
-public final class PluginRegistryHandler extends Handler {
+public final class PluginRegistryHandlerCallback implements Handler.Callback {
     /*
      * Design notes: The helper methods such as init(), onPackageAdded(),
      * onPackageChanged(), and onPackageRemoved() only modify the private
@@ -64,13 +65,16 @@ public final class PluginRegistryHandler extends Handler {
      * is only modified when messages are processed by the handleMessage()
      * method of the callback. This design allows for easier unit testing of the
      * implementation details of the callback object.
+     *
+     * Also note that there are two handleInit() methods—one for setting up initial state and the other
+     * for registering observers.  This breakdown allows for easier automated testing.
      */
 
     /**
      * Message to initialize the Handler.
      * <p/>
-     * {@link Message#obj} is a {@link CountDownLatch} that will be decremented
-     * after loading completes.
+     * {@link Message#obj} is a {@link InitObj}.  The Handler is the same Handler running
+     * this callback.  The latch will be decremented after loading completes.
      */
     public static final int MESSAGE_INIT = 0;
 
@@ -109,62 +113,59 @@ public final class PluginRegistryHandler extends Handler {
     /**
      * Intent broadcast when the registry changes
      */
-    @Nullable
+    @NonNull
     private final Intent mRegistryReloadedIntent;
 
     /**
      * Permission for securing {@link #mRegistryReloadedIntent}.
      */
-    @Nullable
+    @NonNull
     private final String mRegistryReloadedPermission;
 
     /**
-     * Map of the registry name to {@link Plugin} for all Conditions.
+     * Map of the registry name to {@link IPlugin} for all Conditions.
      * <p/>
      * This field is lazily initialized. This map is mutable.
      */
     @Nullable
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    /* package */ volatile Map<String, Plugin> mMutableConditionMap = null;
+    @VisibleForTesting
+    /* package */ Map<String, IPlugin> mMutableConditionMap = null;
 
     /**
-     * Map of the registry name to {@link Plugin} for all Conditions.
+     * Map of the registry name to {@link IPlugin} for all Conditions.
      * <p/>
      * This field is lazily initialized. This map is mutable.
      */
     @Nullable
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    /* package */ volatile Map<String, Plugin> mMutableSettingMap = null;
+    @VisibleForTesting
+    /* package */ Map<String, IPlugin> mMutableSettingMap = null;
 
     /**
-     * Map of the registry name to {@link Plugin} for all Conditions.
+     * Map of the registry name to {@link IPlugin} for all Conditions.
      * <p/>
      * This field is lazily initialized. Once this field is initialized, it will
      * point to an immutable map (e.g. {@link Collections#unmodifiableMap(Map)}.
      */
     @Nullable
-    private volatile Map<String, Plugin> mImmutableConditionMap = null;
+    private volatile Map<String, IPlugin> mImmutableConditionMap = null;
 
     /**
-     * Map of the registry name to {@link Plugin} for all Settings.
+     * Map of the registry name to {@link IPlugin} for all Settings.
      * <p/>
      * This field is lazily initialized. Once this field is initialized, it will
      * point to an immutable map (e.g. {@link Collections#unmodifiableMap(Map)}.
      */
     @Nullable
-    private volatile Map<String, Plugin> mImmutableSettingMap = null;
+    private volatile Map<String, IPlugin> mImmutableSettingMap = null;
 
     /**
      * Handler thread where the BroadcastReceiver runs.
      */
     @Nullable
-    private volatile HandlerThread mReceiverHandlerThread = null;
+    private HandlerThread mReceiverHandlerThread = null;
 
     /**
      * Receiver to detect changes to installed plug-ins.
-     * <p/>
-     * When non-null, the receiver is registered. When null, no receiver is
-     * registered.
      */
     /*
      * It is very important to run the receiver on a separate thread. Because
@@ -175,21 +176,19 @@ public final class PluginRegistryHandler extends Handler {
      * responding.
      */
     @NonNull
-    private final BroadcastReceiver mReceiver = new RegistryReceiver();
+    private BroadcastReceiver mReceiver = null;
 
     /**
-     * Construct a new {@link PluginRegistryHandler}.
+     * Construct a new {@link PluginRegistryHandlerCallback}.
      *
-     * @param looper                 Thread to run the handler on.
      * @param context                Application context.
      * @param notificationAction     Intent action to broadcast when the registry changes.
      * @param notificationPermission Permission to guard {@code notificationAction}.
      */
-    public PluginRegistryHandler(@NonNull final Looper looper,
+    public PluginRegistryHandlerCallback(
             @NonNull final Context context,
             @NonNull final String notificationAction,
             @NonNull final String notificationPermission) {
-        super(looper);
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotNull(notificationAction, "notificationAction"); //$NON-NLS-1$
         assertNotNull(notificationPermission, "notificationPermission"); //$NON-NLS-1$
@@ -201,57 +200,38 @@ public final class PluginRegistryHandler extends Handler {
         mRegistryReloadedPermission = notificationPermission;
     }
 
-    /**
-     * Constructs a registry with no permission on the broadcast intent.
-     */
-    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
-    /*package*/ PluginRegistryHandler(@NonNull final Looper looper,
-            @NonNull final Context context,
-            @NonNull final String notificationAction) {
-        super(looper);
-        assertNotNull(context, "context"); //$NON-NLS-1$
-        assertNotNull(notificationAction, "notificationAction"); //$NON-NLS-1$
-
-        mContext = ContextUtil.cleanContext(context);
-
-        mRegistryReloadedIntent = new Intent(notificationAction);
-        mRegistryReloadedIntent.setPackage(context.getPackageName());
-        mRegistryReloadedPermission = null;
-    }
-
     @Override
-    public void handleMessage(@NonNull final Message message) {
-        Lumberjack.v("Got what=%s %s", nameThatMessage(message.what), message); //$NON-NLS-1$
+    public boolean handleMessage(@NonNull final Message msg) {
+        Lumberjack.v("Got what=%s %s", nameThatMessage(msg.what), msg); //$NON-NLS-1$
 
-        switch (message.what) {
+        switch (msg.what) {
             case MESSAGE_INIT: {
-                final CountDownLatch latch = (CountDownLatch) message.obj;
+                final InitObj initObj = (InitObj) msg.obj;
 
                 try {
-                    handleInit();
-
+                    handleInit(initObj.getHandler());
                 } finally {
-                    latch.countDown();
+                    initObj.getCountDownLatch().countDown();
                 }
 
                 break;
             }
             case MESSAGE_PACKAGE_ADDED: {
-                final String packageName = (String) message.obj;
+                final String packageName = (String) msg.obj;
 
                 processPackageResult(handlePackageAdded(packageName));
 
                 break;
             }
             case MESSAGE_PACKAGE_CHANGED: {
-                final String packageName = (String) message.obj;
+                final String packageName = (String) msg.obj;
 
                 processPackageResult(handlePackageChanged(packageName));
 
                 break;
             }
             case MESSAGE_PACKAGE_REMOVED: {
-                final String packageName = (String) message.obj;
+                final String packageName = (String) msg.obj;
 
                 processPackageResult(handlePackageRemoved(packageName));
 
@@ -264,9 +244,11 @@ public final class PluginRegistryHandler extends Handler {
             }
             default: {
                 throw new AssertionError(
-                        Lumberjack.formatMessage("Unrecognized what=%d", message.what));
+                        Lumberjack.formatMessage("Unrecognized what=%d", msg.what));
             }
         }
+
+        return true;
     }
 
     /**
@@ -301,35 +283,49 @@ public final class PluginRegistryHandler extends Handler {
      * Initially loads the registry.
      *
      * @see #MESSAGE_INIT
+     * @see #handleDestroy()
      */
-    @Slow(Speed.SECONDS)
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    /* package */void handleInit() {
-        mReceiverHandlerThread = ThreadUtil.newHandlerThread(
-                RegistryReceiver.class.getName(),
-                ThreadPriority.BACKGROUND);
-        final Handler receiverHandler = new Handler(mReceiverHandlerThread.getLooper());
-        {
-            final IntentFilter filter = new IntentFilter();
-            filter.addAction(Intent.ACTION_PACKAGE_ADDED);
-            filter.addAction(Intent.ACTION_PACKAGE_CHANGED);
-            filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
-            filter.addAction(Intent.ACTION_PACKAGE_REPLACED);
-            filter.addDataScheme("package"); //$NON-NLS-1$
+    private void handleInit(@NonNull final Handler callbackHandler) {
+        assertNotNull(callbackHandler, "callbackHandler"); //$NON-NLS
 
-            mContext.registerReceiver(mReceiver, filter, null, receiverHandler);
+        final IntentFilter packageFilter = new IntentFilter();
+        {
+            packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+            packageFilter.addAction(Intent.ACTION_PACKAGE_CHANGED);
+            packageFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+            packageFilter.addAction(Intent.ACTION_PACKAGE_REPLACED);
+            packageFilter.addDataScheme("package"); //$NON-NLS-1$
         }
 
+        final IntentFilter externalStorageFilter = new IntentFilter();
         {
-            final IntentFilter externalStorageFilter = new IntentFilter();
             externalStorageFilter
                     .addAction(Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE);
             externalStorageFilter
                     .addAction(Intent.ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE);
-            mContext.registerReceiver(mReceiver, externalStorageFilter, null,
-                    receiverHandler);
         }
 
+        mReceiver = new RegistryReceiver(callbackHandler);
+
+        mReceiverHandlerThread = HandlerThreadFactory.newHandlerThread(
+                RegistryReceiver.class.getName(),
+                HandlerThreadFactory.ThreadPriority.BACKGROUND);
+
+        final Handler receiverHandler = new Handler(mReceiverHandlerThread.getLooper());
+
+        mContext.registerReceiver(mReceiver, packageFilter, null, receiverHandler);
+        mContext.registerReceiver(mReceiver, externalStorageFilter, null, receiverHandler);
+
+        handleInit();
+    }
+
+    /**
+     * Helper for {@link #handleInit(Handler)}.  This method is exposed for testing and destroy
+     * does not need to be called after calling this method.
+     */
+    @Slow(Speed.SECONDS)
+    @VisibleForTesting
+    /* package */void handleInit() {
         mMutableConditionMap = PluginPackageScanner.loadPluginMap(mContext,
                 PluginType.CONDITION, null);
         mMutableSettingMap = PluginPackageScanner.loadPluginMap(mContext,
@@ -344,9 +340,10 @@ public final class PluginRegistryHandler extends Handler {
     /**
      * Destroys the registry.
      *
+     * @see #handleInit(Handler)
      * @see #MESSAGE_DESTROY
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */void handleDestroy() {
         mContext.unregisterReceiver(mReceiver);
         mReceiverHandlerThread.quit();
@@ -364,7 +361,7 @@ public final class PluginRegistryHandler extends Handler {
      * @see #MESSAGE_PACKAGE_REMOVED
      */
     @NonNull
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */PackageResult handlePackageRemoved(@NonNull final String packageName) {
         assertNotNull(packageName, "packageName"); //$NON-NLS-1$
 
@@ -388,7 +385,7 @@ public final class PluginRegistryHandler extends Handler {
      * @see #MESSAGE_PACKAGE_ADDED
      */
     @NonNull
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */PackageResult handlePackageAdded(@NonNull final String packageName) {
         assertNotNull(packageName, "packageName"); //$NON-NLS-1$
 
@@ -412,13 +409,13 @@ public final class PluginRegistryHandler extends Handler {
      * @see #MESSAGE_PACKAGE_CHANGED
      */
     @NonNull
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */PackageResult handlePackageChanged(@NonNull final String packageName) {
         assertNotNull(packageName, "packageName"); //$NON-NLS-1$
 
-        final Map<String, Plugin> scannedConditions = PluginPackageScanner.loadPluginMap(mContext,
+        final Map<String, IPlugin> scannedConditions = PluginPackageScanner.loadPluginMap(mContext,
                 PluginType.CONDITION, packageName);
-        final Map<String, Plugin> scannedSettings = PluginPackageScanner.loadPluginMap(mContext,
+        final Map<String, IPlugin> scannedSettings = PluginPackageScanner.loadPluginMap(mContext,
                 PluginType.SETTING, packageName);
 
         boolean conditionsChanged = isPluginRemoved(PluginType.CONDITION, packageName,
@@ -437,7 +434,7 @@ public final class PluginRegistryHandler extends Handler {
          * upgraded. It is not necessary to relaunch settings, because they do
          * not typically have alarms or services that need to be restarted.
          */
-        for (final Plugin newCondition : scannedConditions.values()) {
+        for (final IPlugin newCondition : scannedConditions.values()) {
             if (mImmutableConditionMap.containsKey(newCondition
                     .getRegistryName())) {
                 final int oldConditionVersion = mImmutableConditionMap
@@ -468,11 +465,11 @@ public final class PluginRegistryHandler extends Handler {
      * returns true.
      */
     private boolean isPluginAdded(@NonNull final PluginType type,
-            @NonNull final Map<String, Plugin> scannedPlugins) {
+            @NonNull final Map<String, IPlugin> scannedPlugins) {
         assertNotNull(type, "type"); //$NON-NLS-1$
         assertNotNull(scannedPlugins, "scannedPlugins"); //$NON-NLS-1$
 
-        final Map<String, Plugin> oldPlugins = getMutablePluginMap(type);
+        final Map<String, IPlugin> oldPlugins = getMutablePluginMap(type);
 
         boolean isChanged = false;
         if (!oldPlugins.keySet().containsAll(scannedPlugins.keySet())) {
@@ -497,21 +494,21 @@ public final class PluginRegistryHandler extends Handler {
      */
     private boolean isPluginRemoved(@NonNull final PluginType type,
             @NonNull final String packageName,
-            @NonNull final Map<String, Plugin> scannedPlugins) {
+            @NonNull final Map<String, IPlugin> scannedPlugins) {
         assertNotNull(type, "type"); //$NON-NLS-1$
         assertNotNull(scannedPlugins, "scannedPlugins"); //$NON-NLS-1$
 
         boolean isChanged = false;
-        final Iterator<Plugin> oldPluginsIterator = getMutablePluginMap(type).values()
+        final Iterator<IPlugin> oldPluginsIterator = getMutablePluginMap(type).values()
                 .iterator();
         while (oldPluginsIterator.hasNext()) {
-            final Plugin factory = oldPluginsIterator.next();
+            final IPlugin plugin = oldPluginsIterator.next();
 
-            if (packageName.equals(factory.getPackageName())) {
-                if (!scannedPlugins.containsKey(factory.getRegistryName())) {
+            if (packageName.equals(plugin.getPackageName())) {
+                if (!scannedPlugins.containsKey(plugin.getRegistryName())) {
                     Lumberjack
                             .v("Removing plug-in %s %s", type,
-                                    factory.getRegistryName()); //$NON-NLS-1$
+                                    plugin.getRegistryName()); //$NON-NLS-1$
 
                     oldPluginsIterator.remove();
                     isChanged = true;
@@ -523,10 +520,11 @@ public final class PluginRegistryHandler extends Handler {
     }
 
     @NonNull
-    private Map<String, Plugin> getMutablePluginMap(@NonNull final PluginType type) {
+    @Size(min = 0)
+    private Map<String, IPlugin> getMutablePluginMap(@NonNull final PluginType type) {
         assertNotNull(type, "type"); //$NON-NLS-1$
 
-        final Map<String, Plugin> pluginMap;
+        final Map<String, IPlugin> pluginMap;
         switch (type) {
             case CONDITION: {
                 pluginMap = mMutableConditionMap;
@@ -584,9 +582,7 @@ public final class PluginRegistryHandler extends Handler {
      * Sends a broadcast to notify clients that the registry changed.
      */
     private void sendBroadcast() {
-        if (null != mRegistryReloadedIntent) {
-            mContext.sendBroadcast(mRegistryReloadedIntent, mRegistryReloadedPermission);
-        }
+        mContext.sendBroadcast(mRegistryReloadedIntent, mRegistryReloadedPermission);
     }
 
     /**
@@ -596,7 +592,8 @@ public final class PluginRegistryHandler extends Handler {
      * {@code null} until the handler completes initialization.
      */
     @Nullable
-    public Map<String, Plugin> getConditions() {
+    @Size(min = 0)
+    public Map<String, IPlugin> getConditions() {
         return mImmutableConditionMap;
     }
 
@@ -607,7 +604,8 @@ public final class PluginRegistryHandler extends Handler {
      * {@code null} until the handler completes initialization.
      */
     @Nullable
-    public Map<String, Plugin> getSettings() {
+    @Size(min = 0)
+    public Map<String, IPlugin> getSettings() {
         return mImmutableSettingMap;
     }
 
@@ -625,7 +623,7 @@ public final class PluginRegistryHandler extends Handler {
          * mImmutableConditionMap.
          */
         mImmutableConditionMap = Collections
-                .unmodifiableMap(new HashMap<String, Plugin>(
+                .unmodifiableMap(new HashMap<>(
                         mMutableConditionMap));
     }
 
@@ -643,7 +641,7 @@ public final class PluginRegistryHandler extends Handler {
          * mImmutableSettingMap.
          */
         mImmutableSettingMap = Collections
-                .unmodifiableMap(new HashMap<String, Plugin>(
+                .unmodifiableMap(new HashMap<>(
                         mMutableSettingMap));
     }
 
@@ -660,7 +658,16 @@ public final class PluginRegistryHandler extends Handler {
      * <li>{@link Intent#ACTION_PACKAGE_CHANGED}.</li>
      * </ul>
      */
-    private final class RegistryReceiver extends BroadcastReceiver {
+    private static final class RegistryReceiver extends BroadcastReceiver {
+
+        @NonNull
+        private final Handler mHandler;
+
+        public RegistryReceiver(@NonNull final Handler callbackHandler) {
+            assertNotNull(callbackHandler, "callbackHandler"); //$NON-NLS
+
+            mHandler = callbackHandler;
+        }
 
         @Override
         public void onReceive(final Context context, final Intent intent) {
@@ -732,23 +739,55 @@ public final class PluginRegistryHandler extends Handler {
 
         private void sendPackageAddedMessage(@Nullable final String packageName) {
             if (null != packageName) {
-                sendMessage(obtainMessage(
+                mHandler.sendMessage(mHandler.obtainMessage(
                         MESSAGE_PACKAGE_ADDED, packageName));
             }
         }
 
         private void sendPackageRemovedMessage(@Nullable final String packageName) {
             if (null != packageName) {
-                sendMessage(obtainMessage(
+                mHandler.sendMessage(mHandler.obtainMessage(
                         MESSAGE_PACKAGE_REMOVED, packageName));
             }
         }
 
         private void sendPackageChangedMessage(@Nullable final String packageName) {
             if (null != packageName) {
-                sendMessage(obtainMessage(
+                mHandler.sendMessage(mHandler.obtainMessage(
                         MESSAGE_PACKAGE_CHANGED, packageName));
             }
+        }
+    }
+
+    /**
+     * Container for obj in {@link PluginRegistryHandlerCallback#MESSAGE_INIT}
+     */
+    @Immutable
+    public static final class InitObj {
+
+        @NonNull
+        private final Handler mHandler;
+
+        @NonNull
+        private final CountDownLatch mCountDownLatch;
+
+        public InitObj(@NonNull final Handler handler,
+                @NonNull final CountDownLatch countDownLatch) {
+            assertNotNull(handler, "handler"); //$NON-NLS
+            assertNotNull(countDownLatch, "countDownLatch"); //$NON-NLS
+
+            mHandler = handler;
+            mCountDownLatch = countDownLatch;
+        }
+
+        @NonNull
+        public Handler getHandler() {
+            return mHandler;
+        }
+
+        @NonNull
+        public CountDownLatch getCountDownLatch() {
+            return mCountDownLatch;
         }
     }
 }

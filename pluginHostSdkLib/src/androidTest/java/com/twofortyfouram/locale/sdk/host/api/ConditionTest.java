@@ -24,19 +24,23 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
+import android.support.test.filters.SdkSuppress;
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.twofortyfouram.locale.sdk.host.internal.BundleSerializer;
+import com.twofortyfouram.locale.api.LocalePluginIntent;
 import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
-import com.twofortyfouram.locale.sdk.host.test.condition.bundle.PluginBundleManager;
-import com.twofortyfouram.locale.sdk.host.test.fixture.PluginConfigurationFixture;
+import com.twofortyfouram.locale.sdk.host.test.condition.bundle.PluginJsonValues;
 import com.twofortyfouram.locale.sdk.host.test.fixture.DebugPluginFixture;
+import com.twofortyfouram.locale.sdk.host.test.fixture.PluginConfigurationFixture;
 import com.twofortyfouram.spackle.AndroidSdkVersion;
+import com.twofortyfouram.spackle.Clock;
 import com.twofortyfouram.test.context.ReceiverContextWrapper;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -50,16 +54,17 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 @RunWith(AndroidJUnit4.class)
+@SdkSuppress(minSdkVersion = Build.VERSION_CODES.LOLLIPOP)
 public final class ConditionTest {
 
     @SuppressLint("NewApi")
     @SmallTest
     @Test
-    public void getQueryIntent() {
+    public void getQueryIntent() throws JSONException {
         final Plugin plugin = DebugPluginFixture.getDebugPluginCondition();
-        final Bundle bundle = PluginBundleManager
-                .generateBundle(InstrumentationRegistry.getContext(),
-                        com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_SATISFIED);
+        final Bundle bundle = newBundle(PluginJsonValues
+                .generateJson(InstrumentationRegistry.getContext(),
+                        LocalePluginIntent.RESULT_CONDITION_SATISFIED));
 
         final Intent intent = Condition.newQueryIntent(plugin, bundle);
         assertThat(intent, notNullValue());
@@ -73,7 +78,7 @@ public final class ConditionTest {
         assertThat(intent.getFlags(), is(expectedFlags));
 
         assertThat(intent.getAction(),
-                is(com.twofortyfouram.locale.api.Intent.ACTION_QUERY_CONDITION));
+                is(LocalePluginIntent.ACTION_QUERY_CONDITION));
         assertThat(intent.getComponent(), hasMyPackageName());
         assertThat(intent.getComponent(),
                 hasClassName(plugin.getReceiverClassName()));
@@ -85,9 +90,15 @@ public final class ConditionTest {
         assertThat(intent.getExtras().size(), is(1));
 
         final Bundle extraBundle = intent
-                .getBundleExtra(com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE);
+                .getBundleExtra(LocalePluginIntent.EXTRA_BUNDLE);
         assertThat(extraBundle, notNullValue());
-        PluginBundleManager.isBundleValid(extraBundle);
+
+        final String jsonString = extraBundle.getString(LocalePluginIntent.EXTRA_STRING_JSON);
+        assertThat(jsonString, notNullValue());
+
+        JSONObject jsonObject = new JSONObject(jsonString);
+
+        PluginJsonValues.isJsonValid(jsonObject);
     }
 
     @SmallTest
@@ -96,7 +107,7 @@ public final class ConditionTest {
         final ReceiverContextWrapper context = new ReceiverContextWrapper(
                 InstrumentationRegistry.getContext());
 
-        final Condition condition = new Condition(context, new Plugin(
+        final Condition condition = new Condition(context, Clock.getInstance(), new Plugin(
                 PluginType.CONDITION, "foo", "bar", "baz",
                 1, PluginConfigurationFixture
                 .newPluginConfiguration()
@@ -106,8 +117,8 @@ public final class ConditionTest {
             bundle.putString("test_key", "test_value"); //$NON-NLS-1$//$NON-NLS-2$
 
             assertThat(condition.query(getPluginInstanceData(bundle),
-                    com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNKNOWN),
-                    is(com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNKNOWN)
+                    LocalePluginIntent.RESULT_CONDITION_UNKNOWN),
+                    is(LocalePluginIntent.RESULT_CONDITION_UNKNOWN)
 
             );
         } finally {
@@ -123,7 +134,7 @@ public final class ConditionTest {
             assertThat(sentIntent.getPermission(), nullValue());
             assertThat(sentIntent.getIsOrdered(), is(true));
 
-            // Don't worry about the action, extras, etc.  Those are handled by testGetQueryIntent().
+            // Don't worry about the action, extras, etc.
         }
     }
 
@@ -131,21 +142,21 @@ public final class ConditionTest {
     @Test
     public void query_satisfied() {
         assertQuerySatisfiedWithState(
-                com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_SATISFIED);
+                LocalePluginIntent.RESULT_CONDITION_SATISFIED);
     }
 
     @MediumTest
     @Test
     public void query_unsatisfied() {
         assertQuerySatisfiedWithState(
-                com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNSATISFIED);
+                LocalePluginIntent.RESULT_CONDITION_UNSATISFIED);
     }
 
     @MediumTest
     @Test
     public void query_unknown() {
         assertQuerySatisfiedWithState(
-                com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNKNOWN);
+                LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
     }
 
     @MediumTest
@@ -155,13 +166,13 @@ public final class ConditionTest {
 
         try {
             final Bundle bundle = new Bundle();
-            bundle.putInt(PluginBundleManager.BUNDLE_EXTRA_INT_VERSION_CODE, 1);
-            bundle.putInt(PluginBundleManager.BUNDLE_EXTRA_INT_RESULT_CODE,
+            bundle.putInt(PluginJsonValues.INT_VERSION_CODE, 1);
+            bundle.putInt(PluginJsonValues.INT_RESULT_CODE,
                     1); //$NON-NLS-1$
 
             assertThat(condition.query(getPluginInstanceData(bundle),
-                    com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNKNOWN),
-                    is(com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNKNOWN));
+                    LocalePluginIntent.RESULT_CONDITION_UNKNOWN),
+                    is(LocalePluginIntent.RESULT_CONDITION_UNKNOWN));
         } finally {
             condition.destroy();
         }
@@ -171,11 +182,11 @@ public final class ConditionTest {
         final Condition condition = getCondition();
 
         try {
-            final Bundle bundle = PluginBundleManager
-                    .generateBundle(InstrumentationRegistry.getContext(), state);
+            final Bundle bundle = newBundle(PluginJsonValues
+                    .generateJson(InstrumentationRegistry.getContext(), state));
             assertThat(condition
                             .query(getPluginInstanceData(bundle),
-                                    com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNKNOWN),
+                                    LocalePluginIntent.RESULT_CONDITION_UNKNOWN),
                     is(state));
         } finally {
             condition.destroy();
@@ -184,7 +195,7 @@ public final class ConditionTest {
 
     @NonNull
     private Condition getCondition() {
-        return new Condition(InstrumentationRegistry.getContext(),
+        return new Condition(InstrumentationRegistry.getContext(), Clock.getInstance(),
                 DebugPluginFixture.getDebugPluginCondition());
     }
 
@@ -192,15 +203,16 @@ public final class ConditionTest {
     private PluginInstanceData getPluginInstanceData(@NonNull final Bundle bundle) {
         final Plugin debugPlugin = DebugPluginFixture.getDebugPluginCondition();
 
-        final byte[] bytes;
-        try {
-            bytes = BundleSerializer.serializeToByteArray(bundle);
-        } catch (final Exception e) {
-            throw new RuntimeException(e);
-        }
-
         return new PluginInstanceData(debugPlugin.getType(), debugPlugin.getRegistryName(),
-                bytes, "");
+                bundle, "");
+    }
+
+    @NonNull
+    private static Bundle newBundle(@NonNull final JSONObject json) {
+        final Bundle bundle = new Bundle();
+        bundle.putString(LocalePluginIntent.EXTRA_STRING_JSON, json.toString());
+
+        return bundle;
     }
 
 }

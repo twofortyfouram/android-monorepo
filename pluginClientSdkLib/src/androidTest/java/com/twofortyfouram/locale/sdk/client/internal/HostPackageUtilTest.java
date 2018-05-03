@@ -19,51 +19,59 @@ package com.twofortyfouram.locale.sdk.client.internal;
 
 import android.content.pm.PackageInfo;
 import android.support.annotation.NonNull;
-import android.test.AndroidTestCase;
-import android.test.mock.MockPackageManager;
-import android.test.suitebuilder.annotation.SmallTest;
-
-import com.twofortyfouram.locale.sdk.client.internal.HostPackageUtil;
-import com.twofortyfouram.test.assertion.MoarAsserts;
+import android.support.test.filters.SmallTest;
 
 import net.jcip.annotations.ThreadSafe;
+
+import org.junit.Test;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public final class HostPackageUtilTest extends AndroidTestCase {
+import static com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher.notInstantiable;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+
+public final class HostPackageUtilTest {
 
     @SmallTest
+    @Test
     public void testNonInstantiable() {
-        MoarAsserts.assertNoninstantiable(HostPackageUtil.class);
+        assertThat(HostPackageUtil.class, notInstantiable());
     }
 
     @SmallTest
-    public void testGetCompatiblePackage_hinted_positive() {
-        assertEquals("com.twofortyfouram.locale",
+    @Test
+    public void getCompatiblePackage_hinted_positive() {
+        assertThat(HostPackageUtil.getCompatiblePackage( //$NON-NLS-1$
+                new HostPackageManager("com.twofortyfouram.locale"),
+                "com.twofortyfouram.locale"),
+                is("com.twofortyfouram.locale")); //$NON-NLS-1$//$NON-NLS-2$
+    }
+
+    @SmallTest
+    @Test
+    public void getCompatiblePackage_hinted_negative() {
+        assertThat(
                 HostPackageUtil.getCompatiblePackage( //$NON-NLS-1$
                         new HostPackageManager("com.twofortyfouram.locale"),
-                        "com.twofortyfouram.locale")); //$NON-NLS-1$//$NON-NLS-2$
+                        "com.foo.bar"), is("com.twofortyfouram.locale")); //$NON-NLS-1$//$NON-NLS-2$
     }
 
     @SmallTest
-    public void testGetCompatiblePackage_hinted_negative() {
-        assertEquals("com.twofortyfouram.locale",
-                HostPackageUtil.getCompatiblePackage( //$NON-NLS-1$
-                        new HostPackageManager("com.twofortyfouram.locale"),
-                        "com.foo.bar")); //$NON-NLS-1$//$NON-NLS-2$
-    }
-
-    @SmallTest
+    @Test
     public void testGetCompatiblePackage_none() {
-        assertNull(HostPackageUtil.getCompatiblePackage(new HostPackageManager(), null));
+        assertThat(HostPackageUtil.getCompatiblePackage(new HostPackageManager(), null),
+                nullValue());
     }
 
+    @SuppressWarnings("deprecation")
     @ThreadSafe
-    public static class HostPackageManager extends MockPackageManager {
+    public static class HostPackageManager extends android.test.mock.MockPackageManager {
 
         @NonNull
-        private final List<PackageInfo> mInstalledPackages = new LinkedList<PackageInfo>();
+        private final List<PackageInfo> mInstalledPackages = new LinkedList<>();
 
         public HostPackageManager(@NonNull final String... packages) {
             for (String pkg : packages) {

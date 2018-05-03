@@ -25,11 +25,13 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.twofortyfouram.assertion.BundleAssertions;
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.sdk.host.model.IPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginErrorEdit;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.locale.sdk.host.ui.fragment.AbstractPluginEditFragment;
 import com.twofortyfouram.locale.sdk.host.ui.fragment.IPluginEditFragment;
+import com.twofortyfouram.locale.sdk.host.util.BinaryBundleSerializer;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.bundle.BundleScrubber;
 
@@ -48,7 +50,7 @@ public final class PluginEditDelegate {
 
     @NonNull
     public static EnumSet<PluginErrorEdit> isIntentValid(@Nullable final Intent intent,
-            @NonNull final Plugin plugin) {
+            @NonNull final IPlugin plugin) {
         final EnumSet<PluginErrorEdit> errors = EnumSet.noneOf(PluginErrorEdit.class);
 
         if (null == intent) {
@@ -65,7 +67,7 @@ public final class PluginEditDelegate {
                 errors.add(PluginErrorEdit.BUNDLE_MISSING);
             } else {
                 final Bundle localeBundle = intentExtras
-                        .getBundle(com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE);
+                        .getBundle(LocalePluginIntent.EXTRA_BUNDLE);
 
                 if (BundleScrubber.scrub(localeBundle)) {
                     errors.add(PluginErrorEdit.PRIVATE_SERIALIZABLE);
@@ -74,8 +76,8 @@ public final class PluginEditDelegate {
                 if (null == localeBundle) {
                     if (plugin.getConfiguration().isBackwardsCompatibilityEnabled()) {
                         final Bundle newBundle = new Bundle(intent.getExtras());
-                        newBundle.remove(com.twofortyfouram.locale.api.Intent.EXTRA_STRING_BLURB);
-                        intent.putExtra(com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE,
+                        newBundle.remove(LocalePluginIntent.EXTRA_STRING_BLURB);
+                        intent.putExtra(LocalePluginIntent.EXTRA_BUNDLE,
                                 newBundle);
                     }
 
@@ -84,7 +86,7 @@ public final class PluginEditDelegate {
 
                 try {
                     BundleAssertions.assertHasString(intentExtras,
-                            com.twofortyfouram.locale.api.Intent.EXTRA_STRING_BLURB, false, true);
+                            LocalePluginIntent.EXTRA_STRING_BLURB, false, true);
                 } catch (final AssertionError e) {
                     errors.add(PluginErrorEdit.BLURB_MISSING);
                 }
@@ -96,32 +98,24 @@ public final class PluginEditDelegate {
 
 
     @NonNull
-    public static Intent getPluginStartIntent(@NonNull final Plugin plugin,
+    public static Intent getPluginStartIntent(@NonNull final IPlugin plugin,
             @Nullable final PluginInstanceData pluginInstanceData,
             @Nullable final String breadcrumb) {
         assertNotNull(plugin, "plugin"); //$NON-NLS-1$
 
         final Intent intent = new Intent(plugin.getType().getActivityIntentAction());
         intent.setClassName(plugin.getPackageName(), plugin.getActivityClassName());
-        intent.putExtra(com.twofortyfouram.locale.api.Intent.EXTRA_STRING_BREADCRUMB, breadcrumb);
+        intent.putExtra(LocalePluginIntent.EXTRA_STRING_BREADCRUMB, breadcrumb);
 
         if (null != pluginInstanceData) {
-            Bundle bundle = null;
-            try {
-                bundle = com.twofortyfouram.locale.sdk.host.internal.BundleSerializer
-                        .deserializeFromByteArray(pluginInstanceData.getSerializedBundle());
-            } catch (final ClassNotFoundException e) {
-                Lumberjack.e("Error deserializing bundle%s", e); //$NON-NLS-1$
-            }
+            final Bundle bundle = pluginInstanceData.getBundle();
 
-            if (null != bundle) {
-                intent.putExtra(com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE, bundle);
-                intent.putExtra(com.twofortyfouram.locale.api.Intent.EXTRA_STRING_BLURB,
-                        pluginInstanceData.getBlurb());
+            intent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundle);
+            intent.putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
+                    pluginInstanceData.getBlurb());
 
-                if (plugin.getConfiguration().isBackwardsCompatibilityEnabled()) {
-                    intent.putExtras(bundle);
-                }
+            if (plugin.getConfiguration().isBackwardsCompatibilityEnabled()) {
+                intent.putExtras(bundle);
             }
         }
 
@@ -137,13 +131,14 @@ public final class PluginEditDelegate {
      * @return Args necessary for starting {@link AbstractPluginEditFragment}.
      */
     @NonNull
-    public static Bundle newArgs(@NonNull final Plugin plugin,
+    public static Bundle newArgs(@NonNull final IPlugin plugin,
             @Nullable final PluginInstanceData previousPluginInstanceData) {
         assertNotNull(plugin, "plugin"); //$NON-NLS-1$
         if (null != previousPluginInstanceData) {
             if (plugin.getType() != previousPluginInstanceData.getType()) {
                 throw new AssertionError(Lumberjack.formatMessage(
-                        "plugin.getType()=%s while previousPluginInstanceData.getType()=%s", //$NON-NLS-1$
+                        "plugin.getType()=%s while previousPluginInstanceData.getType()=%s",
+                        //$NON-NLS-1$
 
                         plugin.getType(), previousPluginInstanceData.getType()));
             }
@@ -169,8 +164,8 @@ public final class PluginEditDelegate {
         byte[] serializedBundle = null;
         try {
             serializedBundle =
-                    com.twofortyfouram.locale.sdk.host.internal.BundleSerializer
-                            .serializeToByteArray(bundle);
+                    new BinaryBundleSerializer()
+                            .serialize(bundle);
         } catch (final Exception e) {
             errors.add(PluginErrorEdit.BUNDLE_NOT_SERIALIZABLE);
             serializedBundle = null;
@@ -187,19 +182,21 @@ public final class PluginEditDelegate {
     }
 
     @NonNull
-    public static Plugin getCurrentPlugin(@NonNull final Bundle bundle) {
+    public static IPlugin getCurrentPlugin(@NonNull final Bundle bundle) {
         final Parcelable currentPluginArg = bundle.getParcelable(
                 IPluginEditFragment.ARG_EXTRA_PARCELABLE_CURRENT_PLUGIN);
         if (null == currentPluginArg) {
             throw new IllegalArgumentException(formatMessage(
-                    "Arg %s is missing", IPluginEditFragment.ARG_EXTRA_PARCELABLE_CURRENT_PLUGIN)); //$NON-NLS-1$
+                    "Arg %s is missing",
+                    IPluginEditFragment.ARG_EXTRA_PARCELABLE_CURRENT_PLUGIN)); //$NON-NLS-1$
         }
-        if (currentPluginArg instanceof Plugin) {
+        if (currentPluginArg instanceof IPlugin) {
             //noinspection CastToConcreteClass
-            return (Plugin) currentPluginArg;
+            return (IPlugin) currentPluginArg;
         } else {
             throw new IllegalArgumentException(formatMessage(
-                    "Arg %s is the wrong type", IPluginEditFragment.ARG_EXTRA_PARCELABLE_CURRENT_PLUGIN)); //$NON-NLS-1$
+                    "Arg %s is the wrong type",
+                    IPluginEditFragment.ARG_EXTRA_PARCELABLE_CURRENT_PLUGIN)); //$NON-NLS-1$
         }
     }
 

@@ -31,14 +31,39 @@ dependencies {
 }
 
 android {
-    compileSdkVersion Integer.parseInt(ANDROID_COMPILE_SDK_VERSION)
+    compileSdkVersion ANDROID_COMPILE_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_COMPILE_SDK_VERSION) : ANDROID_COMPILE_SDK_VERSION
 
     defaultConfig {
-        minSdkVersion Integer.parseInt(ANDROID_MIN_SDK_VERSION)
-        targetSdkVersion Integer.parseInt(ANDROID_TARGET_SDK_VERSION)
-        versionCode Integer.parseInt(ANDROID_VERSION_CODE)
-        versionName ANDROID_VERSION_NAME
+        minSdkVersion ANDROID_MIN_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_MIN_SDK_VERSION) : ANDROID_MIN_SDK_VERSION
+        targetSdkVersion ANDROID_TARGET_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_TARGET_SDK_VERSION) : ANDROID_TARGET_SDK_VERSION
+        versionCode Integer.parseInt(LIBRARY_VERSION_CODE)
+        versionName LIBRARY_VERSION_NAME
+        testInstrumentationRunner 'com.twofortyfouram.test.runner.TestButlerRunner'
         consumerProguardFiles 'proguard-consumer.txt'
+        if (is_dexguard) {
+            // This is additive; it doesn't replace but instead appends the AAR's embedded proguard config
+            consumerProguardFiles 'dexguard-consumer.txt'
+        }
+    }
+
+    lintOptions {
+        lintConfig file('lint.xml')
+        checkDependencies Boolean.parseBoolean(IS_LINT_CHECK_DEPENDENCIES)
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildTypes {
+        debug {
+            testCoverageEnabled Boolean.parseBoolean(IS_COVERAGE_ENABLED)
+        }
+    }
+
+    testOptions {
+        animationsDisabled true
     }
 }
 

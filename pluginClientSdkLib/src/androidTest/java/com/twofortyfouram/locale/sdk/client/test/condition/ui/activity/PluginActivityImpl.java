@@ -17,70 +17,83 @@
 
 package com.twofortyfouram.locale.sdk.client.test.condition.ui.activity;
 
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.twofortyfouram.assertion.Assertions;
 import com.twofortyfouram.locale.sdk.client.ui.activity.AbstractPluginActivity;
-import com.twofortyfouram.spackle.bundle.BundleComparer;
+
+import net.jcip.annotations.NotThreadSafe;
+
+import org.json.JSONObject;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
 /**
- * A concrete implementation of {@link com.twofortyfouram.locale.sdk.client.ui.activity.AbstractPluginActivity} in order to test the abstract class.
+ * A concrete implementation of {@link AbstractPluginActivity}
+ * in order to test the abstract class.
  */
+@NotThreadSafe
 public final class PluginActivityImpl extends AbstractPluginActivity {
 
     @NonNull
-    public final AtomicInteger mIsBundleValidCount = new AtomicInteger(0);
+    public final AtomicInteger mIsJsonValidCount = new AtomicInteger(0);
 
     @NonNull
-    public final AtomicInteger mOnPostCreateWithPreviousBundleCount = new AtomicInteger(0);
+    public final AtomicInteger mOnPostCreateWithPreviousJsonCount = new AtomicInteger(0);
 
     @NonNull
     public final AtomicInteger mGetBlurbCount = new AtomicInteger(0);
 
     @NonNull
-    public final AtomicInteger mGetResultBundleCount = new AtomicInteger(0);
+    public final AtomicInteger mGetResultJsonCount = new AtomicInteger(0);
 
     @Nullable
     public volatile String mBlurb = null;
 
     @Nullable
-    public volatile Bundle mBundle = null;
+    public volatile JSONObject mJson = null;
 
     @Override
-    public boolean isBundleValid(@NonNull final Bundle bundle) {
-        mIsBundleValidCount.incrementAndGet();
-        return PluginBundleValues.isBundleValid(bundle);
+    public boolean isJsonValid(@NonNull final JSONObject jsonObject) {
+        Assertions.assertIsMainThread();
+
+        mIsJsonValidCount.incrementAndGet();
+        return PluginJsonValues.isJsonValid(jsonObject);
     }
 
     @Override
-    public void onPostCreateWithPreviousResult(@NonNull final Bundle previousBundle,
-                                               @NonNull final String previousBlurb) {
-        mOnPostCreateWithPreviousBundleCount.incrementAndGet();
+    public void onPostCreateWithPreviousResult(@NonNull final JSONObject previousJson,
+            @NonNull final String previousBlurb) {
+        // Assertion to enforce Espresso tests are correctly run
+        Assertions.assertIsMainThread();
 
-        assertNotNull(previousBundle, "previousBundle"); //$NON-NLS-1$
+        mOnPostCreateWithPreviousJsonCount.incrementAndGet();
+
+        assertNotNull(previousJson, "previousJson"); //$NON-NLS-1$
     }
 
     @Override
-    public Bundle getResultBundle() {
-        mGetResultBundleCount.incrementAndGet();
+    public JSONObject getResultJson() {
+        // Assertion to enforce Espresso tests are correctly run
+        Assertions.assertIsMainThread();
 
-        return mBundle;
+        mGetResultJsonCount.incrementAndGet();
+
+        return mJson;
     }
 
     @Override
-    public String getResultBlurb(@NonNull final Bundle bundle) {
+    @NonNull
+    public String getResultBlurb(@NonNull final JSONObject jsonObject) {
+        // Assertion to enforce Espresso tests are correctly run
+        Assertions.assertIsMainThread();
+
         mGetBlurbCount.incrementAndGet();
 
-        assertNotNull(bundle, "bundle"); //$NON-NLS-1$
-
-        if (!BundleComparer.areBundlesEqual(bundle, mBundle)) {
-            throw new AssertionError();
-        }
+        assertNotNull(jsonObject, "jsonObject"); //$NON-NLS-1$
 
         return mBlurb;
     }

@@ -19,7 +19,7 @@ package com.twofortyfouram.locale.sdk.host.model;
 
 import android.support.annotation.NonNull;
 
-import com.twofortyfouram.locale.api.Intent;
+import com.twofortyfouram.locale.api.LocalePluginIntent;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -33,38 +33,44 @@ import static com.twofortyfouram.log.Lumberjack.formatMessage;
 public enum PluginErrorEdit implements IPluginError {
     @NonNull
     ACTIVITY_NOT_FOUND_EXCEPTION(
-            "The Activity could not be found.  To resolve this issue, make sure the plug-in package is still installed.", //$NON-NLS-1$
+            "The Activity could not be found.  To resolve this issue, make sure the plug-in package is still installed.",
+            //$NON-NLS-1$
             true),
 
     @NonNull
     BLURB_MISSING(formatMessage(
-            "%s is missing.  To resolve this issue, put the blurb extra in the Activity result Intent.", //$NON-NLS-1$
-            Intent.EXTRA_STRING_BLURB), true),
+            "%s is missing.  To resolve this issue, put the blurb extra in the Activity result Intent.",
+            //$NON-NLS-1$
+            LocalePluginIntent.EXTRA_STRING_BLURB), true),
 
     @NonNull
     BUNDLE_TOO_LARGE(
             formatMessage(
-                    "%s is larger than the allowed maximum of %d bytes.  To resolve this issue, store less data in the Bundle.", //$NON-NLS-1$
-                    Intent.EXTRA_BUNDLE,
+                    "%s is larger than the allowed maximum of %d bytes.  To resolve this issue, store less data in the Bundle.",
+                    //$NON-NLS-1$
+                    LocalePluginIntent.EXTRA_BUNDLE,
                     PluginInstanceData.MAXIMUM_BUNDLE_SIZE_BYTES), true
     ),
     @NonNull
     BUNDLE_MISSING(
             formatMessage(
-                    "Extra %s is required.  To resolve this issue, put the Bundle extra in the Activity result Intent.", //$NON-NLS-1$
-                    Intent.EXTRA_BUNDLE), true
+                    "Extra %s is required.  To resolve this issue, put the Bundle extra in the Activity result Intent.",
+                    //$NON-NLS-1$
+                    LocalePluginIntent.EXTRA_BUNDLE), true
     ),
 
     @NonNull
     BUNDLE_NOT_SERIALIZABLE(
             formatMessage(
-                    "%s could not be serialized.  To resolve this issue, be sure the Bundle doesn't contain Parcelable or private Serializable subclasses", //$NON-NLS-1$
-                    Intent.EXTRA_BUNDLE), true
+                    "%s could not be serialized.  To resolve this issue, be sure the Bundle doesn't contain Parcelable or private Serializable subclasses",
+                    //$NON-NLS-1$
+                    LocalePluginIntent.EXTRA_BUNDLE), true
     ),
 
     @NonNull
     INTENT_NULL(
-            "Activity result Intent is null.  To resolve this issue, the child Activity needs to call setResult(RESULT_OK, Intent) or setResult(RESULT_CANCELED) before finishing.", //$NON-NLS-1$
+            "Activity result Intent is null.  To resolve this issue, the child Activity needs to call setResult(RESULT_OK, Intent) or setResult(RESULT_CANCELED) before finishing.",
+            //$NON-NLS-1$
             true),
 
     /**
@@ -73,17 +79,20 @@ public enum PluginErrorEdit implements IPluginError {
      */
     @NonNull
     PRIVATE_SERIALIZABLE(
-            "Intent or Bundle contains a private Serializable subclass which is not known to this app's classloader.  To resolve this issue, the DO NOT place a private Serializable subclass in Intents sent across processes.", //$NON-NLS-1$
+            "Intent or Bundle contains a private Serializable subclass which is not known to this app's classloader.  To resolve this issue, the DO NOT place a private Serializable subclass in Intents sent across processes.",
+            //$NON-NLS-1$
             true),
 
     @NonNull
     SECURITY_EXCEPTION(
-            "The Activity could not be launched because of a security error.  To resolve this issue, make sure the Activity is exported and does not require a permission.", //$NON-NLS-1$
+            "The Activity could not be launched because of a security error.  To resolve this issue, make sure the Activity is exported and does not require a permission.",
+            //$NON-NLS-1$
             true),
 
     @NonNull
     UNKNOWN_ACTIVITY_RESULT_CODE(
-            "Plug-ins must return one of the result codes ACTIVITY.RESULT_OK or ACTIVITY.RESULT_CANCELED", //$NON-NLS-1$
+            "Plug-ins must return one of the result codes ACTIVITY.RESULT_OK or ACTIVITY.RESULT_CANCELED",
+            //$NON-NLS-1$
             true),;
 
     /**

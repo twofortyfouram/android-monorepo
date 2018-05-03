@@ -18,7 +18,8 @@
 
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Overlays the debug flag for the spackle-lib. -->
-    <item name="com_twofortyfouram_log_is_debug" type="bool" translatable="false" tools:ignore="ResourceName,UnusedResources">true</item>
+    <!-- Suppress lint warnings, since this is the correct prefix. -->
+    <eat-comment />
+    <string name="com_twofortyfouram_log_tag" translatable="false" tools:ignore="ResourceName">pluginClientSdkLibTest</string>
 
 </resources>

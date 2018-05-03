@@ -18,6 +18,8 @@
 package com.twofortyfouram.locale.sdk.host.test.fixture;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.RestrictTo;
+import android.support.annotation.VisibleForTesting;
 
 import com.twofortyfouram.locale.sdk.host.model.PluginConfiguration;
 
@@ -26,6 +28,8 @@ import net.jcip.annotations.ThreadSafe;
 import java.util.LinkedList;
 
 @ThreadSafe
+@RestrictTo(RestrictTo.Scope.TESTS)
+@VisibleForTesting(otherwise = VisibleForTesting.NONE)
 public final class PluginConfigurationFixture {
 
     /**
@@ -34,7 +38,7 @@ public final class PluginConfigurationFixture {
     @NonNull
     public static PluginConfiguration newPluginConfiguration() {
         return new PluginConfiguration(false, false, false, false, false, false,
-                new LinkedList<String>());
+                new LinkedList<>());
     }
 
     /**

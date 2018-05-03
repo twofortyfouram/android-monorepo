@@ -19,7 +19,7 @@ package com.twofortyfouram.locale.sdk.host.model;
 
 import android.support.annotation.NonNull;
 
-import com.twofortyfouram.locale.api.Intent;
+import com.twofortyfouram.locale.api.LocalePluginIntent;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -34,22 +34,22 @@ public enum PluginType {
     /**
      * A plug-in condition.
      *
-     * @see com.twofortyfouram.locale.api.Intent#ACTION_EDIT_CONDITION
-     * @see com.twofortyfouram.locale.api.Intent#ACTION_QUERY_CONDITION
+     * @see LocalePluginIntent#ACTION_EDIT_CONDITION
+     * @see LocalePluginIntent#ACTION_QUERY_CONDITION
      */
     @NonNull
-    CONDITION(Intent.ACTION_EDIT_CONDITION,
-            Intent.ACTION_QUERY_CONDITION),
+    CONDITION(LocalePluginIntent.ACTION_EDIT_CONDITION,
+            LocalePluginIntent.ACTION_QUERY_CONDITION),
 
     /**
      * A plug-in setting.
      *
-     * @see com.twofortyfouram.locale.api.Intent#ACTION_EDIT_SETTING
-     * @see com.twofortyfouram.locale.api.Intent#ACTION_FIRE_SETTING
+     * @see LocalePluginIntent#ACTION_EDIT_SETTING
+     * @see LocalePluginIntent#ACTION_FIRE_SETTING
      */
     @NonNull
-    SETTING(Intent.ACTION_EDIT_SETTING,
-            Intent.ACTION_FIRE_SETTING);
+    SETTING(LocalePluginIntent.ACTION_EDIT_SETTING,
+            LocalePluginIntent.ACTION_FIRE_SETTING);
 
     @NonNull
     private final String mActivityIntentAction;

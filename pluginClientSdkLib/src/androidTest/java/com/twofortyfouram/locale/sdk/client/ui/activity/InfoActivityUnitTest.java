@@ -17,30 +17,44 @@
 
 package com.twofortyfouram.locale.sdk.client.ui.activity;
 
-import com.twofortyfouram.locale.sdk.client.internal.HostPackageUtilTest.HostPackageManager;
-
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.filters.SmallTest;
+import android.support.test.runner.AndroidJUnit4;
 
-public final class InfoActivityTest extends AndroidTestCase {
+import com.twofortyfouram.locale.sdk.client.internal.HostPackageUtilTest.HostPackageManager;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static android.support.test.InstrumentationRegistry.getContext;
+import static android.support.test.espresso.intent.matcher.IntentMatchers.hasAction;
+import static android.support.test.espresso.intent.matcher.IntentMatchers.hasData;
+import static android.support.test.espresso.intent.matcher.IntentMatchers.hasPackage;
+import static android.support.test.espresso.intent.matcher.UriMatchers.hasScheme;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+@RunWith(AndroidJUnit4.class)
+public final class InfoActivityUnitTest {
 
     @SmallTest
+    @Test
     public void testGetLaunchIntent_host() {
         final Intent i = InfoActivity.getLaunchIntent(getContext(), new ExtendedHostPackageManager(
                 "com.twofortyfouram.locale"), getContext().getPackageName()); //$NON-NLS-1$
 
-        assertEquals("com.twofortyfouram.locale", i.getPackage()); //$NON-NLS-1$
+        assertThat(i, hasPackage("com.twofortyfouram.locale")); //$NON-NLS
     }
 
     @SmallTest
+    @Test
     public void testGetLaunchIntent_google_play() {
-        final Intent i = InfoActivity.getLaunchIntent(getContext(), new HostPackageManager(), getContext()
-                .getPackageName());
+        final Intent i = InfoActivity
+                .getLaunchIntent(getContext(), new HostPackageManager(), getContext()
+                        .getPackageName());
 
-        assertEquals(Intent.ACTION_VIEW, i.getAction());
-        assertEquals("market", i.getData().getScheme()); //$NON-NLS-1$
+        assertThat(i, hasAction(Intent.ACTION_VIEW));
+        assertThat(i, hasData(hasScheme("market"))); //$NON-NLS
     }
 
     private static final class ExtendedHostPackageManager extends HostPackageManager {

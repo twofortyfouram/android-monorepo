@@ -14,7 +14,8 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.twofortyfouram.locale.sdk.host.internal;
+
+package com.twofortyfouram.locale.sdk.host.util;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -27,7 +28,6 @@ import net.jcip.annotations.ThreadSafe;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -38,6 +38,8 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 import static com.twofortyfouram.log.Lumberjack.formatMessage;
 
 /**
+ * For plug-ins implementing the Plug-in API for Locale 1.0.0.
+ *
  * This class serializes/deserializes a {@code Bundle} into a persistent
  * {@code byte[]} form.
  * <p>
@@ -47,7 +49,7 @@ import static com.twofortyfouram.log.Lumberjack.formatMessage;
  * of this limitation are likely minor.
  */
 @ThreadSafe
-public final class BundleSerializer {
+public final class BinaryBundleSerializer {
     //@formatter:off
     /* The serialized form consists of:
     *     1. An int primitive representing the version of the serialized stream.
@@ -98,18 +100,10 @@ public final class BundleSerializer {
      * <p>
      * Note: all values of the {@code Bundle} must be either a primitive or implement
      * {@code Serializable}.
-     *
-     * @param bundleToSerialize an instance of {@code Bundle} to serialize into {@code byte[]}.
-     * @return {@code byte[]} representation of the {@code bundleToSerialize}
-     * @throws NotSerializableException If an object in the {@code Bundle} does not implement
-     *                                  {@code Serializable}
-     * @throws Exception                If the class of an {@code Object} in the {@code Bundle} is
-     *                                  not available to
-     *                                  the current class loader
      */
     @NonNull
-    public static byte[] serializeToByteArray(@NonNull final Bundle bundleToSerialize)
-            throws NotSerializableException, Exception {
+    public byte[] serialize(@NonNull final Bundle bundleToSerialize)
+            throws BundleSerializer.BundleSerializationException {
         assertNotNull(bundleToSerialize, "bundleToSerialize"); //$NON-NLS-1$
 
         ObjectOutputStream objectOut = null; // needs to be closed
@@ -125,7 +119,7 @@ public final class BundleSerializer {
              * serialized form will be sorted by the keys, although this sorting does make it easier
              * to perform regression tests.
              */
-            final Set<String> keys = new TreeSet<String>(new BundleKeyComparator());
+            final Set<String> keys = new TreeSet<>(new BundleKeyComparator());
             keys.addAll(bundleToSerialize.keySet());
 
             int count = 0;
@@ -150,16 +144,17 @@ public final class BundleSerializer {
                     /*
                      * Oh boy, recursive!
                      */
-                    objectOut.writeObject(serializeToByteArray((Bundle) value));
+                    objectOut.writeObject(serialize((Bundle) value));
                 } else if (value instanceof Serializable || null == value) {
                     objectOut.writeInt(TYPE_SERIALIZABLE);
 
                     objectOut.writeObject(key);
                     objectOut.writeObject(bundleToSerialize.get(key));
                 } else {
-                    throw new NotSerializableException(
+                    throw new BundleSerializer.BundleSerializationException(
                             formatMessage(
-                                    "Key \"%s\"'s value %s isn't Serializable.  Only primitives or objects implementing Serializable can be stored.  Parcelable is not stable for long-term storage.", //$NON-NLS-1$
+                                    "Key \"%s\"'s value %s isn't Serializable.  Only primitives or objects implementing Serializable can be stored.  Parcelable is not stable for long-term storage.",
+                                    //$NON-NLS-1$
                                     key, bundleToSerialize.get(key)
                             )
                     );
@@ -172,15 +167,10 @@ public final class BundleSerializer {
                     objectOut.writeInt(CONTROL_CODE_CONTINUE);
                 }
             }
-        } catch (final NotSerializableException e) {
-            /*
-             * Since NotSerializableException is a subclass of IOException, there is a need to catch
-             * and re-throw here before the catch IOException below.
-             */
-            throw e;
         } catch (final IOException e) {
             // if this happens, we've really screwed the pooch and really can't recover
-            throw new RuntimeException("IOException when serializing to byte[]", e); //$NON-NLS-1$
+            throw new BundleSerializer.BundleSerializationException(
+                    "IOException when serializing to byte[]", e); //$NON-NLS-1$
         } finally {
             try {
                 if (null != objectOut) {
@@ -188,7 +178,8 @@ public final class BundleSerializer {
                     objectOut = null;
                 }
             } catch (final IOException e) {
-                throw new RuntimeException("IOException when closing ObjectOutputStream",
+                throw new BundleSerializer.BundleSerializationException(
+                        "IOException when closing ObjectOutputStream",
                         e); //$NON-NLS-1$
             }
         }
@@ -199,19 +190,13 @@ public final class BundleSerializer {
      * Deserializes an instance of {@code Bundle} from a {@code byte[]}.
      *
      * @param bytesToDeserialize A {@code byte[]} representing the output of the
-     *                           {@link #serializeToByteArray(Bundle)} method of this class.
+     *                           {@link #serialize(Bundle)} method of this class.
      * @return Deserialized instance of the {@code Bundle} previously sent through
-     * {@link #serializeToByteArray(Bundle)}
-     * @throws ClassNotFoundException if the class in the object graph of {@code byte[]} cannot be
-     *                                found.
-     * @throws ClassCastException     if the {@code byte[]} being deserialized isn't an instance of
-     *                                {@code Bundle}
-     * @throws RuntimeException       If something goes HORRIBLY wrong. This should never ever
-     *                                happen.
+     * {@link #serialize(Bundle)}
      */
     @NonNull
-    public static Bundle deserializeFromByteArray(@NonNull final byte[] bytesToDeserialize)
-            throws ClassNotFoundException {
+    public Bundle deserialize(@NonNull final byte[] bytesToDeserialize)
+            throws BundleSerializer.BundleSerializationException {
         assertNotNull(bytesToDeserialize, "bytesToDeserialize"); //$NON-NLS-1$
 
         ObjectInputStream objectIn = null; // needs to be closed
@@ -238,7 +223,7 @@ public final class BundleSerializer {
                             }
                             case TYPE_BUNDLE: {
                                 final String key = (String) objectIn.readObject();
-                                final Bundle value = deserializeFromByteArray((byte[]) objectIn
+                                final Bundle value = deserialize((byte[]) objectIn
                                         .readObject());
 
                                 returnBundle.putBundle(key, value);
@@ -246,15 +231,16 @@ public final class BundleSerializer {
                                 break;
                             }
                             default: {
-                                throw new RuntimeException(formatMessage(
-                                        "Type %d unrecognized", type)); //$NON-NLS-1$
+                                throw new BundleSerializer.BundleSerializationException(
+                                        formatMessage(
+                                                "Type %d unrecognized", type)); //$NON-NLS-1$
                             }
                         }
                     }
                     break;
                 }
                 default: {
-                    throw new RuntimeException(formatMessage(
+                    throw new BundleSerializer.BundleSerializationException(formatMessage(
                             "Version %d unrecognized", version)); //$NON-NLS-1$
                 }
             }
@@ -262,9 +248,12 @@ public final class BundleSerializer {
             Lumberjack.d("Deserialized bundle is: %s", returnBundle); //$NON-NLS-1$
             return returnBundle;
 
+        } catch (final ClassNotFoundException e) {
+            throw new BundleSerializer.BundleSerializationException(e);
         } catch (final IOException e) {
             // if this happens, we've really screwed the pooch and really can't recover
-            throw new RuntimeException("IOException when deserializing", e); //$NON-NLS-1$
+            throw new BundleSerializer.BundleSerializationException(
+                    "IOException when deserializing", e); //$NON-NLS-1$
         } finally {
             try {
                 if (null != objectIn) {
@@ -272,18 +261,10 @@ public final class BundleSerializer {
                     objectIn = null;
                 }
             } catch (final IOException e) {
-                throw new RuntimeException("IOException when closing ObjectInputStream",
+                throw new BundleSerializer.BundleSerializationException(
+                        "IOException when closing ObjectInputStream",
                         e); //$NON-NLS-1$
             }
         }
-    }
-
-    /**
-     * Private constructor prevents instantiation.
-     *
-     * @throws UnsupportedOperationException because this class cannot be instantiated.
-     */
-    private BundleSerializer() {
-        throw new UnsupportedOperationException("This class is non-instantiable"); //$NON-NLS-1$
     }
 }

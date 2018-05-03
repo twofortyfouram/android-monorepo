@@ -22,36 +22,41 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.twofortyfouram.locale.sdk.client.ui.activity.AbstractPluginActivity;
-import com.twofortyfouram.locale.sdk.host.test.setting.bundle.PluginBundleManager;
+import com.twofortyfouram.locale.sdk.host.test.setting.bundle.PluginJsonValues;
 
+import net.jcip.annotations.NotThreadSafe;
+
+import org.json.JSONObject;
+
+@NotThreadSafe
 public final class PluginSettingActivity extends AbstractPluginActivity {
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         finish();
     }
 
     @Override
-    public boolean isBundleValid(@NonNull final Bundle bundle) {
-        return PluginBundleManager.isBundleValid(bundle);
+    public boolean isJsonValid(@NonNull final JSONObject jsonObject) {
+        return PluginJsonValues.isJsonValid(jsonObject);
     }
 
     @Override
-    public void onPostCreateWithPreviousResult(@NonNull Bundle previousBundle,
-            @NonNull String previousBlurb) {
+    public void onPostCreateWithPreviousResult(@NonNull final JSONObject previousJson,
+            @NonNull final String previousBlurb) {
 
     }
 
     @Override
-    public Bundle getResultBundle() {
-        return new Bundle();
+    public JSONObject getResultJson() {
+        return new JSONObject();
     }
 
     @Override
     @NonNull
-    public String getResultBlurb(@NonNull Bundle bundle) {
+    public String getResultBlurb(@NonNull final JSONObject jsonObject) {
         return "";
     }
 

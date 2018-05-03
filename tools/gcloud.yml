@@ -1,3 +1,24 @@
+assertionLib:
+  type: instrumentation
+  test: assertionLib/build/outputs/apk/android-assertion-debug-androidTest.apk
+  timeout: 10m
+  results-history-name: assertionLib
+  include: [test-butler-apk,coverage-environment-variables]
+
+mementoApiLib:
+  type: instrumentation
+  test: mementoApiLib/build/outputs/apk/android-memento-api-debug-androidTest.apk
+  timeout: 10m
+  results-history-name: mementoApiLib
+  include: [test-butler-apk,coverage-environment-variables]
+
+mementoImplLib:
+  type: instrumentation
+  test: mementoImplLib/build/outputs/apk/android-memento-impl-debug-androidTest.apk
+  timeout: 10m
+  results-history-name: mementoImplLib
+  include: [test-butler-apk,coverage-environment-variables]
+
 pluginClientSdkLib:
   type: instrumentation
   test: pluginClientSdkLib/build/outputs/apk/android-plugin-client-sdk-for-locale-debug-androidTest.apk
@@ -10,6 +31,20 @@ pluginHostSdkLib:
   test: pluginHostSdkLib/build/outputs/apk/android-plugin-host-sdk-for-locale-debug-androidTest.apk
   timeout: 10m
   results-history-name: pluginHostSdkLib
+  include: [test-butler-apk,coverage-environment-variables]
+  
+spackleLib:
+  type: instrumentation
+  test: spackleLib/build/outputs/apk/android-spackle-debug-androidTest.apk
+  timeout: 10m
+  results-history-name: spackleLib
+  include: [test-butler-apk,coverage-environment-variables]
+
+testLib:
+  type: instrumentation
+  test: testLib/build/outputs/apk/android-test-debug-androidTest.apk
+  timeout: 10m
+  results-history-name: testLib
   include: [test-butler-apk,coverage-environment-variables]
 
 test-butler-apk:

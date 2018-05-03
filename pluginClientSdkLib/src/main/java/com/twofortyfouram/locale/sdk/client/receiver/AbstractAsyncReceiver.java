@@ -28,8 +28,8 @@ import android.support.annotation.NonNull;
 import android.util.Pair;
 
 import com.twofortyfouram.spackle.AndroidSdkVersion;
-import com.twofortyfouram.spackle.ThreadUtil;
-import com.twofortyfouram.spackle.ThreadUtil.ThreadPriority;
+import com.twofortyfouram.spackle.HandlerThreadFactory;
+import com.twofortyfouram.spackle.HandlerThreadFactory.ThreadPriority;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -63,11 +63,11 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
         }
 
         final Handler.Callback handlerCallback = new AsyncHandlerCallback();
-        final HandlerThread thread = ThreadUtil.newHandlerThread(getClass().getName(),
+        final HandlerThread thread = HandlerThreadFactory.newHandlerThread(getClass().getName(),
                 ThreadPriority.BACKGROUND);
         final Handler handler = new Handler(thread.getLooper(), handlerCallback);
 
-        final Object obj = new Pair<PendingResult, AsyncCallback>(pendingResult, callback);
+        final Object obj = new Pair<>(pendingResult, callback);
         final int isOrderedInt = isOrdered ? 1 : 0;
         final Message msg = handler
                 .obtainMessage(AsyncHandlerCallback.MESSAGE_HANDLE_CALLBACK, isOrderedInt, 0, obj);

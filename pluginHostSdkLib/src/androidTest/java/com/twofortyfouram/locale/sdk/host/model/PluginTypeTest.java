@@ -20,7 +20,7 @@ package com.twofortyfouram.locale.sdk.host.model;
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.twofortyfouram.locale.api.Intent;
+import com.twofortyfouram.locale.api.LocalePluginIntent;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,27 +35,27 @@ public final class PluginTypeTest {
     @SmallTest
     public void getActivityIntentAction_condition() {
         assertThat(PluginType.CONDITION.getActivityIntentAction(),
-                is(Intent.ACTION_EDIT_CONDITION));
+                is(LocalePluginIntent.ACTION_EDIT_CONDITION));
     }
 
     @Test
     @SmallTest
     public void getActivityIntentAction_setting() {
         assertThat(PluginType.SETTING.getActivityIntentAction(),
-                is(Intent.ACTION_EDIT_SETTING));
+                is(LocalePluginIntent.ACTION_EDIT_SETTING));
     }
 
     @Test
     @SmallTest
     public void getReceiverIntentAction_condition() {
         assertThat(PluginType.CONDITION.getReceiverIntentAction(),
-                is(Intent.ACTION_QUERY_CONDITION));
+                is(LocalePluginIntent.ACTION_QUERY_CONDITION));
     }
 
     @Test
     @SmallTest
     public void getReceiverIntentAction_setting() {
         assertThat(PluginType.SETTING.getReceiverIntentAction(),
-                is(Intent.ACTION_FIRE_SETTING));
+                is(LocalePluginIntent.ACTION_FIRE_SETTING));
     }
 }

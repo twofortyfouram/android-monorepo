@@ -17,75 +17,75 @@
 
 package com.twofortyfouram.locale.sdk.client.ui.activity;
 
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+
+import com.twofortyfouram.locale.api.LocalePluginIntent;
+
+import org.json.JSONObject;
 
 /**
  * Common interface for plug-in Activities.
  */
 public interface IPluginActivity {
-    /**
-     * @return The {@link com.twofortyfouram.locale.api.Intent#EXTRA_BUNDLE EXTRA_BUNDLE} that was
-     * previously saved to the host and subsequently passed back to this Activity for further
-     * editing.  Internally, this method relies on {@link #isBundleValid(android.os.Bundle)}.  If
-     * the bundle exists but is not valid, this method will return null.
-     */
-    @Nullable
-    Bundle getPreviousBundle();
 
     /**
-     * @return The {@link com.twofortyfouram.locale.api.Intent#EXTRA_STRING_BLURB
-     * EXTRA_STRING_BLURB} that was
-     * previously saved to the host and subsequently passed back to this Activity for further
-     * editing.
+     * @return The {@link LocalePluginIntent#EXTRA_STRING_JSON EXTRA_JSON} that
+     * was previously saved to the host and subsequently passed back to this Activity for further
+     * editing.  Internally, this method relies on {@link #isJsonValid(JSONObject)}.  If
+     * the JSON exists but is not valid, this method will return null.
+     */
+    @Nullable
+    JSONObject getPreviousJson();
+
+    /**
+     * @return The {@link LocalePluginIntent#EXTRA_STRING_BLURB
+     * EXTRA_STRING_BLURB} that was previously saved to the host and subsequently passed back to
+     * this Activity for further editing.
      */
     @Nullable
     String getPreviousBlurb();
 
     /**
      * <p>Validates the Bundle, to ensure that a malicious application isn't attempting to pass
-     * an invalid Bundle.</p>
+     * an invalid JSON object.</p>
      *
-     * @param bundle The plug-in's Bundle previously returned by the edit
-     *               Activity.  {@code bundle} should not be mutated by this method.
-     * @return true if {@code bundle} is valid for the plug-in.
+     * @param jsonObject The plug-in's JSON previously returned by the edit
+     *                   Activity.  {@code jsonObject} should not be mutated by this method.
+     * @return true if {@code jsonObject} is valid.
      */
-    boolean isBundleValid(@NonNull final Bundle bundle);
+    boolean isJsonValid(@NonNull final JSONObject jsonObject);
 
     /**
      * Plug-in Activity lifecycle callback to allow the Activity to restore
      * state for editing a previously saved plug-in instance. This callback will
      * occur during the onPostCreate() phase of the Activity lifecycle.
-     * <p>{@code bundle} will have been
-     * validated by {@link #isBundleValid(android.os.Bundle)} prior to this
-     * method being called.  If {@link #isBundleValid(android.os.Bundle)} returned false, then this
-     * method will not be called.  This helps ensure that plug-in Activity subclasses only have to
-     * worry about bundle validation once, in the {@link #isBundleValid(android.os.Bundle)}
-     * method.</p>
+     * <p>{@code bundle} will have been validated by {@link #isJsonValid(JSONObject)} prior to this
+     * method being called.  If {@link #isJsonValid(JSONObject)} returned false, then this method
+     * will not be called.  This helps ensure that plug-in Activity subclasses only have to
+     * worry about bundle validation once, in the {@link #isJsonValid(JSONObject)} method.</p>
      * <p>Note this callback only occurs the first time the Activity is created, so it will not be
-     * called
-     * when the Activity is recreated (e.g. {@code savedInstanceState != null}) such as after a
-     * configuration change like a screen rotation.</p>
+     * called when the Activity is recreated (e.g. {@code savedInstanceState != null}) such as after
+     * a configuration change like a screen rotation.</p>
      *
-     * @param previousBundle Previous bundle that the Activity saved.
-     * @param previousBlurb  Previous blurb that the Activity saved
+     * @param previousJsonObject Previous JSON object that the Activity saved.
+     * @param previousBlurb      Previous blurb that the Activity saved
      */
     void onPostCreateWithPreviousResult(
-            @NonNull final Bundle previousBundle, @NonNull final String previousBlurb);
+            @NonNull final JSONObject previousJsonObject, @NonNull final String previousBlurb);
 
     /**
-     * @return Bundle for the plug-in or {@code null} if a valid Bundle cannot
-     * be generated.
+     * @return Result for the plug-in or {@code null} which indicates that the plug-in doesn't have
+     * anything to save.
      */
     @Nullable
-    Bundle getResultBundle();
+    JSONObject getResultJson();
 
     /**
-     * @param bundle Valid bundle for the component.
-     * @return Blurb for {@code bundle}.
+     * @param jsonObject Valid JSON for the plug-in instance.
+     * @return Blurb for {@code jsonObject}.
      */
     @NonNull
-    String getResultBlurb(@NonNull final Bundle bundle);
+    String getResultBlurb(@NonNull final JSONObject jsonObject);
 
 }

@@ -25,13 +25,15 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.twofortyfouram.locale.api.Intent;
+import com.twofortyfouram.locale.api.LocalePluginIntent;
 import com.twofortyfouram.locale.sdk.client.ui.activity.AbstractPluginActivity;
 import com.twofortyfouram.locale.sdk.host.test.R;
-import com.twofortyfouram.locale.sdk.host.test.condition.bundle.PluginBundleManager;
+import com.twofortyfouram.locale.sdk.host.test.condition.bundle.PluginJsonValues;
 import com.twofortyfouram.spackle.ResourceUtil;
 
 import net.jcip.annotations.NotThreadSafe;
+
+import org.json.JSONObject;
 
 @NotThreadSafe
 public final class PluginConditionActivity extends AbstractPluginActivity {
@@ -45,43 +47,41 @@ public final class PluginConditionActivity extends AbstractPluginActivity {
 
         setContentView(R.layout.com_twofortyfouram_locale_sdk_host_activity_condition);
 
-        mAdapter = new ArrayAdapter<String>(this,
+        mAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_single_choice, android.R.id.text1, getResources()
                 .getStringArray(R.array.com_twofortyfouram_locale_sdk_host_condition_states)
         );
     }
 
     @Override
-    public boolean isBundleValid(@NonNull Bundle bundle) {
-        return PluginBundleManager.isBundleValid(bundle);
+    public boolean isJsonValid(@NonNull final JSONObject json) {
+        return PluginJsonValues.isJsonValid(json);
     }
 
     @Override
-    public void onPostCreateWithPreviousResult(@NonNull Bundle previousBundle,
-                                               @NonNull String previousBlurb) {
-        if (PluginBundleManager.isBundleValid(previousBundle)) {
-            final int code = PluginBundleManager.getResultCode(previousBundle);
+    public void onPostCreateWithPreviousResult(@NonNull final JSONObject previousJson,
+            @NonNull final String previousBlurb) {
+        final int code = PluginJsonValues.getResultCode(previousJson);
 
-            final int resourceId = getResourceIdForCode(code);
+        final int resourceId = getResourceIdForCode(code);
 
-            if (0 != resourceId) {
-                final int position = ResourceUtil
-                        .getPositionForIdInArray(this.getApplicationContext(),
-                                R.array.com_twofortyfouram_locale_sdk_host_condition_states,
-                                resourceId);
+        if (0 != resourceId) {
+            final int position = ResourceUtil
+                    .getPositionForIdInArray(this.getApplicationContext(),
+                            R.array.com_twofortyfouram_locale_sdk_host_condition_states,
+                            resourceId);
 
-                final ListView listView = (ListView) findViewById(android.R.id.list);
-                listView.setItemChecked(position, true);
-            }
+            final ListView listView = findViewById(android.R.id.list);
+            listView.setItemChecked(position, true);
         }
     }
 
     @Override
-    public Bundle getResultBundle() {
-        Bundle resultBundle = null;
+    public JSONObject getResultJson() {
+        JSONObject resultJson = null;
 
         {
-            final ListView listView = (ListView) findViewById(android.R.id.list);
+            final ListView listView = findViewById(android.R.id.list);
 
             final int position = listView.getCheckedItemPosition();
             if (AdapterView.INVALID_POSITION != position) {
@@ -93,27 +93,27 @@ public final class PluginConditionActivity extends AbstractPluginActivity {
                 final int code;
                 if (R.string.com_twofortyfouram_locale_sdk_host_condition_satisfied
                         == resourceId) {
-                    code = Intent.RESULT_CONDITION_SATISFIED;
+                    code = LocalePluginIntent.RESULT_CONDITION_SATISFIED;
                 } else if (R.string.com_twofortyfouram_locale_sdk_host_condition_unsatisfied
                         == resourceId) {
-                    code = Intent.RESULT_CONDITION_UNSATISFIED;
+                    code = LocalePluginIntent.RESULT_CONDITION_UNSATISFIED;
                 } else if (R.string.com_twofortyfouram_locale_sdk_host_condition_unknown
                         == resourceId) {
-                    code = Intent.RESULT_CONDITION_UNKNOWN;
+                    code = LocalePluginIntent.RESULT_CONDITION_UNKNOWN;
                 } else {
                     throw new AssertionError();
                 }
 
-                resultBundle = PluginBundleManager.generateBundle(getApplicationContext(), code);
+                resultJson = PluginJsonValues.generateJson(getApplicationContext(), code);
             }
         }
 
-        return resultBundle;
+        return resultJson;
     }
 
     @Override
-    public String getResultBlurb(@NonNull Bundle bundle) {
-        final int code = PluginBundleManager.getResultCode(bundle);
+    public String getResultBlurb(@NonNull JSONObject json) {
+        final int code = PluginJsonValues.getResultCode(json);
 
         return getString(getResourceIdForCode(code));
     }
@@ -125,15 +125,15 @@ public final class PluginConditionActivity extends AbstractPluginActivity {
     private static int getResourceIdForCode(final int code) {
         final int resourceId;
         switch (code) {
-            case Intent.RESULT_CONDITION_SATISFIED: {
+            case LocalePluginIntent.RESULT_CONDITION_SATISFIED: {
                 resourceId = R.string.com_twofortyfouram_locale_sdk_host_condition_satisfied;
                 break;
             }
-            case Intent.RESULT_CONDITION_UNSATISFIED: {
+            case LocalePluginIntent.RESULT_CONDITION_UNSATISFIED: {
                 resourceId = R.string.com_twofortyfouram_locale_sdk_host_condition_unsatisfied;
                 break;
             }
-            case Intent.RESULT_CONDITION_UNKNOWN: {
+            case LocalePluginIntent.RESULT_CONDITION_UNKNOWN: {
                 resourceId = R.string.com_twofortyfouram_locale_sdk_host_condition_unknown;
                 break;
             }

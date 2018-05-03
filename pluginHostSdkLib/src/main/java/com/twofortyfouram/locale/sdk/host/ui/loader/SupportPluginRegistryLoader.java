@@ -17,7 +17,6 @@
 
 package com.twofortyfouram.locale.sdk.host.ui.loader;
 
-import android.content.AsyncTaskLoader;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -25,9 +24,10 @@ import android.content.IntentFilter;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
+import android.support.v4.content.AsyncTaskLoader;
 
 import com.twofortyfouram.locale.sdk.host.api.PluginRegistry;
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.sdk.host.model.IPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.ContextUtil;
@@ -41,15 +41,14 @@ import static com.twofortyfouram.assertion.Assertions.assertIsMainThread;
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
 /**
- * An {@link AsyncTaskLoader} for loading the {@link PluginRegistry}.
+ * An {@link AsyncTaskLoader} for loading {@link PluginRegistry}.
  * <p>
  * In addition to reloading when the registry changes, this also reloads when an
  * interesting configuration change occurs that could affect the display of
  * plug-ins in the UI.
  */
 @NotThreadSafe
-public final class SupportPluginRegistryLoader extends
-        android.support.v4.content.AsyncTaskLoader<Map<String, Plugin>> {
+public final class SupportPluginRegistryLoader extends AsyncTaskLoader<Map<String, IPlugin>> {
 
     /**
      * Plug-in type.
@@ -58,7 +57,7 @@ public final class SupportPluginRegistryLoader extends
     private final PluginType mType;
 
     /**
-     * Cached reference to the singleton registry.
+     * Reference to the registry.
      */
     @NonNull
     private final PluginRegistry mPluginRegistry;
@@ -79,28 +78,31 @@ public final class SupportPluginRegistryLoader extends
             = new com.twofortyfouram.locale.sdk.host.internal.UiConfigChangeChecker();
 
     /**
-     * The loaded registry.
+     * The loaded plug-in map.
      */
     @Nullable
-    private Map<String, Plugin> mResult = null;
+    private Map<String, IPlugin> mResult = null;
 
     /**
-     * @param context {@code Context}.
-     * @param type    The plug-in type to load.
+     * @param context  {@code Context}.
+     * @param registry Plug-in registry.
+     * @param type     The plug-in type to load.
      */
     public SupportPluginRegistryLoader(@NonNull final Context context,
-                                       @NonNull final PluginType type) {
+            @NonNull PluginRegistry registry,
+            @NonNull final PluginType type) {
         super(ContextUtil.cleanContext(context));
 
-        assertNotNull(type, "type"); //$NON-NLS-1$
+        assertNotNull(registry, "registry"); //$NON-NLS
+        assertNotNull(type, "type"); //$NON-NLS
 
         mType = type;
-        mPluginRegistry = PluginRegistry.getInstance(getContext());
+        mPluginRegistry = registry;
     }
 
     @Override
     @WorkerThread
-    public Map<String, Plugin> loadInBackground() {
+    public Map<String, IPlugin> loadInBackground() {
         /*
          * THREADING: This will be called on a background thread
          */
@@ -109,7 +111,7 @@ public final class SupportPluginRegistryLoader extends
     }
 
     @Override
-    public void deliverResult(final Map<String, Plugin> result) {
+    public void deliverResult(@NonNull final Map<String, IPlugin> result) {
         assertIsMainThread();
 
         // The registry for the other plugin type (e.g. conditions vs settings) could have changed,
@@ -151,7 +153,8 @@ public final class SupportPluginRegistryLoader extends
                     .getChangeIntentAction());
             mReceiver = new RegistryReloadReceiver();
 
-            getContext().registerReceiver(mReceiver, filter, mPluginRegistry.getChangeIntentPermission(), null);
+            getContext().registerReceiver(mReceiver, filter,
+                    mPluginRegistry.getChangeIntentPermission(), null);
         }
 
         if (null != mResult) {

@@ -32,9 +32,13 @@ dependencies {
     androidTestImplementation group:'com.linkedin.testbutler', name:'test-butler-library', version:"${TEST_BUTLER_VERSION_MATCHER}"
     androidTestImplementation project(':testLib')
 
-
     if (Boolean.parseBoolean("${IS_INSTALL_TEST_BUTLER}")) {
         androidTestUtil group:'com.linkedin.testbutler', name:'test-butler-app', version:"${TEST_BUTLER_VERSION_MATCHER}", ext:'apk'
+    }
+
+    if (Boolean.parseBoolean("${IS_INSTALL_TEST_ORCHESTRATOR}")) {
+        androidTestUtil group:'com.android.support.test', name:'orchestrator', version:"${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}", ext:'apk'
+        androidTestUtil group:'com.android.support.test.services', name:'test-services', version:"${ANDROID_TEST_SERVICES_VERSION_MATCHER}", ext:'apk'
     }
 }
 
@@ -70,15 +74,8 @@ android {
         animationsDisabled true
     }
 
-    // TODO [Case 16285]: Remove this once Google Play Services is fixed, probably next release after 11.2.0
-    packagingOptions {
-        exclude 'protobuf.meta'
-    }
-
     buildTypes {
         debug {
-            multiDexEnabled true
-
             testCoverageEnabled Boolean.parseBoolean(IS_COVERAGE_ENABLED)
         }
         release {

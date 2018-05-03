@@ -18,6 +18,8 @@
 package com.twofortyfouram.locale.sdk.host.test.fixture;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.RestrictTo;
+import android.support.annotation.VisibleForTesting;
 
 import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginConfiguration;
@@ -26,9 +28,11 @@ import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import net.jcip.annotations.ThreadSafe;
 
 /**
- * Fixture values for {@link com.twofortyfouram.locale.sdk.host.model.Plugin}.
+ * Fixture values for {@link Plugin}.
  */
 @ThreadSafe
+@RestrictTo(RestrictTo.Scope.TESTS)
+@VisibleForTesting(otherwise = VisibleForTesting.NONE)
 public final class PluginFixture {
 
     @NonNull

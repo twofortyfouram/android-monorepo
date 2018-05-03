@@ -19,18 +19,22 @@ package com.twofortyfouram.locale.sdk.host.test.setting.receiver;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 
 import com.twofortyfouram.locale.sdk.client.receiver.AbstractPluginSettingReceiver;
-import com.twofortyfouram.locale.sdk.host.test.setting.bundle.PluginBundleManager;
+import com.twofortyfouram.locale.sdk.host.test.setting.bundle.PluginJsonValues;
 
+import net.jcip.annotations.ThreadSafe;
+
+import org.json.JSONObject;
+
+@ThreadSafe
 public final class PluginSettingReceiver extends AbstractPluginSettingReceiver {
 
 
     @Override
-    protected boolean isBundleValid(@NonNull Bundle bundle) {
-        return PluginBundleManager.isBundleValid(bundle);
+    protected boolean isJsonValid(@NonNull final JSONObject jsonObject) {
+        return PluginJsonValues.isJsonValid(jsonObject);
     }
 
     @Override
@@ -39,7 +43,8 @@ public final class PluginSettingReceiver extends AbstractPluginSettingReceiver {
     }
 
     @Override
-    protected void firePluginSetting(@NonNull final Context context, @NonNull final Bundle bundle) {
-        context.sendBroadcast(new Intent(PluginBundleManager.getActionToFire(bundle)));
+    protected void firePluginSetting(@NonNull final Context context,
+            @NonNull final JSONObject jsonObject) {
+        context.sendBroadcast(new Intent(PluginJsonValues.getActionToFire(jsonObject)));
     }
 }

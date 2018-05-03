@@ -17,6 +17,7 @@
 
 package com.twofortyfouram.locale.sdk.client.ui.activity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -40,6 +41,7 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
  * from the app store.
  */
 @NotThreadSafe
+@SuppressLint("Registered")
 public final class InfoActivity extends Activity {
 
     @Override
@@ -65,8 +67,8 @@ public final class InfoActivity extends Activity {
 
     @NonNull
     /* package */ static Intent getLaunchIntent(@NonNull final Context context,
-                                                @NonNull final PackageManager manager,
-                                                @NonNull final String myPackageName) {
+            @NonNull final PackageManager manager,
+            @NonNull final String myPackageName) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotNull(manager, "manager"); //$NON-NLS-1$
         assertNotNull(myPackageName, "myPackageName"); //$NON-NLS-1$
@@ -79,7 +81,8 @@ public final class InfoActivity extends Activity {
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             return i;
         } else {
-            return new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.com_twofortyfouram_locale_sdk_client_app_store_deep_link_format,
+            return new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(
+                    R.string.com_twofortyfouram_locale_sdk_client_app_store_deep_link_format,
                     "com.twofortyfouram.locale", myPackageName
             ))).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); //$NON-NLS-1$
         }

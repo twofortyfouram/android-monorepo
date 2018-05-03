@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.locale.sdk.host.api;
+package com.twofortyfouram.locale.sdk.host.internal;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -30,12 +30,11 @@ import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 import android.text.format.DateUtils;
 
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.sdk.host.model.IPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.log.Lumberjack;
-import com.twofortyfouram.spackle.ThreadUtil;
+import com.twofortyfouram.spackle.HandlerThreadFactory;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -52,14 +51,14 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 
 @RunWith(AndroidJUnit4.class)
-public final class PluginRegistryTest {
+public final class ThirdPartyPluginRegistryTest {
 
     public static final long REGISTRY_LOAD_WAIT_MILLIS = 15 * DateUtils.SECOND_IN_MILLIS;
 
     @SmallTest
     @Test
     public void getInstance_non_null() {
-        final PluginRegistry registrySingleton = PluginRegistry
+        final ThirdPartyPluginRegistry registrySingleton = ThirdPartyPluginRegistry
                 .getInstance(InstrumentationRegistry.getContext());
 
         assertThat(registrySingleton, notNullValue());
@@ -68,10 +67,10 @@ public final class PluginRegistryTest {
     @SmallTest
     @Test
     public void getInstance_cached() {
-        final PluginRegistry registrySingleton = PluginRegistry
+        final ThirdPartyPluginRegistry registrySingleton = ThirdPartyPluginRegistry
                 .getInstance(InstrumentationRegistry.getContext());
 
-        assertThat(PluginRegistry.getInstance(InstrumentationRegistry.getContext()),
+        assertThat(ThirdPartyPluginRegistry.getInstance(InstrumentationRegistry.getContext()),
                 sameInstance(registrySingleton));
     }
 
@@ -81,11 +80,11 @@ public final class PluginRegistryTest {
     @MediumTest
     @Test(timeout = REGISTRY_LOAD_WAIT_MILLIS)
     public void getInstance_initialized() {
-        final PluginRegistry registrySingleton = PluginRegistry
+        final ThirdPartyPluginRegistry registrySingleton = ThirdPartyPluginRegistry
                 .getInstance(InstrumentationRegistry.getContext());
 
         assertThat(registrySingleton, notNullValue());
-        assertThat(PluginRegistry.getInstance(InstrumentationRegistry.getContext()),
+        assertThat(ThirdPartyPluginRegistry.getInstance(InstrumentationRegistry.getContext()),
                 sameInstance(registrySingleton));
 
         registrySingleton.blockUntilLoaded();
@@ -94,7 +93,7 @@ public final class PluginRegistryTest {
     @SmallTest
     @Test(expected = UnsupportedOperationException.class)
     public void destroy_singleton() {
-        final PluginRegistry registrySingleton = PluginRegistry
+        final ThirdPartyPluginRegistry registrySingleton = ThirdPartyPluginRegistry
                 .getInstance(InstrumentationRegistry.getContext());
 
         registrySingleton.destroy();
@@ -103,13 +102,13 @@ public final class PluginRegistryTest {
     @MediumTest
     @Test
     public void getPluginMap_conditions() {
-        final PluginRegistry registry = new PluginRegistry(InstrumentationRegistry.getContext(),
+        final ThirdPartyPluginRegistry registry = new ThirdPartyPluginRegistry(InstrumentationRegistry.getContext(),
                 getIntentAction());
 
         try {
             registry.init();
 
-            final Map<String, Plugin> conditions = registry.getPluginMap(PluginType.CONDITION);
+            final Map<String, IPlugin> conditions = registry.getPluginMap(PluginType.CONDITION);
             assertThat(conditions, notNullValue());
         } finally {
             registry.destroy();
@@ -119,13 +118,13 @@ public final class PluginRegistryTest {
     @MediumTest
     @Test
     public void getPluginMap_settings() {
-        final PluginRegistry registry = new PluginRegistry(InstrumentationRegistry.getContext(),
+        final ThirdPartyPluginRegistry registry = new ThirdPartyPluginRegistry(InstrumentationRegistry.getContext(),
                 getIntentAction());
 
         try {
             registry.init();
 
-            final Map<String, Plugin> settings = registry.getPluginMap(PluginType.SETTING);
+            final Map<String, IPlugin> settings = registry.getPluginMap(PluginType.SETTING);
             assertThat(settings, notNullValue());
         } finally {
             registry.destroy();
@@ -135,7 +134,7 @@ public final class PluginRegistryTest {
     @SmallTest
     @Test
     public void peekPluginMap_non_blocking() {
-        final PluginRegistry registry = new PluginRegistry(InstrumentationRegistry.getContext(),
+        final ThirdPartyPluginRegistry registry = new ThirdPartyPluginRegistry(InstrumentationRegistry.getContext(),
                 getIntentAction());
 
         try {
@@ -151,7 +150,7 @@ public final class PluginRegistryTest {
     @MediumTest
     @Test
     public void peekPluginMap_after_blocking() {
-        final PluginRegistry registry = new PluginRegistry(InstrumentationRegistry.getContext(),
+        final ThirdPartyPluginRegistry registry = new ThirdPartyPluginRegistry(InstrumentationRegistry.getContext(),
                 getIntentAction());
 
         try {
@@ -170,11 +169,11 @@ public final class PluginRegistryTest {
     public void loadCompleteNotification() {
         final String intentAction = getIntentAction();
 
-        final PluginRegistry registry = new PluginRegistry(InstrumentationRegistry.getContext(),
+        final ThirdPartyPluginRegistry registry = new ThirdPartyPluginRegistry(InstrumentationRegistry.getContext(),
                 intentAction);
 
-        final HandlerThread backgroundThread = ThreadUtil.newHandlerThread(intentAction,
-                ThreadUtil.ThreadPriority.DEFAULT);
+        final HandlerThread backgroundThread = HandlerThreadFactory.newHandlerThread(intentAction,
+                HandlerThreadFactory.ThreadPriority.DEFAULT);
         try {
             final CountDownLatch latch = new CountDownLatch(1);
 
@@ -203,6 +202,32 @@ public final class PluginRegistryTest {
             registry.destroy();
             backgroundThread.quit();
         }
+    }
+
+    @Test
+    @SmallTest
+    public void getPermission_test_instance() {
+        final String actionString = getIntentAction();
+
+        final ThirdPartyPluginRegistry registry = new ThirdPartyPluginRegistry(InstrumentationRegistry.getContext(),
+                actionString);
+
+        assertThat(registry.getChangeIntentAction(), is(actionString));
+    }
+
+    @SmallTest
+    @Test(expected = AssertionError.class)
+    public void destroy_twice() {
+        final ThirdPartyPluginRegistry registry = new ThirdPartyPluginRegistry(
+                InstrumentationRegistry.getContext(),
+                getIntentAction());
+        try {
+            registry.init();
+        } finally {
+            registry.destroy();
+        }
+
+        registry.destroy(); // throws
     }
 
     @NonNull

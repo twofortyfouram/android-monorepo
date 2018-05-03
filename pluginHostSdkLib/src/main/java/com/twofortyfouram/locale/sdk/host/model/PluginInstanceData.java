@@ -17,20 +17,17 @@
 
 package com.twofortyfouram.locale.sdk.host.model;
 
-import android.annotation.SuppressLint;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
-import com.twofortyfouram.locale.sdk.host.internal.BundleSerializer;
-import com.twofortyfouram.spackle.AndroidSdkVersion;
+import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.spackle.bundle.BundleComparer;
 import com.twofortyfouram.spackle.bundle.BundlePrinter;
 
 import net.jcip.annotations.ThreadSafe;
 
-import java.util.Arrays;
 import java.util.Locale;
 
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
@@ -39,19 +36,9 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
  * Data representing an instance of a plug-in. This consists of a key for
  * identifying the actual {@link Plugin}, along with the Bundle and Blurb
  * actually representing the plug-in's saved data.
- */
-/*
- * Implementation note: Bundle is represented in byte[] form, because that allows
- * this class to be guaranteed immutable.  For example, a copy of the byte[] is made during
- * construction, and another copy is made when the getter is called.  The alternative,
- * representing the Bundle as a Bundle object, does not allow this class to be immutable.  A
- * shallow copy of Bundle could be made during construction and via the getter, but a deep copy
- * is necessary to make this truly safe.
  *
- * Because this class is immutable, it is not as efficient as it could be.  To improve
- * performance during runtime, the Condition and Setting classes can also accept a deserialized
- * bundle.  When using that API, ensuring immutability of the data is the responsibility of the
- * SDK's user.
+ * Note: this class is thread-safe and effectively immutable as long as clients do not attempt to
+ * mutate the Bundle passed into the constructor or returned by {@link #getBundle()}.
  */
 @ThreadSafe
 public final class PluginInstanceData implements Parcelable {
@@ -61,31 +48,7 @@ public final class PluginInstanceData implements Parcelable {
      */
     @NonNull
     public static final Parcelable.Creator<PluginInstanceData> CREATOR
-            = new Parcelable.Creator<PluginInstanceData>() {
-        @Override
-        public PluginInstanceData createFromParcel(final Parcel in) {
-            assertNotNull(in, "in"); //$NON-NLS-1$
-
-            final PluginType pluginType = PluginType.valueOf(in.readString());
-            final String registryName = in.readString();
-
-            final byte[] serializedBundle;
-            {
-                final int length = in.readInt();
-                serializedBundle = new byte[length];
-                in.readByteArray(serializedBundle);
-            }
-
-            final String blurb = in.readString();
-
-            return new PluginInstanceData(pluginType, registryName, serializedBundle, blurb);
-        }
-
-        @Override
-        public PluginInstanceData[] newArray(final int size) {
-            return new PluginInstanceData[size];
-        }
-    };
+            = new PluginInstanceDataCreator();
 
     /**
      * Maximum size of a serialized {@code Bundle}, which is about 25 kilobytes
@@ -113,45 +76,43 @@ public final class PluginInstanceData implements Parcelable {
     private final String mRegistryName;
 
     /**
-     * Serialized representation of the plug-in's Bundle.
+     * The plug-in's Bundle.
      *
-     * @see com.twofortyfouram.locale.sdk.host.internal.BundleSerializer
-     * @see com.twofortyfouram.locale.api.Intent#EXTRA_BUNDLE
+     * @see LocalePluginIntent#EXTRA_BUNDLE
      */
     @NonNull
-    private final byte[] mSerializedBundle;
+    private final Bundle mBundle;
 
     /**
      * The blurb.
      *
-     * @see com.twofortyfouram.locale.api.Intent#EXTRA_STRING_BLURB
+     * @see LocalePluginIntent#EXTRA_STRING_BLURB
      */
     @NonNull
     private final String mBlurb;
 
     /**
-     * Constructs a new Plug-in instance.
+     * Constructs a new instance of plug-in data.
      *
-     * @param type             The type of the plug-in.
-     * @param registryName     Registry name of the plug-in.
-     * @param serializedBundle Serialized representation of the plug-in's
-     *                         Bundle. These bytes will be copied, in order to prevent
-     *                         exposing the internal representation of this class to
-     *                         mutation.
-     * @param blurb            The plug-in's blurb.
+     * @param type         The type of the plug-in.
+     * @param registryName Registry name of the plug-in.
+     * @param bundle       The plug-in's Bundle.  Do not mutate {@code bundle} or its contents
+     *                     after passing it into this constructor.
+     * @param blurb        The plug-in's blurb.
      */
     public PluginInstanceData(@NonNull final PluginType type, @NonNull final String registryName,
-                              @NonNull final byte[] serializedBundle,
-                              @NonNull final String blurb) {
+            @NonNull final Bundle bundle,
+            @NonNull final String blurb) {
         assertNotNull(type, "type"); //$NON-NLS-1$
         assertNotNull(registryName, "registryName"); //$NON-NLS-1$
-        assertNotNull(serializedBundle, "serializedBundle"); //$NON-NLS-1$
+        assertNotNull(bundle, "bundle"); //$NON-NLS-1$
         assertNotNull(blurb, "blurb"); //$NON-NLS-1$
 
         mType = type;
         mRegistryName = registryName;
 
-        mSerializedBundle = copyArray(serializedBundle);
+        // TODO: Android O perform a deep copy
+        mBundle = new Bundle(bundle);
         mBlurb = blurb;
     }
 
@@ -173,14 +134,13 @@ public final class PluginInstanceData implements Parcelable {
     }
 
     /**
-     * @return The serialized representation of the plug-in's Bundle. A new copy
-     * of the bytes are returned each time this method is called, in
-     * order to avoid exposing the internal representation of this
+     * @return The plug-in's Bundle. Do not modify, as this is the internal representation of this
      * class.
      */
     @NonNull
-    public byte[] getSerializedBundle() {
-        return copyArray(mSerializedBundle);
+    public Bundle getBundle() {
+        // TODO: Use O's deep copy API
+        return new Bundle(mBundle);
     }
 
     /**
@@ -190,23 +150,6 @@ public final class PluginInstanceData implements Parcelable {
     public String getBlurb() {
         return mBlurb;
     }
-
-    @NonNull
-    @SuppressLint("NewApi")
-    private static byte[] copyArray(@NonNull final byte[] toCopy) {
-        assertNotNull(toCopy, "toCopy"); //$NON-NLS-1$
-
-        final byte[] result;
-        if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.GINGERBREAD)) {
-            result = Arrays.copyOf(toCopy, toCopy.length);
-        } else {
-            result = new byte[toCopy.length];
-            System.arraycopy(toCopy, 0, result, 0, toCopy.length);
-        }
-
-        return result;
-    }
-
 
     @Override
     public boolean equals(final Object o) {
@@ -225,7 +168,7 @@ public final class PluginInstanceData implements Parcelable {
         if (!mRegistryName.equals(that.mRegistryName)) {
             return false;
         }
-        if (!Arrays.equals(mSerializedBundle, that.mSerializedBundle)) {
+        if (!BundleComparer.areBundlesEqual(mBundle, that.mBundle)) {
             return false;
         }
         if (mType != that.mType) {
@@ -239,7 +182,7 @@ public final class PluginInstanceData implements Parcelable {
     public int hashCode() {
         int result = mType.hashCode();
         result = 31 * result + mRegistryName.hashCode();
-        result = 31 * result + Arrays.hashCode(mSerializedBundle);
+        result = 31 * result + mBundle.hashCode();
         result = 31 * result + mBlurb.hashCode();
         return result;
     }
@@ -247,16 +190,10 @@ public final class PluginInstanceData implements Parcelable {
     @Override
     @NonNull
     public String toString() {
-        Bundle bundle;
-        try {
-            bundle = BundleSerializer.deserializeFromByteArray(mSerializedBundle);
-        } catch (final ClassNotFoundException e) {
-            bundle = null;
-        }
-
         return String.format(Locale.US,
-                "PluginInstanceData{mType=\'%s\', mRegistryName=\'%s\', mBlurb=\'%s\', mSerializedBundle=\'%s\'", //$NON-NLS-1$
-                mType, mRegistryName, mBlurb, BundlePrinter.toString(bundle));
+                "PluginInstanceData{mType=\'%s\', mRegistryName=\'%s\', mBlurb=\'%s\', mBundle=\'%s\'",
+                //$NON-NLS-1$
+                mType, mRegistryName, mBlurb, BundlePrinter.toString(mBundle));
     }
 
     @Override
@@ -270,8 +207,28 @@ public final class PluginInstanceData implements Parcelable {
 
         dest.writeString(mType.name());
         dest.writeString(mRegistryName);
-        dest.writeInt(mSerializedBundle.length);
-        dest.writeByteArray(mSerializedBundle);
+        dest.writeBundle(mBundle);
         dest.writeString(mBlurb);
+    }
+
+    @ThreadSafe
+    private static class PluginInstanceDataCreator implements Creator<PluginInstanceData> {
+
+        @Override
+        public PluginInstanceData createFromParcel(@NonNull final Parcel in) {
+            assertNotNull(in, "in"); //$NON-NLS-1$
+
+            final PluginType pluginType = PluginType.valueOf(in.readString());
+            final String registryName = in.readString();
+            final Bundle bundle = in.readBundle(getClass().getClassLoader());
+            final String blurb = in.readString();
+
+            return new PluginInstanceData(pluginType, registryName, bundle, blurb);
+        }
+
+        @Override
+        public PluginInstanceData[] newArray(final int size) {
+            return new PluginInstanceData[size];
+        }
     }
 }

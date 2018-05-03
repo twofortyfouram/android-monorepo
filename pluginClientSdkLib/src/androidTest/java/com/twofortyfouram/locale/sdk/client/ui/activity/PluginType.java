@@ -19,6 +19,8 @@ package com.twofortyfouram.locale.sdk.client.ui.activity;
 
 import android.support.annotation.NonNull;
 
+import com.twofortyfouram.locale.api.LocalePluginIntent;
+
 import net.jcip.annotations.ThreadSafe;
 
 import static com.twofortyfouram.assertion.Assertions.assertNotEmpty;
@@ -32,22 +34,22 @@ public enum PluginType {
     /**
      * A plug-in condition.
      *
-     * @see com.twofortyfouram.locale.api.Intent#ACTION_EDIT_CONDITION
-     * @see com.twofortyfouram.locale.api.Intent#ACTION_QUERY_CONDITION
+     * @see LocalePluginIntent#ACTION_EDIT_CONDITION
+     * @see LocalePluginIntent#ACTION_QUERY_CONDITION
      */
     @NonNull
-    CONDITION(com.twofortyfouram.locale.api.Intent.ACTION_EDIT_CONDITION,
-            com.twofortyfouram.locale.api.Intent.ACTION_QUERY_CONDITION),
+    CONDITION(LocalePluginIntent.ACTION_EDIT_CONDITION,
+            LocalePluginIntent.ACTION_QUERY_CONDITION),
 
     /**
      * A plug-in setting.
      *
-     * @see com.twofortyfouram.locale.api.Intent#ACTION_EDIT_SETTING
-     * @see com.twofortyfouram.locale.api.Intent#ACTION_FIRE_SETTING
+     * @see LocalePluginIntent#ACTION_EDIT_SETTING
+     * @see LocalePluginIntent#ACTION_FIRE_SETTING
      */
     @NonNull
-    SETTING(com.twofortyfouram.locale.api.Intent.ACTION_EDIT_SETTING,
-            com.twofortyfouram.locale.api.Intent.ACTION_FIRE_SETTING);
+    SETTING(LocalePluginIntent.ACTION_EDIT_SETTING,
+            LocalePluginIntent.ACTION_FIRE_SETTING);
 
     @NonNull
     private final String mActivityIntentAction;
@@ -56,7 +58,7 @@ public enum PluginType {
     private final String mReceiverIntentAction;
 
     private PluginType(@NonNull final String activityIntentAction,
-                       @NonNull final String receiverIntentAction) {
+            @NonNull final String receiverIntentAction) {
         assertNotEmpty(activityIntentAction, "activityIntentAction"); //$NON-NLS-1$
         assertNotEmpty(receiverIntentAction, "receiverIntentAction"); //$NON-NLS-1$
 

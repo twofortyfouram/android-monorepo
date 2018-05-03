@@ -21,6 +21,8 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
+import com.twofortyfouram.locale.api.LocalePluginIntent;
+
 import net.jcip.annotations.Immutable;
 
 import java.util.Collection;
@@ -54,7 +56,7 @@ public final class PluginConfiguration implements Parcelable {
             final boolean isBuggy = convertIntToBoolean(in.readInt());
             final boolean isDrainsBattery = convertIntToBoolean(in.readInt());
             final boolean isBlacklisted = convertIntToBoolean(in.readInt());
-            final List<String> alternatives = new LinkedList<String>();
+            final List<String> alternatives = new LinkedList<>();
 
             in.readStringList(alternatives);
 
@@ -117,7 +119,7 @@ public final class PluginConfiguration implements Parcelable {
         if (alternatives.isEmpty()) {
             mAlternatives = Collections.emptySet();
         } else {
-            mAlternatives = Collections.unmodifiableSet(new LinkedHashSet<String>(alternatives));
+            mAlternatives = Collections.unmodifiableSet(new LinkedHashSet<>(alternatives));
         }
     }
 
@@ -127,10 +129,10 @@ public final class PluginConfiguration implements Parcelable {
      * beta version of the plug-in API for Locale released in January 2009 was
      * slightly different from the final version of the API released in December
      * 2009. Prior to Locale 1.0,
-     * {@link com.twofortyfouram.locale.api.Intent#EXTRA_BUNDLE} didn't exist and
+     * {@link LocalePluginIntent#EXTRA_BUNDLE} didn't exist and
      * plug-ins stored and retrieved their extras directly from the
-     * {@link com.twofortyfouram.locale.api.Intent#ACTION_EDIT_SETTING} or
-     * {@link com.twofortyfouram.locale.api.Intent#ACTION_FIRE_SETTING} Intents.
+     * {@link LocalePluginIntent#ACTION_EDIT_SETTING} or
+     * {@link LocalePluginIntent#ACTION_FIRE_SETTING} Intents.
      * Although this backwards compatibility should only apply to Setting plug-ins
      * (since Conditions weren't supported until the API was finalized in Locale
      * 1.0), some plug-in developers copy-pasted their setting implementations to
@@ -230,7 +232,7 @@ public final class PluginConfiguration implements Parcelable {
      * candidate for blacklisting.</li>
      * <li>A plug-in that contains serious security flaws is a candidate for blacklisting.  One
      * example would be a plug-in that stores unencrypted login
-     * credentials in {@link com.twofortyfouram.locale.api.Intent#EXTRA_BUNDLE}.  Plug-ins are
+     * credentials in {@link LocalePluginIntent#EXTRA_BUNDLE}.  Plug-ins are
      * required to store such credentials in their own app private storage, rather than in the
      * Bundle.  Another example would be a plug-in that logs credentials to logcat.</li>
      * <li>A plug-in that can cost the user a large amount of money is a candidate for
@@ -293,7 +295,7 @@ public final class PluginConfiguration implements Parcelable {
         dest.writeInt(convertBooleanToInt(mIsBuggy));
         dest.writeInt(convertBooleanToInt(mIsDrainsBattery));
         dest.writeInt(convertBooleanToInt(mIsBlacklisted));
-        dest.writeStringList(new LinkedList<String>(mAlternatives));
+        dest.writeStringList(new LinkedList<>(mAlternatives));
     }
 
     private static int convertBooleanToInt(final boolean bool) {
@@ -346,5 +348,18 @@ public final class PluginConfiguration implements Parcelable {
         result = 31 * result + (mIsBlacklisted ? 1 : 0);
         result = 31 * result + mAlternatives.hashCode();
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "PluginConfiguration{" +
+                "mIsBackwardsCompatibilityEnabled=" + mIsBackwardsCompatibilityEnabled +
+                ", mIsRequiresConnectivity=" + mIsRequiresConnectivity +
+                ", mIsDisruptsConnectivity=" + mIsDisruptsConnectivity +
+                ", mIsDrainsBattery=" + mIsDrainsBattery +
+                ", mIsBuggy=" + mIsBuggy +
+                ", mIsBlacklisted=" + mIsBlacklisted +
+                ", mAlternatives=" + mAlternatives +
+                '}';
     }
 }

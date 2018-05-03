@@ -25,20 +25,21 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
 
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.annotation.Slow.Speed;
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.sdk.host.model.IPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.AndroidSdkVersion;
+import com.twofortyfouram.spackle.Clock;
 import com.twofortyfouram.spackle.ContextUtil;
-import com.twofortyfouram.spackle.ThreadUtil;
-import com.twofortyfouram.spackle.ThreadUtil.ThreadPriority;
+import com.twofortyfouram.spackle.HandlerThreadFactory;
+import com.twofortyfouram.spackle.HandlerThreadFactory.ThreadPriority;
 import com.twofortyfouram.spackle.bundle.BundleScrubber;
 
 import net.jcip.annotations.NotThreadSafe;
@@ -68,10 +69,13 @@ public final class Setting {
     private final Context mContext;
 
     @NonNull
-    private final Plugin mPlugin;
+    private final Clock mClock;
 
     @NonNull
-    private final HandlerThread mHandlerThread = ThreadUtil.newHandlerThread(
+    private final IPlugin mPlugin;
+
+    @NonNull
+    private final HandlerThread mHandlerThread = HandlerThreadFactory.newHandlerThread(
             Setting.class.getName(),
             ThreadPriority.BACKGROUND);
 
@@ -85,10 +89,13 @@ public final class Setting {
      * Constructs a new plug-in setting.
      *
      * @param context Application context.
+     * @param clock   Generic clock interface.
      * @param plugin  The plug-in details.
      */
-    public Setting(@NonNull final Context context, @NonNull final Plugin plugin) {
+    public Setting(@NonNull final Context context, @NonNull final Clock clock,
+            @NonNull final IPlugin plugin) {
         assertNotNull(context, "context"); //$NON-NLS-1$
+        assertNotNull(clock, "clock"); //$NON-NLS-1$
         assertNotNull(plugin, "plugin"); //$NON-NLS-1$
 
         if (PluginType.SETTING != plugin.getType()) {
@@ -96,6 +103,7 @@ public final class Setting {
         }
 
         mContext = ContextUtil.cleanContext(context);
+        mClock = clock;
         mPlugin = plugin;
     }
 
@@ -108,36 +116,13 @@ public final class Setting {
     public void fire(@NonNull final PluginInstanceData data) {
         assertNotNull(data, "data"); //$NON-NLS-1$
 
-        final Bundle pluginBundle;
-        try {
-            /*
-             * Referring to the full class name, rather than using an import, works around JavaDoc
-             * warnings on BundleSerializer which is obfuscated out by the time the JavaDoc task
-             * runs.
-             */
-            pluginBundle = com.twofortyfouram.locale.sdk.host.internal.BundleSerializer.deserializeFromByteArray(data.getSerializedBundle());
-        } catch (final Exception e) {
-            /*
-             * If the Bundle could be serialized, it should be possible to deserialize.  One
-             * scenario where this could fail is if the Bundle was serialized on a newer version of
-             * Android and contained a Serializable class not available to the current version of
-             * Android.
-             */
-            Lumberjack.always("Error deserializing bundle", e); //$NON-NLS-1$
-            return;
-        }
+        final Bundle pluginBundle = data.getBundle();
 
         fire(pluginBundle);
     }
 
     /**
      * Performs a blocking fire of the plug-in's setting action.
-     *
-     * Note: PluginInstanceData is immutable and provides a safe interface, however guaranteed
-     * immutability requires a memory copy and deserialization, which are not efficient.
-     * This method provides an alternative for clients to optimize performance by deserializing
-     * the plug-in's Bundle once and reusing that Bundle.  When using this approach, clients must
-     * not modify the Bundle.
      *
      * @param pluginBundle The plug-in's instance data previously saved by the Edit Activity,
      *                     already deserialized back into a Bundle.
@@ -151,7 +136,7 @@ public final class Setting {
         Lumberjack.always("Firing plug-in setting %s", mPlugin.getRegistryName()); //$NON-NLS-1$
 
         final Intent intent = new Intent();
-        intent.setAction(com.twofortyfouram.locale.api.Intent.ACTION_FIRE_SETTING);
+        intent.setAction(LocalePluginIntent.ACTION_FIRE_SETTING);
         intent.setFlags(Intent.FLAG_FROM_BACKGROUND);
         if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.HONEYCOMB_MR1)) {
             addFlagsHoneycombMr1(intent);
@@ -162,7 +147,7 @@ public final class Setting {
          */
         intent.setClassName(mPlugin.getPackageName(), mPlugin.getReceiverClassName());
 
-        intent.putExtra(com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE, pluginBundle);
+        intent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, pluginBundle);
 
         if (mPlugin.getConfiguration().isBackwardsCompatibilityEnabled()) {
             intent.putExtras(pluginBundle);
@@ -175,9 +160,9 @@ public final class Setting {
          */
         try {
             final FireResultReceiver resultReceiver = new FireResultReceiver();
-            final long startRealtimeMillis = SystemClock.elapsedRealtime();
+            final long startRealtimeMillis = mClock.getRealTimeMillis();
             mContext.sendOrderedBroadcast(intent, null, resultReceiver, mHandler,
-                    com.twofortyfouram.locale.api.Intent.RESULT_CONDITION_UNKNOWN, null, null);
+                    LocalePluginIntent.RESULT_CONDITION_UNKNOWN, null, null);
 
             try {
                 final boolean isReceived = resultReceiver.mLatch.await(BROADCAST_TIMEOUT_MILLIS,
@@ -187,8 +172,8 @@ public final class Setting {
                     // TODO: In the future, errors should be signaled to the user of the SDK.
                     Lumberjack.e("Failed to receive ordered broadcast"); //$NON-NLS-1$
                 } else {
-                    Lumberjack.v("Query completed after %d [milliseconds]",
-                            SystemClock.elapsedRealtime() - startRealtimeMillis);
+                    Lumberjack.v("Fire completed after %d [milliseconds]",
+                            mClock.getRealTimeMillis() - startRealtimeMillis);
                 }
             } catch (final InterruptedException e) {
                 Lumberjack.e("Error waiting on plug-in%s", e); //$NON-NLS-1$

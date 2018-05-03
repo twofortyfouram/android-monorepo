@@ -29,8 +29,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 
+import com.twofortyfouram.locale.api.LocalePluginIntent;
 import com.twofortyfouram.locale.sdk.host.internal.PluginEditDelegate;
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.sdk.host.model.IPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginErrorEdit;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.log.Lumberjack;
@@ -47,7 +48,7 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
  * UI-less Fragment to handle communication between the host UI and the plug-in
  * UI. This Fragment will handle launching the plug-in's edit screen, process
  * the Activity result, and deliver a callback to subclasses via
- * {@link IPluginEditFragment#handleSave(Plugin, PluginInstanceData)}.
+ * {@link IPluginEditFragment#handleSave(IPlugin, PluginInstanceData)}.
  * <p>
  * After a plug-in is edited, this Fragment will remove itself automatically.
  * <p>
@@ -79,7 +80,7 @@ public abstract class AbstractSupportPluginEditFragment extends Fragment
      * The plug-in that is currently being edited.
      */
     @Nullable
-    private Plugin mPlugin = null;
+    private IPlugin mPlugin = null;
 
     /**
      * Optional previous instance data of the plug-in being edited.
@@ -96,7 +97,7 @@ public abstract class AbstractSupportPluginEditFragment extends Fragment
      * @return Args necessary for starting {@link AbstractPluginEditFragment}.
      */
     @NonNull
-    public static Bundle newArgs(@NonNull final Plugin plugin,
+    public static Bundle newArgs(@NonNull final IPlugin plugin,
             @Nullable final PluginInstanceData previousPluginInstanceData) {
         assertNotNull(plugin, "plugin"); //$NON-NLS-1$
 
@@ -125,7 +126,7 @@ public abstract class AbstractSupportPluginEditFragment extends Fragment
             if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.HONEYCOMB)) {
                 breadcrumb = getBreadcrumbHoneycomb();
             } else {
-                final CharSequence title = getActivity().getTitle();
+                final CharSequence title = requireActivity().getTitle();
                 if (null != title) {
                     breadcrumb = title.toString();
                 }
@@ -145,7 +146,7 @@ public abstract class AbstractSupportPluginEditFragment extends Fragment
     }
 
     @Override
-    public void onSaveInstanceState(@NonNull final Bundle outState) {
+    public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
 
         // It appears necessary to put *something* in the bundle so that savedInstanceState will be
@@ -158,7 +159,7 @@ public abstract class AbstractSupportPluginEditFragment extends Fragment
     private String getBreadcrumbHoneycomb() {
         String result = null;
 
-        final ActionBar ab = getActivity().getActionBar();
+        final ActionBar ab = requireActivity().getActionBar();
         if (null != ab) {
             final CharSequence subtitle = ab.getSubtitle();
             if (null != subtitle) {
@@ -185,23 +186,15 @@ public abstract class AbstractSupportPluginEditFragment extends Fragment
                             .isIntentValid(intent, mPlugin);
                     if (errors.isEmpty()) {
                         final Bundle newBundle = intent
-                                .getBundleExtra(com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE);
+                                .getBundleExtra(LocalePluginIntent.EXTRA_BUNDLE);
                         final String newBlurb = intent
                                 .getStringExtra(
-                                        com.twofortyfouram.locale.api.Intent.EXTRA_STRING_BLURB);
+                                        LocalePluginIntent.EXTRA_STRING_BLURB);
 
                         Bundle previousBundle = null;
                         String previousBlurb = null;
                         if (null != mPreviousPluginInstanceData) {
-                            try {
-                                previousBundle
-                                        = com.twofortyfouram.locale.sdk.host.internal.BundleSerializer
-                                        .deserializeFromByteArray(mPreviousPluginInstanceData
-                                                .getSerializedBundle());
-                            } catch (final ClassNotFoundException e) {
-                                Lumberjack.e("Error deserializing previous bundle %s", //$NON-NLS-1$
-                                        e);
-                            }
+                            previousBundle = mPreviousPluginInstanceData.getBundle();
                             previousBlurb = mPreviousPluginInstanceData.getBlurb();
                         }
 
@@ -240,7 +233,7 @@ public abstract class AbstractSupportPluginEditFragment extends Fragment
      *
      * @param plugin The plug-in.
      */
-    private void handleCancelInternal(@NonNull final Plugin plugin) {
+    private void handleCancelInternal(@NonNull final IPlugin plugin) {
         assertNotNull(plugin, "plugin"); //$NON-NLS-1$
         Lumberjack.v("Plug-in canceled"); //$NON-NLS-1$
         handleCancel(plugin);
@@ -254,7 +247,7 @@ public abstract class AbstractSupportPluginEditFragment extends Fragment
      * @param plugin The plug-in
      * @param errors The errors that occurred.
      */
-    private void handleErrorsInternal(@NonNull final Plugin plugin,
+    private void handleErrorsInternal(@NonNull final IPlugin plugin,
             @NonNull final EnumSet<PluginErrorEdit> errors) {
         Lumberjack.v("Encountered errors: %s", errors); //$NON-NLS-1$
 
@@ -281,11 +274,14 @@ public abstract class AbstractSupportPluginEditFragment extends Fragment
 
         if (!newBlurb.equals(oldBlurb) || !BundleComparer.areBundlesEqual(newBundle, oldBundle)) {
             final EnumSet<PluginErrorEdit> errors = EnumSet.noneOf(PluginErrorEdit.class);
+
+            // Kind of icky that the serialization work is being done just for validation, but
+            // this isn't really going to be that slow so it shouldn't matter much.
             final byte[] serializedBundle = PluginEditDelegate.serializeBundle(newBundle, errors);
             if (null != serializedBundle) {
                 handleSave(mPlugin,
                         new PluginInstanceData(mPlugin.getType(), mPlugin.getRegistryName(),
-                                serializedBundle, newBlurb)
+                                newBundle, newBlurb)
                 );
                 removeSelf();
             } else {

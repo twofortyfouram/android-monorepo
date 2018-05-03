@@ -22,7 +22,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 
+import com.twofortyfouram.locale.api.LocalePluginIntent;
 import com.twofortyfouram.locale.sdk.client.internal.PluginActivityDelegate;
+
+import org.json.JSONObject;
 
 /**
  * <p>NOTE: This class is for backwards compatibility via the support-v4 library.  To use this
@@ -31,45 +34,43 @@ import com.twofortyfouram.locale.sdk.client.internal.PluginActivityDelegate;
  * the dependency might look something like this
  * {@code compile group:'com.android.support', name:'support-v4', version:'[21,)'}</p>
  * <p>
- * Implements the basic behaviors of a "Edit" activity for a
- * plug-in, handling the Intent protocol for storing and retrieving the plug-in's data.
- * Recall that a plug-in Activity more or less saves a Bundle and a String blurb via the Intent
- * extras {@link com.twofortyfouram.locale.api.Intent#EXTRA_BUNDLE EXTRA_BUNDLE} and {@link
- * com.twofortyfouram.locale.api.Intent#EXTRA_STRING_BLURB EXTRA_STRING_BLURB}.
- * Those extras represent the configured plug-in, so this Activity helps plug-ins store and
- * retrieve
- * those
- * extras while abstracting the actual Intent protocol.
+ * Implements the basic behaviors of a "Edit" activity for a plug-in, handling the Intent protocol
+ * for storing and retrieving the plug-in's data. Recall that a plug-in Activity more or less saves
+ * a Bundle and a String blurb via the Intent extras
+ * {@link LocalePluginIntent#EXTRA_BUNDLE EXTRA_BUNDLE} and {@link
+ * LocalePluginIntent#EXTRA_STRING_BLURB EXTRA_STRING_BLURB}.
+ * Those extras represent the configured plug-in, so this Activity helps plug-ins store and retrieve
+ * those extras while abstracting the actual Intent protocol.
  * </p>
  * <p>
  * The Activity can be started in one of two states:
  * <ul>
  * <li>New plug-in instance: The Activity's Intent will not contain
- * {@link com.twofortyfouram.locale.api.Intent#EXTRA_BUNDLE EXTRA_BUNDLE}.</li>
+ * {@link LocalePluginIntent#EXTRA_BUNDLE EXTRA_BUNDLE}.</li>
  * <li>Old plug-in instance: The Activity's Intent will contain
- * {@link com.twofortyfouram.locale.api.Intent#EXTRA_BUNDLE EXTRA_BUNDLE} and {@link
- * com.twofortyfouram.locale.api.Intent#EXTRA_STRING_BLURB EXTRA_STRING_BLURB} from a previously
+ * {@link LocalePluginIntent#EXTRA_BUNDLE EXTRA_BUNDLE} and {@link
+ * LocalePluginIntent#EXTRA_STRING_BLURB EXTRA_STRING_BLURB} from a previously
  * saved plug-in instance that the user is editing. The previously saved Bundle
- * and blurb can be retrieved at any time via {@link #getPreviousBundle()} and
+ * and blurb can be retrieved at any time via {@link #getPreviousJson()} and
  * {@link #getPreviousBlurb()}. These will also be delivered via
- * {@link #onPostCreateWithPreviousResult(Bundle, String)} during the
+ * {@link #onPostCreateWithPreviousResult(org.json.JSONObject, String)} during the
  * Activity's {@link #onPostCreate(Bundle)} phase when the Activity is first
  * created.</li>
  * </ul>
- * <p>During
- * the Activity's {@link #finish()} lifecycle callback, this class will call {@link
- * #getResultBundle()} and {@link #getResultBlurb(android.os.Bundle)}, which should return the
+ * <p>During the Activity's {@link #finish()} lifecycle callback, this class will call {@link
+ * #getResultJson()} and {@link #getResultBlurb(org.json.JSONObject)}, which should return the
  * Bundle and blurb data the Activity would like to save back to the host.
  * </p>
  * <p>
- * Note that all of these behaviors only apply if the Intent
- * starting the Activity is one of the plug-in "edit" Intent actions.
+ * Note that all of these behaviors only apply if the Intent starting the Activity is one of the
+ * plug-in "edit" Intent actions.
  * </p>
  *
- * @see com.twofortyfouram.locale.api.Intent#ACTION_EDIT_CONDITION ACTION_EDIT_CONDITION
- * @see com.twofortyfouram.locale.api.Intent#ACTION_EDIT_SETTING ACTION_EDIT_SETTING
+ * @see LocalePluginIntent#ACTION_EDIT_CONDITION ACTION_EDIT_CONDITION
+ * @see LocalePluginIntent#ACTION_EDIT_SETTING ACTION_EDIT_SETTING
  */
-public abstract class AbstractFragmentPluginActivity extends FragmentActivity implements IPluginActivity {
+public abstract class AbstractFragmentPluginActivity extends FragmentActivity
+        implements IPluginActivity {
 
     /**
      * Flag boolean that can be set prior to calling {@link #finish()} to control whether the
@@ -83,7 +84,8 @@ public abstract class AbstractFragmentPluginActivity extends FragmentActivity im
     protected boolean mIsCancelled = false;
 
     @NonNull
-    private final PluginActivityDelegate<AbstractFragmentPluginActivity> mPluginActivityDelegate = new PluginActivityDelegate<>();
+    private final PluginActivityDelegate<AbstractFragmentPluginActivity> mPluginActivityDelegate
+            = new PluginActivityDelegate<>();
 
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
@@ -110,24 +112,14 @@ public abstract class AbstractFragmentPluginActivity extends FragmentActivity im
         super.finish();
     }
 
-    /**
-     * @return The {@link com.twofortyfouram.locale.api.Intent#EXTRA_BUNDLE EXTRA_BUNDLE} that was
-     * previously saved to the host and subsequently passed back to this Activity for further
-     * editing.  Internally, this method relies on {@link #isBundleValid(android.os.Bundle)}.  If
-     * the bundle exists but is not valid, this method will return null.
-     */
     @Nullable
-    public final Bundle getPreviousBundle() {
-        return mPluginActivityDelegate.getPreviousBundle(this);
+    @Override
+    public JSONObject getPreviousJson() {
+        return mPluginActivityDelegate.getPreviousJson(this);
     }
 
-    /**
-     * @return The {@link com.twofortyfouram.locale.api.Intent#EXTRA_STRING_BLURB
-     * EXTRA_STRING_BLURB} that was
-     * previously saved to the host and subsequently passed back to this Activity for further
-     * editing.
-     */
     @Nullable
+    @Override
     public final String getPreviousBlurb() {
         return mPluginActivityDelegate.getPreviousBlurb(this);
     }

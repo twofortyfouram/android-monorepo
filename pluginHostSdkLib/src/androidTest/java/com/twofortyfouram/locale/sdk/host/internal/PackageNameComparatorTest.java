@@ -39,7 +39,7 @@ public final class PackageNameComparatorTest {
     @SmallTest
     @Test
     public void compare() {
-        final List<ResolveInfo> toSort = new LinkedList<ResolveInfo>();
+        final List<ResolveInfo> toSort = new LinkedList<>();
         final ResolveInfo org = getResolveInfoWithPackage("org.charitable.android"); //$NON-NLS-1$
         final ResolveInfo com = getResolveInfoWithPackage("com.megacorp.android"); //$NON-NLS-1$
         final ResolveInfo gov = getResolveInfoWithPackage("gov.thanksobama.android"); //$NON-NLS-1$

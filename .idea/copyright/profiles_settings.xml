@@ -1,14 +1,14 @@
 <component name="CopyrightManager">
   <settings>
     <module2copyright>
-      <element module="plugin-client-sdk" copyright="locale-client-sdk" />
-      <element module="plugin-host-sdk" copyright="locale-host-sdk" />
-      <element module="plugin-api" copyright="locale-api" />
       <element module="memento" copyright="memento" />
       <element module="spackle" copyright="spackle" />
       <element module="annotation" copyright="annotation" />
       <element module="assertion" copyright="assertion" />
       <element module="test" copyright="test" />
+      <element module="locale-plugin-client-sdk" copyright="locale-client-sdk" />
+      <element module="locale-plugin-host-sdk" copyright="locale-host-sdk" />
+      <element module="locale-plugin-api" copyright="locale-api" />
     </module2copyright>
   </settings>
 </component>

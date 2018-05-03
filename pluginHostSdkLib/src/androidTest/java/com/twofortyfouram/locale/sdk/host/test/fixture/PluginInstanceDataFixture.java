@@ -19,8 +19,9 @@ package com.twofortyfouram.locale.sdk.host.test.fixture;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.RestrictTo;
+import android.support.annotation.VisibleForTesting;
 
-import com.twofortyfouram.locale.sdk.host.internal.BundleSerializer;
 import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
@@ -28,6 +29,8 @@ import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import net.jcip.annotations.ThreadSafe;
 
 @ThreadSafe
+@RestrictTo(RestrictTo.Scope.TESTS)
+@VisibleForTesting(otherwise = VisibleForTesting.NONE)
 public final class PluginInstanceDataFixture {
 
     @NonNull
@@ -40,13 +43,8 @@ public final class PluginInstanceDataFixture {
     public static final String DEFAULT_BLURB = "Thanks Obama"; //$NON-NLS-1$
 
     @NonNull
-    public static byte[] getDefaultBundle() {
-        try {
-            return BundleSerializer.serializeToByteArray(new Bundle());
-        } catch (final Exception e) {
-            // Should never occur
-            return new byte[0];
-        }
+    public static Bundle getDefaultBundle() {
+        return new Bundle();
     }
 
     @NonNull

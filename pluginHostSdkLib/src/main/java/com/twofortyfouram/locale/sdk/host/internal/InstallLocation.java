@@ -82,7 +82,7 @@ public enum InstallLocation {
      * Although this API became visible in API 21, the constant value was the same for previous Android versions.
      * Suppressing the lint warning is OK here.
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     @SuppressLint("InlinedApi")
     /* package */ static final int MANIFEST_INSTALL_LOCATION_AUTO
             = PackageInfo.INSTALL_LOCATION_AUTO;
@@ -94,7 +94,7 @@ public enum InstallLocation {
      * Although this API became visible in API 21, the constant value was the same for previous Android versions.
      * Suppressing the lint warning is OK here.
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     @SuppressLint("InlinedApi")
     /* package */ static final int MANIFEST_INSTALL_LOCATION_INTERNAL_ONLY
             = PackageInfo.INSTALL_LOCATION_INTERNAL_ONLY;
@@ -107,7 +107,7 @@ public enum InstallLocation {
      * Although this API became visible in API 21, the constant value was the same for previous Android versions.
      * Suppressing the lint warning is OK here.
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     @SuppressLint("InlinedApi")
     /* package */ static final int MANIFEST_INSTALL_LOCATION_PREFER_EXTERNAL
             = PackageInfo.INSTALL_LOCATION_PREFER_EXTERNAL;
@@ -177,10 +177,9 @@ public enum InstallLocation {
          * versions, so this is a hacky implementation to read the value directly from the
          * package's AndroidManifest.
          */
-        final XmlResourceParser xml = context
+        try (final XmlResourceParser xml = context
                 .createPackageContext(packageName, Context.CONTEXT_RESTRICTED).getAssets()
-                .openXmlResourceParser("AndroidManifest.xml"); //$NON-NLS-1$
-        try {
+                .openXmlResourceParser("AndroidManifest.xml")) {
             for (int eventType = xml.getEventType(); XmlPullParser.END_DOCUMENT != eventType;
                     eventType = xml
                             .nextToken()) {
@@ -206,8 +205,6 @@ public enum InstallLocation {
              * didn't exist in the AndroidManifest
              */
             return InstallLocation.MISSING;
-        } finally {
-            xml.close();
         }
     }
 

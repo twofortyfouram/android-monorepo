@@ -16,34 +16,35 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.twofortyfouram.locale.sdk.client"
-    android:installLocation="internalOnly">
+          xmlns:tools="http://schemas.android.com/tools"
+          package="com.twofortyfouram.locale.sdk.client"
+          android:installLocation="internalOnly">
 
     <!-- For code coverage -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
-    <application android:name="com.twofortyfouram.locale.sdk.client.test.TestApplication">
+    <application
+        android:name="com.twofortyfouram.locale.sdk.client.test.TestApplication">
 
         <activity
             android:name="com.twofortyfouram.locale.sdk.client.test.condition.ui.activity.PluginActivityImpl"
-            android:exported="false" />
+            android:exported="false"/>
 
         <activity
             android:name="com.twofortyfouram.locale.sdk.client.test.condition.ui.activity.FragmentPluginActivityImpl"
-            android:exported="false" />
+            android:exported="false"/>
 
         <activity
             android:name=".test.condition.ui.activity.AppCompatPluginActivityImpl"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat" />
+            android:theme="@style/Theme.AppCompat"/>
 
         <receiver
             android:name="com.twofortyfouram.locale.sdk.client.test.condition.receiver.PluginConditionReceiver"
             android:exported="true"
             tools:ignore="ExportedReceiver">
             <intent-filter>
-                <action android:name="com.twofortyfouram.locale.intent.action.QUERY_CONDITION" />
+                <action android:name="com.twofortyfouram.locale.intent.action.QUERY_CONDITION"/>
             </intent-filter>
         </receiver>
 

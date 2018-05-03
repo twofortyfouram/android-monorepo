@@ -19,19 +19,24 @@ package com.twofortyfouram.locale.sdk.client.test.condition.receiver;
 
 
 import android.content.Context;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 
+import com.twofortyfouram.locale.annotation.ConditionResult;
 import com.twofortyfouram.locale.sdk.client.receiver.AbstractPluginConditionReceiver;
+
+import net.jcip.annotations.ThreadSafe;
+
+import org.json.JSONObject;
 
 /**
  * A basic well-formed plug-in Condition receiver.
  */
+@ThreadSafe
 public final class PluginConditionReceiver extends AbstractPluginConditionReceiver {
 
     @Override
-    protected boolean isBundleValid(@NonNull Bundle bundle) {
-        return PluginBundleValues.isBundleValid(bundle);
+    protected boolean isJsonValid(@NonNull final JSONObject json) {
+        return PluginJsonValues.isJsonValid(json);
     }
 
     @Override
@@ -40,8 +45,9 @@ public final class PluginConditionReceiver extends AbstractPluginConditionReceiv
     }
 
     @Override
+    @ConditionResult
     protected int getPluginConditionResult(@NonNull final Context context,
-                                           @NonNull final Bundle bundle) {
-        return PluginBundleValues.getResultCode(bundle);
+            @NonNull final JSONObject json) {
+        return PluginJsonValues.getResultCode(json);
     }
 }

@@ -26,6 +26,7 @@ import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.assertion.BundleAssertions;
+import com.twofortyfouram.locale.api.LocalePluginIntent;
 import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginErrorEdit;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
@@ -66,7 +67,7 @@ public final class PluginEditDelegateTest {
     @Test
     public void isIntentValid_missing_blurb() {
         assertThat(PluginEditDelegate.isIntentValid(
-                new Intent().putExtra(com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE,
+                new Intent().putExtra(LocalePluginIntent.EXTRA_BUNDLE,
                         new Bundle()), PluginFixture.newDefaultPlugin()
         ), contains(PluginErrorEdit.BLURB_MISSING));
     }
@@ -75,7 +76,7 @@ public final class PluginEditDelegateTest {
     @Test
     public void isIntentValid_missing_bundle() {
         assertThat(PluginEditDelegate.isIntentValid(
-                new Intent().putExtra(com.twofortyfouram.locale.api.Intent.EXTRA_STRING_BLURB,
+                new Intent().putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
                         "foo"), PluginFixture.newDefaultPlugin()
         ), not(empty())); //$NON-NLS-1$
     }
@@ -118,14 +119,14 @@ public final class PluginEditDelegateTest {
     public void getPluginStartIntent_old_condition() throws Exception {
         final Plugin plugin = PluginFixture.newDefaultPlugin();
         final PluginInstanceData pluginInstanceData = new PluginInstanceData(plugin.getType(),
-                plugin.getRegistryName(), BundleSerializer.serializeToByteArray(new Bundle()),
+                plugin.getRegistryName(), new Bundle(),
                 "bar");
         final Intent i = PluginEditDelegate.getPluginStartIntent(
                 plugin,
                 pluginInstanceData, "Edit Situation"); //$NON-NLS-1$ //$NON-NLS-2$
 
         assertThat(i, notNullValue());
-        assertThat(i, hasAction(com.twofortyfouram.locale.api.Intent.ACTION_EDIT_CONDITION));
+        assertThat(i, hasAction(LocalePluginIntent.ACTION_EDIT_CONDITION));
         assertThat(i.getComponent(),
                 ComponentNameMatchers.hasPackageName(plugin.getPackageName()));
         assertThat(i.getComponent(),
@@ -133,7 +134,7 @@ public final class PluginEditDelegateTest {
         assertThat(i.getData(), nullValue());
 
         BundleAssertions.assertHasString(i.getExtras(),
-                com.twofortyfouram.locale.api.Intent.EXTRA_STRING_BREADCRUMB,
+                LocalePluginIntent.EXTRA_STRING_BREADCRUMB,
                 "Edit Situation"); //$NON-NLS-1$
         BundleAssertions.assertKeyCount(i.getExtras(), 3);
     }
@@ -147,7 +148,7 @@ public final class PluginEditDelegateTest {
                 PluginFixture.newDefaultPlugin(), null, "Edit Situation"); //$NON-NLS-1$
 
         assertNotNull(i);
-        assertThat(i, hasAction(com.twofortyfouram.locale.api.Intent.ACTION_EDIT_CONDITION));
+        assertThat(i, hasAction(LocalePluginIntent.ACTION_EDIT_CONDITION));
         assertThat(i.getComponent(),
                 ComponentNameMatchers.hasPackageName(plugin.getPackageName()));
         assertThat(i.getComponent(),
@@ -155,7 +156,7 @@ public final class PluginEditDelegateTest {
         assertThat(i.getData(), nullValue());
 
         BundleAssertions.assertHasString(i.getExtras(),
-                com.twofortyfouram.locale.api.Intent.EXTRA_STRING_BREADCRUMB,
+                LocalePluginIntent.EXTRA_STRING_BREADCRUMB,
                 "Edit Situation"); //$NON-NLS-1$
         BundleAssertions.assertKeyCount(i.getExtras(), 1);
     }
@@ -164,8 +165,8 @@ public final class PluginEditDelegateTest {
     private static Bundle generateBundle(@Nullable final Bundle bundle,
             @Nullable final String blurb) {
         final Bundle result = new Bundle();
-        result.putString(com.twofortyfouram.locale.api.Intent.EXTRA_STRING_BLURB, blurb);
-        result.putBundle(com.twofortyfouram.locale.api.Intent.EXTRA_BUNDLE, bundle);
+        result.putString(LocalePluginIntent.EXTRA_STRING_BLURB, blurb);
+        result.putBundle(LocalePluginIntent.EXTRA_BUNDLE, bundle);
 
         return result;
     }
