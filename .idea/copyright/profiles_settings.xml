@@ -1,0 +1,7 @@
+<component name="CopyrightManager">
+  <settings>
+    <module2copyright>
+      <element module="plugin-sdk-for-locale" copyright="locale-sdk-copyright" />
+    </module2copyright>
+  </settings>
+</component>

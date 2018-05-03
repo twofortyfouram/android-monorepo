@@ -2,7 +2,15 @@ syntax: glob
 .DS_Store
 .gradle/
 .settings
-.idea
+.idea/compiler.xml
+.idea/caches
+.idea/codeStyles
+.idea/dictionaries/
+.idea/modules.xml
+.idea/gradle.xml
+.idea/libraries/
+.idea/tasks.xml
+.idea/workspace.xml
 *.iml
 bin/
 build/

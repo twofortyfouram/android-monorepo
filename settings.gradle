@@ -1,0 +1,3 @@
+include ':pluginApiLib'
+include ':pluginClientSdkLib'
+include ':pluginHostSdkLib'

@@ -1,0 +1,120 @@
+/*
+ * android-plugin-sdk-for-locale
+ * https://github.com/twofortyfouram/android-plugin-sdk-for-locale
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+ * this file except in compliance with the License. You may obtain a copy of the
+ * License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+apply plugin: 'com.android.library'
+apply plugin: 'findbugs'
+
+apply plugin: 'maven'
+group = 'com.twofortyfouram'
+archivesBaseName = 'android-plugin-api-for-locale'
+version = LIBRARY_VERSION_NAME
+
+dependencies {
+    compile group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
+    compile group:'com.android.support', name:'support-annotations', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+}
+
+android {
+    compileSdkVersion Integer.parseInt(ANDROID_COMPILE_SDK_VERSION)
+
+    defaultConfig {
+        minSdkVersion Integer.parseInt(ANDROID_MIN_SDK_VERSION)
+        targetSdkVersion Integer.parseInt(ANDROID_TARGET_SDK_VERSION)
+        versionCode Integer.parseInt(ANDROID_VERSION_CODE)
+        versionName ANDROID_VERSION_NAME
+        consumerProguardFiles 'proguard-consumer.txt'
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: 'https://api.bintray.com/maven/twofortyfouram/maven/android-plugin-api-for-locale') {
+                authentication(userName: MAVEN_USERNAME, password: MAVEN_PASSWORD)
+            }
+            pom.project {
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Workaround for naming conflict between maven and android plugins
+// http://stackoverflow.com/questions/18559932/gradle-maven-plugin-install-task-does-not-work-with-android-library-project
+task installArchives(type: Upload) {
+    description "Installs artifacts to mavenLocal."
+    repositories.mavenInstaller {
+        configuration = configurations.default
+    }
+}
+
+android.libraryVariants.all { variant ->
+    task("${variant.name}Javadoc", type: Javadoc) {
+        description "Generates Javadoc for $variant.name."
+        def androidHome = System.getenv('ANDROID_HOME')
+        source = variant.javaCompile.source
+        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+        classpath += variant.javaCompile.classpath
+        classpath += variant.javaCompile.outputs.files
+        options.linksOffline('https://developer.android.com/reference/', "${androidHome}/docs/reference")
+        options.links('http://jcip.net.s3-website-us-east-1.amazonaws.com/annotations/doc/')
+        exclude '**/R.java'
+    }
+}
+
+// Generates the JavaDoc as a JAR for uploading an artifact
+android.libraryVariants.all { variant ->
+    task("${variant.name}JavadocJar", type: Jar, dependsOn: "${variant.name}Javadoc") {
+        classifier = 'javadoc'
+        from tasks["${variant.name}Javadoc"].destinationDir
+    }
+
+    project.artifacts.add('archives', tasks["${variant.name}JavadocJar"]);
+}
+
+
+// Generates the source as a JAR for uploading an artifact
+android.libraryVariants.all { variant ->
+    task("${variant.name}SourceJar", type: Jar) {
+        classifier = 'sources'
+        from variant.javaCompile.source
+    }
+
+    project.artifacts.add('archives', tasks["${variant.name}SourceJar"]);
+}
+
+task findbugs(type: FindBugs, dependsOn: ':pluginApiLib:compileReleaseSources') {
+    ignoreFailures = true
+    classes = fileTree('build/intermediates/classes/release/')
+    source = fileTree('src/main/java/')
+    classpath = files()
+    excludeFilter = file("$rootProject.projectDir/tools/findbugs/android-filter.xml")
+    effort = 'max'
+    reportLevel = 'low'
+    reports {
+        // Only one report type can be enabled at a time, apparently.
+        xml.enabled = false
+        html.enabled = true
+        html.destination = "$project.buildDir/outputs/reports/findbugs/findbugs.html"
+    }
+}
