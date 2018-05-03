@@ -1,0 +1,13 @@
+# This improves obfuscation and moves non-public classes to their own namespace.
+-repackageclasses 'com.twofortyfouram.test.internal'
+
+# This makes it easier to autocomplete methods in an IDE using this obfuscated library.
+-keepparameternames
+
+# Keep attributes necessary for a distributed API library.
+-keepattributes EnclosingMethod,InnerClasses,Signature,Exceptions,*Annotation*
+
+# Keep the public classes of the library.
+-keep public class com.twofortyfouram.test.assertion.* { public protected *; }
+-keep public class com.twofortyfouram.test.context.* { public protected *; }
+-keep public class com.twofortyfouram.test.ui.activity.* { public protected *; }

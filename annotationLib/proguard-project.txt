@@ -1,0 +1,17 @@
+# This improves obfuscation and moves non-public classes to their own namespace.
+-repackageclasses 'com.twofortyfouram.annotation.internal'
+
+# This makes it easier to autocomplete methods in an IDE using this obfuscated library.
+-keepparameternames
+
+# ProGuard manual recommends keeping these attributes for libraries.
+-keepattributes EnclosingMethod,InnerClasses,Exceptions,Signature,*Annotation*
+
+# Ensure that stacktraces are reversible.
+-renamesourcefileattribute SourceFile
+-keepattributes SourceFile,LineNumberTable
+
+# Keep the public classes of the library.
+-keep public class * {
+    public protected *;
+}
