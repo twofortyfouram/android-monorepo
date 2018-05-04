@@ -1,6 +1,7 @@
 /*
- * android-test https://github.com/twofortyfouram/android-test
- * Copyright (C) 2014–2017 two forty four a.m. LLC
+ * android-test
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -20,10 +21,12 @@ package com.twofortyfouram.test.context;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.test.mock.MockPackageManager;
 
 import net.jcip.annotations.Immutable;
 
@@ -155,7 +158,7 @@ public final class FeatureContextWrapper extends ContextWrapper {
 
 
     @SuppressWarnings("deprecation")
-    private class MyMockPackageManager extends android.test.mock.MockPackageManager {
+    private class MyMockPackageManager extends MockPackageManager {
 
         private final Context mBaseContext;
 
@@ -173,24 +176,25 @@ public final class FeatureContextWrapper extends ContextWrapper {
         }
 
         @Override
-        public boolean hasSystemFeature(final String featureName) {
-            return checkFeatureInternal(featureName);
+        public boolean hasSystemFeature(final String name) {
+            return checkFeatureInternal(name);
         }
 
         @Override
-        public void setComponentEnabledSetting(ComponentName componentName, int newState,
-                int flags) {
+        public void setComponentEnabledSetting(final ComponentName componentName,
+                final int newState,
+                final int flags) {
             mBaseContext.getPackageManager().setComponentEnabledSetting(componentName, newState,
                     flags);
         }
 
         @Override
-        public int getComponentEnabledSetting(ComponentName componentName) {
+        public int getComponentEnabledSetting(final ComponentName componentName) {
             return mBaseContext.getPackageManager().getComponentEnabledSetting(componentName);
         }
 
         @Override
-        public PackageInfo getPackageInfo(String packageName, int flags)
+        public PackageInfo getPackageInfo(final String packageName, final int flags)
                 throws NameNotFoundException {
             final PackageInfo packageInfo = new PackageInfo();
 
@@ -199,6 +203,12 @@ public final class FeatureContextWrapper extends ContextWrapper {
             }
 
             return packageInfo;
+        }
+
+        @Override
+        public ApplicationInfo getApplicationInfo(final String packageName, final int flags)
+                throws NameNotFoundException {
+            return mBaseContext.getPackageManager().getApplicationInfo(packageName, flags);
         }
     }
 }

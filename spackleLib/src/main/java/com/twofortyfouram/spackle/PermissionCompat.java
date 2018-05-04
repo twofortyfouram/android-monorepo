@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -185,6 +186,8 @@ public final class PermissionCompat {
      * @param permissionName Name of the permission to check.
      * @return True if the permission is explicitly declared in the manifest.
      */
+    // TODO: [Case 16597] This may not work correctly with a sharedUserId and a second package
+    // that grants a permission.
     private static boolean isPermissionGrantedByManifest(@NonNull final Context context,
             @NonNull @Size(min = 1) final String permissionName) {
         assertNotNull(context, "context"); //$NON-NLS-1$

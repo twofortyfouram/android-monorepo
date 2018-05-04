@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -122,7 +123,7 @@ public final class BundleComparer {
                                 .v("Key %s are arrays of %s[]", key1, componentType1); //$NON-NLS-1$
                         final Class<?> arrayType = class1;
 
-                        if ((Boolean) Reflector
+                        if (Reflector
                                 .tryInvokeStatic(
                                         Arrays.class,
                                         "equals", new Class<?>[]{arrayType, arrayType},
@@ -151,7 +152,7 @@ public final class BundleComparer {
                     Lumberjack.v("Key %s are arrays of %s[]", key1, componentType1); //$NON-NLS-1$
                     final Class<?> arrayType = Object[].class;
 
-                    if ((Boolean) Reflector
+                    if (Reflector
                             .tryInvokeStatic(
                                     Arrays.class,
                                     "deepEquals", new Class<?>[]{arrayType, arrayType},

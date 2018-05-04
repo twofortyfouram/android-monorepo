@@ -1,30 +1,66 @@
+/*
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+ * this file except in compliance with the License. You may obtain a copy of the
+ * License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+boolean is_dexguard = Boolean.parseBoolean(IS_DEXGUARD_ENABLED)
+
 apply plugin: 'com.android.library'
+apply from: '../scripts.gradle'
+
 apply plugin: 'maven'
-apply plugin: 'findbugs'
+group = 'com.twofortyfouram'
+archivesBaseName = 'android-spackle'
+version = LIBRARY_VERSION_NAME
 
 dependencies {
-    compile group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATIONS_VERSION_MATCHER}"
-    compile group:'com.android.support', name:'support-annotations', version:"${ANDROID_SUPPORT_ANNOTATIONS_VERSION_MATCHER}"
-    compile group:'com.twofortyfouram', name:'android-annotation', version:"${TWOFORTYFOURAM_ANNOTATION_VERSION_MATCHER}"
-    compile group:'com.twofortyfouram', name:'android-assertion', version:"${TWOFORTYFOURAM_ASSERTION_VERSION_MATCHER}"
+    implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
+    implementation group:'com.android.support', name:'support-annotations', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+    implementation project(':annotationLib')
+    implementation project(':assertionLib')
 
-    androidTestCompile group:'com.twofortyfouram', name:'android-test', version:"${TWOFORTYFOURAM_TEST_VERSION_MATCHER}"
-    androidTestCompile group:'com.android.support.test.espresso', name:'espresso-core', version:"${ESPRESSO_CORE_VERSION_MATCHER}"
+    androidTestImplementation group:'com.android.support.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
+    androidTestImplementation group:'com.android.support.test.espresso', name:'espresso-intents', version:"${ESPRESSO_VERSION_MATCHER}"
+    androidTestImplementation project(':testLib')
+
+    if (Boolean.parseBoolean("${IS_INSTALL_TEST_BUTLER}")) {
+        androidTestUtil group:'com.linkedin.testbutler', name:'test-butler-app', version:"${TEST_BUTLER_VERSION_MATCHER}", ext:'apk'
+    }
+
+    if (Boolean.parseBoolean("${IS_INSTALL_TEST_ORCHESTRATOR}")) {
+        androidTestUtil group:'com.android.support.test', name:'orchestrator', version:"${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}", ext:'apk'
+        androidTestUtil group:'com.android.support.test.services', name:'test-services', version:"${ANDROID_TEST_SERVICES_VERSION_MATCHER}", ext:'apk'
+    }
 }
 
 android {
-    compileSdkVersion Integer.parseInt(ANDROID_COMPILE_SDK_VERSION)
-    buildToolsVersion ANDROID_BUILD_TOOLS_VERSION
+    compileSdkVersion ANDROID_COMPILE_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_COMPILE_SDK_VERSION) : ANDROID_COMPILE_SDK_VERSION
 
     resourcePrefix 'com_twofortyfouram_spackle_'
 
     defaultConfig {
-        minSdkVersion Integer.parseInt(ANDROID_MIN_SDK_VERSION)
-        targetSdkVersion Integer.parseInt(ANDROID_TARGET_SDK_VERSION)
-        versionCode Integer.parseInt(ANDROID_VERSION_CODE)
-        versionName ANDROID_VERSION_NAME
-        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+        minSdkVersion ANDROID_MIN_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_MIN_SDK_VERSION) : ANDROID_MIN_SDK_VERSION
+        targetSdkVersion ANDROID_TARGET_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_TARGET_SDK_VERSION) : ANDROID_TARGET_SDK_VERSION
+        versionCode Integer.parseInt(LIBRARY_VERSION_CODE)
+        versionName LIBRARY_VERSION_NAME
+        testInstrumentationRunner 'com.twofortyfouram.test.runner.TestButlerRunner'
         consumerProguardFiles 'proguard-consumer.txt'
+        if (is_dexguard) {
+            // This is additive; it doesn't replace but instead appends the AAR's embedded proguard config
+            consumerProguardFiles 'dexguard-consumer.txt'
+        }
     }
 
     compileOptions {
@@ -37,38 +73,34 @@ android {
             testCoverageEnabled Boolean.parseBoolean(IS_COVERAGE_ENABLED)
         }
     }
-}
 
-android.libraryVariants.all { variant ->
-    task("${variant.name}Javadoc", type: Javadoc) {
-        description "Generates Javadoc for $variant.name."
-        def androidHome = System.getenv('ANDROID_HOME')
-        source = variant.javaCompile.source
-        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-        classpath += variant.javaCompile.classpath
-        classpath += variant.javaCompile.outputs.files
-        options.linksOffline('https://developer.android.com/reference/', "${androidHome}/docs/reference")
-        options.links('http://jcip.net.s3-website-us-east-1.amazonaws.com/annotations/doc/', 'https://twofortyfouram.github.io/android-annotation/')
-        exclude '**/R.java'
-        exclude 'com/twofortyfouram/spackle/internal/**'
+    lintOptions {
+        lintConfig file('lint.xml')
+        checkDependencies Boolean.parseBoolean(IS_LINT_CHECK_DEPENDENCIES)
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file("${rootProject.projectDir}/tools/debug.keystore")
+        }
+    }
+
+    testOptions {
+        animationsDisabled true
     }
 }
-
-group = MAVEN_GROUP
-archivesBaseName = MAVEN_ARTIFACT_NAME
-version = ANDROID_VERSION_NAME
 
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(id: MAVEN_ID, url: MAVEN_URL) {
+            repository(url: 'https://api.bintray.com/maven/twofortyfouram/maven/android-plugin-client-sdk-for-locale') {
                 authentication(userName: MAVEN_USERNAME, password: MAVEN_PASSWORD)
             }
             pom.project {
                 licenses {
                     license {
                         name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
                         distribution 'repo'
                     }
                 }
@@ -86,37 +118,7 @@ task installArchives(type: Upload) {
     }
 }
 
-// Generates the JavaDoc as a JAR for uploading an artifact
 android.libraryVariants.all { variant ->
-    task("${variant.name}JavadocJar", type: Jar, dependsOn: "${variant.name}Javadoc") {
-        classifier = 'javadoc'
-        from tasks["${variant.name}Javadoc"].destinationDir
-    }
-
-    project.artifacts.add('archives', tasks["${variant.name}JavadocJar"]);
-}
-
-// Generates the source as a JAR for uploading an artifact
-android.libraryVariants.all { variant ->
-    task("${variant.name}SourceJar", type: Jar) {
-        classifier = 'sources'
-        from variant.javaCompile.source
-    }
-
-    project.artifacts.add('archives', tasks["${variant.name}SourceJar"]);
-}
-
-task findbugs(type: FindBugs, dependsOn: ':spackleLib:compileReleaseSources') {
-    ignoreFailures = true
-    classes = fileTree('build/intermediates/classes/release/')
-    source = fileTree('src/main/java/')
-    classpath = files()
-    excludeFilter = file("$rootProject.projectDir/tools/findbugs/android-filter.xml")
-    effort = 'max'
-    reportLevel = 'low'
-    reports {
-        // Only one report type can be enabled at a time, apparently.
-        xml.enabled = false
-        html.enabled = true
-    }
+    Javadoc javadoc = createJavaDocTaskForVariant(variant, "com/twofortyfouram/spackle", "com_twofortyfouram_spackle")
+    javadoc.exclude('com/twofortyfouram/spackle/internal/**')
 }

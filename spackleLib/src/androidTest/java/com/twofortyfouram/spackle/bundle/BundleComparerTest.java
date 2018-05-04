@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -565,7 +566,7 @@ public final class BundleComparerTest {
         {
             final Bundle bundle1 = new Bundle();
             bundle1.putSerializable(
-                    "com.test.extra_array", new Character[]{Character.valueOf('a')}); //$NON-NLS-1$
+                    "com.test.extra_array", new Character[]{'a'}); //$NON-NLS-1$
             final Bundle bundle2 = new Bundle();
             bundle2.putCharArray("com.test.extra_array", new char[]{'a'}); //$NON-NLS-1$
 
@@ -1068,10 +1069,10 @@ public final class BundleComparerTest {
         {
             final Bundle bundle1 = new Bundle();
             bundle1.putIntegerArrayList("com.test.extra_array",
-                    new ArrayList<Integer>()); //$NON-NLS-1$
+                    new ArrayList<>()); //$NON-NLS-1$
             final Bundle bundle2 = new Bundle();
             bundle2.putIntegerArrayList("com.test.extra_array",
-                    new ArrayList<Integer>()); //$NON-NLS-1$
+                    new ArrayList<>()); //$NON-NLS-1$
 
             assertTrue(BundleComparer.areBundlesEqual(bundle1, bundle2));
             assertTrue(BundleComparer.areBundlesEqual(bundle2, bundle1));
@@ -1082,13 +1083,13 @@ public final class BundleComparerTest {
          */
         {
             final Bundle bundle1 = new Bundle();
-            final ArrayList<Integer> list1 = new ArrayList<Integer>();
-            list1.add(Integer.valueOf(1));
+            final ArrayList<Integer> list1 = new ArrayList<>();
+            list1.add(1);
             bundle1.putIntegerArrayList("com.test.extra_array", list1); //$NON-NLS-1$
 
             final Bundle bundle2 = new Bundle();
-            final ArrayList<Integer> list2 = new ArrayList<Integer>();
-            list2.add(Integer.valueOf(1));
+            final ArrayList<Integer> list2 = new ArrayList<>();
+            list2.add(1);
             bundle2.putIntegerArrayList("com.test.extra_array", list2); //$NON-NLS-1$
 
             assertTrue(BundleComparer.areBundlesEqual(bundle1, bundle2));
@@ -1100,13 +1101,13 @@ public final class BundleComparerTest {
          */
         {
             final Bundle bundle1 = new Bundle();
-            final ArrayList<Integer> list1 = new ArrayList<Integer>();
-            list1.add(Integer.valueOf(1));
+            final ArrayList<Integer> list1 = new ArrayList<>();
+            list1.add(1);
             bundle1.putIntegerArrayList("com.test.extra_array1", list1); //$NON-NLS-1$
 
             final Bundle bundle2 = new Bundle();
-            final ArrayList<Integer> list2 = new ArrayList<Integer>();
-            list2.add(Integer.valueOf(1));
+            final ArrayList<Integer> list2 = new ArrayList<>();
+            list2.add(1);
             bundle2.putIntegerArrayList("com.test.extra_array2", list2); //$NON-NLS-1$
 
             assertFalse(BundleComparer.areBundlesEqual(bundle1, bundle2));
@@ -1118,13 +1119,13 @@ public final class BundleComparerTest {
          */
         {
             final Bundle bundle1 = new Bundle();
-            final ArrayList<Integer> list1 = new ArrayList<Integer>();
-            list1.add(Integer.valueOf(1));
+            final ArrayList<Integer> list1 = new ArrayList<>();
+            list1.add(1);
             bundle1.putIntegerArrayList("com.test.extra_array", list1); //$NON-NLS-1$
 
             final Bundle bundle2 = new Bundle();
-            final ArrayList<Integer> list2 = new ArrayList<Integer>();
-            list2.add(Integer.valueOf(2));
+            final ArrayList<Integer> list2 = new ArrayList<>();
+            list2.add(2);
             bundle2.putIntegerArrayList("com.test.extra_array", list2); //$NON-NLS-1$
 
             assertFalse(BundleComparer.areBundlesEqual(bundle1, bundle2));
@@ -1524,11 +1525,11 @@ public final class BundleComparerTest {
          */
         {
             final Bundle bundle1 = new Bundle();
-            final LinkedList<Integer> one = new LinkedList<Integer>();
-            one.add(Integer.valueOf(1));
+            final LinkedList<Integer> one = new LinkedList<>();
+            one.add(1);
             bundle1.putSerializable("com.test.extra", one); //$NON-NLS-1$
             final Bundle bundle2 = new Bundle();
-            final LinkedList<String> two = new LinkedList<String>();
+            final LinkedList<String> two = new LinkedList<>();
             two.add("nard"); //$NON-NLS-1$
             bundle2.putSerializable("com.test.extra", two); //$NON-NLS-1$
 
@@ -1648,8 +1649,10 @@ public final class BundleComparerTest {
          */
         {
             final Bundle bundle1 = new Bundle();
+            //noinspection RedundantStringConstructorCall
             bundle1.putString("com.test.extra", new String("foo")); //$NON-NLS-1$ //$NON-NLS-2$
             final Bundle bundle2 = new Bundle();
+            //noinspection RedundantStringConstructorCall
             bundle2.putString("com.test.extra", new String("foo")); //$NON-NLS-1$ //$NON-NLS-2$
 
             assertTrue(BundleComparer.areBundlesEqual(bundle1, bundle2));
@@ -1735,9 +1738,11 @@ public final class BundleComparerTest {
          */
         {
             final Bundle bundle1 = new Bundle();
+            //noinspection RedundantStringConstructorCall
             bundle1.putStringArray("com.test.extra_array",
                     new String[]{new String("foo")}); //$NON-NLS-1$ //$NON-NLS-2$
             final Bundle bundle2 = new Bundle();
+            //noinspection RedundantStringConstructorCall
             bundle2.putStringArray("com.test.extra_array",
                     new String[]{new String("foo")}); //$NON-NLS-1$ //$NON-NLS-2$
 
@@ -1789,10 +1794,10 @@ public final class BundleComparerTest {
         {
             final Bundle bundle1 = new Bundle();
             bundle1.putStringArrayList("com.test.extra_array",
-                    new ArrayList<String>()); //$NON-NLS-1$
+                    new ArrayList<>()); //$NON-NLS-1$
             final Bundle bundle2 = new Bundle();
             bundle2.putStringArrayList("com.test.extra_array",
-                    new ArrayList<String>()); //$NON-NLS-1$
+                    new ArrayList<>()); //$NON-NLS-1$
 
             assertTrue(BundleComparer.areBundlesEqual(bundle1, bundle2));
             assertTrue(BundleComparer.areBundlesEqual(bundle2, bundle1));
@@ -1803,12 +1808,12 @@ public final class BundleComparerTest {
          */
         {
             final Bundle bundle1 = new Bundle();
-            final ArrayList<String> list1 = new ArrayList<String>();
+            final ArrayList<String> list1 = new ArrayList<>();
             list1.add("foo"); //$NON-NLS-1$
             bundle1.putStringArrayList("com.test.extra_array1", list1); //$NON-NLS-1$
 
             final Bundle bundle2 = new Bundle();
-            final ArrayList<String> list2 = new ArrayList<String>();
+            final ArrayList<String> list2 = new ArrayList<>();
             list2.add("foo"); //$NON-NLS-1$
             bundle2.putStringArrayList("com.test.extra_array1", list2); //$NON-NLS-1$
 
@@ -1821,12 +1826,14 @@ public final class BundleComparerTest {
          */
         {
             final Bundle bundle1 = new Bundle();
-            final ArrayList<String> list1 = new ArrayList<String>();
+            final ArrayList<String> list1 = new ArrayList<>();
+            //noinspection RedundantStringConstructorCall
             list1.add(new String("foo")); //$NON-NLS-1$
             bundle1.putStringArrayList("com.test.extra_array1", list1); //$NON-NLS-1$
 
             final Bundle bundle2 = new Bundle();
-            final ArrayList<String> list2 = new ArrayList<String>();
+            final ArrayList<String> list2 = new ArrayList<>();
+            //noinspection RedundantStringConstructorCall
             list2.add(new String("foo")); //$NON-NLS-1$
             bundle2.putStringArrayList("com.test.extra_array1", list2); //$NON-NLS-1$
 
@@ -1839,12 +1846,12 @@ public final class BundleComparerTest {
          */
         {
             final Bundle bundle1 = new Bundle();
-            final ArrayList<String> list1 = new ArrayList<String>();
+            final ArrayList<String> list1 = new ArrayList<>();
             list1.add("foo"); //$NON-NLS-1$
             bundle1.putStringArrayList("com.test.extra_array1", list1); //$NON-NLS-1$
 
             final Bundle bundle2 = new Bundle();
-            final ArrayList<String> list2 = new ArrayList<String>();
+            final ArrayList<String> list2 = new ArrayList<>();
             list2.add("foo"); //$NON-NLS-1$
             bundle2.putStringArrayList("com.test.extra_array2", list2); //$NON-NLS-1$
 
@@ -1857,12 +1864,12 @@ public final class BundleComparerTest {
          */
         {
             final Bundle bundle1 = new Bundle();
-            final ArrayList<String> list1 = new ArrayList<String>();
+            final ArrayList<String> list1 = new ArrayList<>();
             list1.add("foo"); //$NON-NLS-1$
             bundle1.putStringArrayList("com.test.extra_array", list1); //$NON-NLS-1$
 
             final Bundle bundle2 = new Bundle();
-            final ArrayList<String> list2 = new ArrayList<String>();
+            final ArrayList<String> list2 = new ArrayList<>();
             list2.add("bar"); //$NON-NLS-1$
             bundle2.putStringArrayList("com.test.extra_array", list2); //$NON-NLS-1$
 

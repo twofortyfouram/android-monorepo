@@ -15,6 +15,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+boolean is_dexguard = Boolean.parseBoolean(IS_DEXGUARD_ENABLED)
+
 apply plugin: 'com.android.library'
 apply plugin: 'findbugs'
 
@@ -26,18 +28,18 @@ version = LIBRARY_VERSION_NAME
 dependencies {
     // support-v4 is optional for backwards compatibility
     compileOnly group:'com.android.support', name:'support-v4', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
-
+    
     implementation group:'com.android.support', name:'support-annotations', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
-    implementation group:'com.twofortyfouram', name:'android-annotation', version:"${TWOFORTYFOURAM_ANNOTATION_VERSION_MATCHER}"
-    implementation group:'com.twofortyfouram', name:'android-assertion', version:"${TWOFORTYFOURAM_ASSERTION_VERSION_MATCHER}"
+    implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
+    implementation project(':annotationLib')
+    implementation project(':assertionLib')
     implementation project(':pluginApiLib')
     implementation project(':pluginClientSdkLib')
-    implementation group:'com.twofortyfouram', name:'android-spackle', version:"${TWOFORTYFOURAM_SPACKLE_VERSION_MATCHER}"
-    implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
+    implementation project(':spackleLib')
 
-    androidTestImplementation group:'com.android.support.test.espresso', name:'espresso-core', version:"${ESPRESSO_CORE_VERSION_MATCHER}"
-    androidTestImplementation group:'com.android.support.test.espresso', name:'espresso-intents', version:"${ESPRESSO_INTENTS_VERSION_MATCHER}"
-    androidTestImplementation group:'com.twofortyfouram', name:'android-test', version:"${TWOFORTYFOURAM_TEST_VERSION_MATCHER}"
+    androidTestImplementation group:'com.android.support.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
+    androidTestImplementation group:'com.android.support.test.espresso', name:'espresso-intents', version:"${ESPRESSO_VERSION_MATCHER}"
+    androidTestImplementation project(':testLib')
 }
 
 android {

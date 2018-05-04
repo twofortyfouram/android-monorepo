@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="assertion" pattern="file[assertionLib]:*/" />
+</component>

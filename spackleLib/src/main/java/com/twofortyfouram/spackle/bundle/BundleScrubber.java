@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -18,9 +19,12 @@ package com.twofortyfouram.spackle.bundle;
 
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.annotation.CheckResult;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 
 import com.twofortyfouram.log.Lumberjack;
 
@@ -77,6 +81,44 @@ public final class BundleScrubber {
      */
     @CheckResult
     public static boolean scrub(@Nullable final Bundle bundle) {
+        boolean isBundleMutated = false;
+
+        if (null != bundle) {
+            /*
+             * This is a workaround for an Android bug:
+             * <http://code.google.com/p/android/issues/detail?id=16006>.
+             *
+             * If a private Serializable exists, attempting to retrieve anything
+             * from the Bundle will throw an exception.
+             */
+            try {
+                bundle.containsKey(null);
+            } catch (final Exception e) {
+                Lumberjack.e("Private serializable attack detected; deleting all extras%s",
+                        e); //$NON-NLS-1$
+
+                bundle.clear();
+                isBundleMutated = true;
+            }
+        }
+
+        return isBundleMutated;
+    }
+
+    /**
+     * Scrubs a Bundle for bad extras.
+     * <p>
+     * Note: this method does not recursively scrub Bundles.
+     *
+     * @param bundle Bundle whose extras will be scrubbed. If {@code bundle} has
+     *               at least one bad extra, the Bundle will be cleared. Note that
+     *               {@code bundle} may be mutated by this method.
+     * @return true if {@code bundle} was cleared, false if {@code bundle} was
+     * not mutated.
+     */
+    @CheckResult
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public static boolean scrub(@Nullable final PersistableBundle bundle) {
         boolean isBundleMutated = false;
 
         if (null != bundle) {

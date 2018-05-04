@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -39,7 +40,7 @@ public final class MapCompat {
     /**
      * An arbitrary cutoff size to decide to switch between ArrayMap vs. HashMap.
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /*package*/ static final int ARRAY_MAP_MAX_SIZE_CUTOFF_INCLUSIVE = 500;
 
     /**

@@ -1,0 +1,139 @@
+apply plugin: 'com.github.spotbugs'
+
+spotbugs {
+    toolVersion = "${SPOTBUGS_VERSION_MATCHER}"
+}
+
+buildscript {
+    repositories {
+        maven { url 'https://plugins.gradle.org/m2/' }
+    }
+    dependencies {
+        classpath group:'gradle.plugin.com.github.spotbugs', name:'gradlePlugin', version:"${SPOTBUGS_GRADLE_PLUGIN_VERSION_MATCHER}"
+    }
+}
+
+final BUILD_TYPE = ":compileReleaseSources"
+
+task spotbugs(type: com.github.spotbugs.SpotBugsTask, dependsOn: moduleName.concat(BUILD_TYPE)) {
+    ignoreFailures = true
+    classes = fileTree('build/intermediates/classes/release/')
+    source = fileTree('src/main/java/')
+    spotbugsClasspath = buildscript.configurations.classpath
+    pluginClasspath = project.configurations.spotbugsPlugins
+    classpath = files()
+    excludeFilter = file("${rootProject.projectDir}/tools/spotbugs/android-filter.xml")
+    effort = 'max'
+    reportLevel = 'low'
+    reports {
+        // Only one report type can be enabled at a time, apparently.
+        xml.enabled = false
+        html.enabled = true
+        html.setDestination(new File("${project.buildDir}/outputs/reports/spotbugs/spotbugs.html"))
+    }
+}
+
+private def getModuleName() {
+    return displayName.substring(displayName.indexOf(":"), displayName.length() - 1)
+}
+
+def createJavaDocTaskForVariant(final def variant, final String pathPrefixFilter,
+        final String fieldPrefix) {
+    return task("${variant.name}Javadoc", type: Javadoc) {
+        description "Generates Javadoc for $variant.name."
+
+        source = variant.javaCompile.source
+        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+        classpath += variant.javaCompile.classpath
+        classpath += variant.javaCompile.outputs.files
+
+        options.links('https://developer.android.com/', 
+                      'http://jcip.net.s3-website-us-east-1.amazonaws.com/annotations/doc/',
+                      'https://twofortyfouram.github.io/android-annotation/')
+        options.tags = ["attr", "see"]
+        options.addBooleanOption('Xdoclint:none', true)
+
+        final String rFileJavaName = "R.java"
+        final def rFileSyntaxEndingBrackets = ["}", "};"]
+        final def rFileSyntaxIcebergPackage = "package com.twofortyfouram"
+        final def rFileSyntaxDefinitionRClass = "public final class R"
+        final def rFileSyntaxDefinitionInnerClass = "public static final class"
+
+        exclude { FileTreeElement elem ->
+            if (!elem.isDirectory() && elem.path.contains(pathPrefixFilter) &&
+                    elem.path.contains(rFileJavaName)) {
+
+                if (!elem.file.text.contains(fieldPrefix)) {
+                    return true
+                }
+
+                final File icebergR = new File(elem.file.parentFile.path,
+                        elem.file.parentFile.name + rFileJavaName)
+                icebergR.mkdirs()
+
+                if (icebergR.exists()) {
+                    icebergR.delete()
+                    icebergR.createNewFile()
+                }
+
+                final def currentClassFields = []
+                String currentClass = null
+                int openedBrackets = 0
+
+                elem.file.eachLine { line ->
+                    if (line.contains(rFileSyntaxIcebergPackage)) {
+                        writeLineToFile(icebergR, line)
+                    }
+
+                    if (line.contains(rFileSyntaxDefinitionRClass)) {
+                        openedBrackets++
+                        writeLineToFile(icebergR, line)
+                    }
+
+                    if (line.contains(fieldPrefix)) {
+                        currentClassFields.add(line + "\n")
+                    }
+
+                    if (line.contains(rFileSyntaxDefinitionInnerClass)) {
+                        currentClass = line + "\n"
+                        openedBrackets++
+                    }
+
+                    if (rFileSyntaxEndingBrackets.contains(line.trim()) && openedBrackets > 0) {
+                        openedBrackets--
+
+                        if (null == currentClass) {
+                            writeLineToFile(icebergR, line)
+                        } else {
+                            if (!currentClassFields.isEmpty()) {
+                                icebergR << currentClass
+
+                                for (final String field : currentClassFields) {
+                                    icebergR << field
+                                }
+                                writeLineToFile(icebergR, line)
+                            }
+
+                            currentClass = null
+                            currentClassFields.clear()
+                        }
+                    }
+                }
+
+                elem.file.setText("")
+                elem.file << icebergR.text
+                icebergR.delete()
+            }
+
+            return elem.isDirectory ? false : !(elem.path.contains(pathPrefixFilter))
+        }
+    }
+}
+
+private def static writeLineToFile(final File file, final String line) {
+    file << line + "\n\n"
+}
+
+ext {
+    createJavaDocTaskForVariant = this.&createJavaDocTaskForVariant
+}

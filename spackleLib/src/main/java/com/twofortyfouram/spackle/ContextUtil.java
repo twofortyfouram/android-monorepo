@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -79,7 +80,7 @@ public final class ContextUtil {
         assertNotNull(context, "context"); //$NON-NLS-1$
 
         /*
-         * These warnings are important, because they allow Context memory leaks
+         * These warnings are important, because they allow potential Context memory leaks
          * to be fixed.
          */
         if (context instanceof Activity) {
@@ -99,19 +100,19 @@ public final class ContextUtil {
             try {
                 final Context returnContext = context.getApplicationContext();
 
-            /*
-             * Check for null is required because during unit tests the
-             * Application context might not have been initialized yet.
-             */
+                /*
+                 * Check for null is required because during unit tests the
+                 * Application context might not have been initialized yet.
+                 */
                 if (null == returnContext) {
                     return context;
                 }
                 return returnContext;
             } catch (final UnsupportedOperationException e) {
-            /*
-             * This is required for when the app's JUnit test suite is run.
-             * Calling getApplicationContext() on a test context will fail.
-             */
+                /*
+                 * This is required for when the app's JUnit test suite is run.
+                 * Calling getApplicationContext() on a test context will fail.
+                 */
                 Lumberjack
                         .w("Couldn't clean context; probably running in test mode%s",
                                 e); //$NON-NLS-1$

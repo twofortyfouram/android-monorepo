@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -24,10 +25,12 @@ import net.jcip.annotations.ThreadSafe;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 import static com.twofortyfouram.spackle.TimeFormatter.TimeFormat.ISO_8601;
 
 /**
@@ -45,9 +48,34 @@ public final class TimeFormatter {
      * @return String representation of {@code wallTimeMillis} formatted in {@code timeFormat}
      */
     @NonNull
-    public static String formatTime(@TimeFormat final String timeFormat, final long wallTimeMillis) {
+    public static String formatTime(@TimeFormat final String timeFormat,
+            final long wallTimeMillis) {
         return new SimpleDateFormat(timeFormat, Locale.US).format(new Date(wallTimeMillis));
     }
+
+    /**
+     * Parse the {@code source} in given {@code timeFormat} to its {@link Date} representation.
+     *
+     * @param timeFormat String representation of time format.
+     * @param source     A {@code String} whose beginning should be parsed.
+     * @return A {@code Date} parsed from the string.
+     * @throws IllegalArgumentException if the given {@code source} cannot be parsed into {@code
+     *                                  timeFormat}.
+     */
+    @NonNull
+    public static Date parseTime(@TimeFormat final String timeFormat,
+            @NonNull final String source) {
+        assertNotNull(source, "source");  //$NON-NLS-1$
+
+        try {
+            return new SimpleDateFormat(timeFormat, Locale.US).parse(source);
+        } catch (final ParseException parseException) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.US, "%s is not in desired %s format",  //$NON-NLS-1$
+                            source, timeFormat));
+        }
+    }
+
 
     /**
      * Supported time formats.

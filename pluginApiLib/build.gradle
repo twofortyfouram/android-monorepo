@@ -1,6 +1,6 @@
 /*
- * android-plugin-sdk-for-locale
- * https://github.com/twofortyfouram/android-plugin-sdk-for-locale
+ * android-plugin-api-for-locale
+ * https://github.com/twofortyfouram/android-monorepo
  * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
@@ -15,6 +15,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+boolean is_dexguard = Boolean.parseBoolean(IS_DEXGUARD_ENABLED)
+
 apply plugin: 'com.android.library'
 apply plugin: 'findbugs'
 
@@ -24,8 +26,8 @@ archivesBaseName = 'android-plugin-api-for-locale'
 version = LIBRARY_VERSION_NAME
 
 dependencies {
-    compile group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
-    compile group:'com.android.support', name:'support-annotations', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+    implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
+    implementation group:'com.android.support', name:'support-annotations', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
 }
 
 android {

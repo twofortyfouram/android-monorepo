@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -22,6 +23,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.twofortyfouram.log.Lumberjack;
 
@@ -45,12 +47,20 @@ public final class AppBuildInfo {
      * @return True if the application is debuggable.
      */
     public static boolean isDebuggable(@NonNull final Context context) {
+        assertNotNull(context, "context"); //$NON-NLS
         final PackageInfo packageInfo = getMyPackageInfo(context, 0);
 
-        final boolean isDebuggable = (0 != (packageInfo.applicationInfo.flags
-                & ApplicationInfo.FLAG_DEBUGGABLE));
+        // Normally shouldn't be null, but could be under test.
+        @Nullable final ApplicationInfo applicationInfo = packageInfo.applicationInfo;
 
-        return isDebuggable;
+        if (null != applicationInfo) {
+            final boolean isDebuggable = (0 != (packageInfo.applicationInfo.flags
+                    & ApplicationInfo.FLAG_DEBUGGABLE));
+
+            return isDebuggable;
+        }
+
+        return false;
     }
 
     /**
@@ -77,7 +87,7 @@ public final class AppBuildInfo {
      */
     @NonNull
     public static String getVersionName(@NonNull final Context context) {
-        String versionName = getMyPackageInfo(context, 0).versionName;
+        @Nullable String versionName = getMyPackageInfo(context, 0).versionName;
 
         if (null == versionName) {
             versionName = "";  //$NON-NLS-1$

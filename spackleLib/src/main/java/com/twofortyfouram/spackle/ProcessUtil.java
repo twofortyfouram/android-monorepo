@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -21,6 +22,10 @@ import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RestrictTo;
+import android.support.annotation.VisibleForTesting;
+
+import com.twofortyfouram.annotation.Slow;
 
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
@@ -32,6 +37,11 @@ import static com.twofortyfouram.log.Lumberjack.formatMessage;
 
 @ThreadSafe
 public final class ProcessUtil {
+
+    /*
+     * Reading the process name can fail so this class uses a more robust implementation through
+     * ContentProvider initialization with the less robust implementation as a fallback.
+     */
 
     /**
      * Intrinsic lock to synchronize {@link #sProcessName}.
@@ -60,55 +70,13 @@ public final class ProcessUtil {
          * Double-checked idiom for lazy initialization, Effective Java 2nd
          * edition page 283.
          */
-        String processName = sProcessName;
+        @SuppressWarnings("FieldAccessNotGuarded") @Nullable String processName = sProcessName;
         if (null == processName) {
+            //noinspection SynchronizationOnStaticField
             synchronized (INITIALIZATION_INTRINSIC_LOCK) {
                 processName = sProcessName;
                 if (null == processName) {
-                    final ActivityManager activityManager = (ActivityManager) applicationContext
-                            .getSystemService(Context.ACTIVITY_SERVICE);
-
-                    String temp = null;
-
-                    // Search through running apps
-                    {
-                        /*
-                         * List of running processes shouldn't be null, but crash reports have shown
-                         * this can happen.
-                         */
-                        final List<RunningAppProcessInfo> runningApps = activityManager
-                                .getRunningAppProcesses();
-                        if (null != runningApps) {
-                            for (final RunningAppProcessInfo processInfo : runningApps) {
-                                if (android.os.Process.myPid() == processInfo.pid) {
-                                    temp = processInfo.processName;
-                                }
-                            }
-                        }
-                    }
-
-                    // Search through running services
-                    {
-                        /*
-                         * List of running services shouldn't be null, but crash reports have shown
-                         * this can happen.
-                         */
-                        final List<ActivityManager.RunningServiceInfo> runningServiceInfos
-                                = activityManager
-                                .getRunningServices(
-                                        Integer.MAX_VALUE);
-                        if (null != runningServiceInfos) {
-                            if (null == temp) {
-                                for (ActivityManager.RunningServiceInfo runningService : runningServiceInfos) {
-                                    if (android.os.Process.myPid() == runningService.pid) {
-                                        temp = runningService.process;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    sProcessName = processName = temp;
+                    sProcessName = processName = searchForProcessName(applicationContext);
                 }
             }
         }
@@ -119,6 +87,55 @@ public final class ProcessUtil {
         }
 
         return processName;
+    }
+
+    /**
+     * @param context Application context.
+     * @return Name of the current process.  May return null if a failure occurs, which is possible
+     * due to some race conditions in Android.
+     */
+    @Nullable
+    @Slow(Slow.Speed.MILLISECONDS)
+    @VisibleForTesting
+    /*package*/ static String searchForProcessName(@NonNull final Context context) {
+        assertNotNull(context, "context"); //$NON-NLS-1$
+
+        final Context applicationContext = ContextUtil.cleanContext(context);
+
+        final ActivityManager activityManager = (ActivityManager) applicationContext
+                .getSystemService(Context.ACTIVITY_SERVICE);
+
+        String temp = null;
+
+        // Search through running apps
+        {
+            /*
+             * List of running processes shouldn't be null, but crash reports have shown
+             * this can happen.
+             */
+            final List<RunningAppProcessInfo> runningApps = activityManager
+                    .getRunningAppProcesses();
+            if (null != runningApps) {
+                for (final RunningAppProcessInfo processInfo : runningApps) {
+                    if (android.os.Process.myPid() == processInfo.pid) {
+                        temp = processInfo.processName;
+                    }
+                }
+            }
+        }
+
+        return temp;
+    }
+
+
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
+    /*package*/ static void setProcessName(@NonNull final String processName) {
+        assertNotNull(processName, "processName"); //$NON-NLS
+
+        //noinspection SynchronizationOnStaticField
+        synchronized (INITIALIZATION_INTRINSIC_LOCK) {
+            sProcessName = processName;
+        }
     }
 
     /**

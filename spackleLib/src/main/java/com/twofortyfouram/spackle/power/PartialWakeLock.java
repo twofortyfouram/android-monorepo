@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -57,7 +58,7 @@ public final class PartialWakeLock {
      */
     @NonNull
     private static final ConcurrentHashMap<String, AtomicLong> sWakeLockCumulativeUsage
-            = new ConcurrentHashMap<String, AtomicLong>();
+            = new ConcurrentHashMap<>();
 
     /**
      * The {@code WakeLock} tag.
@@ -96,7 +97,7 @@ public final class PartialWakeLock {
      */
     @NonNull
     public static Map<String, Long> dumpWakeLockUsage() {
-        final Map<String, Long> wakeLockCumulativeUsageToReturn = new HashMap<String, Long>();
+        final Map<String, Long> wakeLockCumulativeUsageToReturn = new HashMap<>();
 
         /*
          * Note that the iterator does not lock the map.  The read is thread safe, but it is not
@@ -121,7 +122,10 @@ public final class PartialWakeLock {
      * would be better than "my_service_lock_%d" where %d is incremented
      * every time the service starts.  Internally this class maintains a historical count of lock
      * durations to enable {@link #dumpWakeLockUsage()}, so creating an unbounded number of tags
-     * would grow linearly in memory usage.
+     * would grow linearly in memory usage.</p>
+     * <p>It is also recommended to use a hard coded value for the lock name, as opposed to
+     * one generated dynamically.  While dynamic names (for example based on class name) are
+     * better obfuscated, they don't work well with Android Vitals reports.</p>
      *
      * @param context            Application context.
      * @param lockName           a tag for identifying the lock.
@@ -163,6 +167,7 @@ public final class PartialWakeLock {
      * counted, then multiple calls have no effect.
      */
     @RequiresPermission(Manifest.permission.WAKE_LOCK)
+    @SuppressLint("WakelockTimeout")
     public void acquireLock() {
         synchronized (mWakeLock) {
             final boolean isHeld = isHeld();
@@ -210,6 +215,7 @@ public final class PartialWakeLock {
                 Lumberjack.v("%s", this); //$NON-NLS-1$
 
                 if (!isHeld()) {
+                    //noinspection AccessToStaticFieldLockedOnInstance
                     sWakeLockCumulativeUsage.get(mLockName).addAndGet(getHeldDurationMillis());
                     mAcquiredRealtimeMillis = 0;
                 }
@@ -249,7 +255,7 @@ public final class PartialWakeLock {
      * reference counted, then the maximum value this method will return
      * is 1.
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */int getReferenceCount() {
         synchronized (mWakeLock) {
             return mReferenceCount;

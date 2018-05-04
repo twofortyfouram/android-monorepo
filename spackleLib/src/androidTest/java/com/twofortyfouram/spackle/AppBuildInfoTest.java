@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -24,7 +25,6 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.mock.MockContext;
-import android.test.mock.MockPackageManager;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -76,7 +76,7 @@ public final class AppBuildInfoTest {
     @Test
     @SmallTest
     public void getApplicationName() {
-        final String expected = "com.twofortyfouram.spackle.test"; //$NON-NLS-1$
+        final String expected = getContext().getPackageName();
         final String actual = AppBuildInfo.getApplicationName(getContext());
 
         assertThat(actual, is(expected));
@@ -108,7 +108,7 @@ public final class AppBuildInfoTest {
         @Override
         @SuppressWarnings("deprecation")
         public PackageManager getPackageManager() {
-            return new MockPackageManager() {
+            return new android.test.mock.MockPackageManager() {
                 @Override
                 public PackageInfo getPackageInfo(String packageName, int flags)
                         throws NameNotFoundException {
@@ -138,7 +138,7 @@ public final class AppBuildInfoTest {
         @Override
         @SuppressWarnings("deprecation")
         public PackageManager getPackageManager() {
-            return new MockPackageManager() {
+            return new android.test.mock.MockPackageManager() {
                 @Override
                 public PackageInfo getPackageInfo(String packageName, int flags)
                         throws NameNotFoundException {

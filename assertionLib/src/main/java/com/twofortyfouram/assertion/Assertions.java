@@ -1,6 +1,7 @@
 /*
- * android-assertion https://github.com/twofortyfouram/android-assertion
- * Copyright (C) 2014–2017 two forty four a.m. LLC
+ * android-assertion
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the

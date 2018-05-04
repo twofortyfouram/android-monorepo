@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="memento" pattern="file[mementoApiLib]:*/||file[mementoImplLib]:*/" />
+</component>

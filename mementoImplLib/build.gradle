@@ -1,0 +1,127 @@
+/*
+ * android-memento
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+ * this file except in compliance with the License. You may obtain a copy of the
+ * License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+boolean is_dexguard = Boolean.parseBoolean(IS_DEXGUARD_ENABLED)
+
+apply plugin: 'com.android.library'
+apply from: '../scripts.gradle'
+
+apply plugin: 'maven'
+group = 'com.twofortyfouram'
+archivesBaseName = 'android-memento-impl'
+version = LIBRARY_VERSION_NAME
+
+dependencies {
+    api group:'android.arch.persistence', name:'db', version:"${ANDROID_ARCHITECTURE_VERSION_MATCHER}"
+    implementation group:'com.android.support', name:'support-annotations', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+    implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
+    implementation project(':annotationLib')
+    implementation project(':assertionLib')
+    implementation project(':mementoApiLib')
+    implementation project(':spackleLib')
+
+    androidTestImplementation group:'android.arch.persistence', name:'db-framework', version:"${ANDROID_ARCHITECTURE_VERSION_MATCHER}"
+    androidTestImplementation group:'com.android.support.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
+    androidTestImplementation group:'com.android.support.test.espresso', name:'espresso-intents', version:"${ESPRESSO_VERSION_MATCHER}"
+    androidTestImplementation project(':testLib')
+
+    if (Boolean.parseBoolean("${IS_INSTALL_TEST_BUTLER}")) {
+        androidTestUtil group:'com.linkedin.testbutler', name:'test-butler-app', version:"${TEST_BUTLER_VERSION_MATCHER}", ext:'apk'
+    }
+
+    if (Boolean.parseBoolean("${IS_INSTALL_TEST_ORCHESTRATOR}")) {
+        androidTestUtil group:'com.android.support.test', name:'orchestrator', version:"${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}", ext:'apk'
+        androidTestUtil group:'com.android.support.test.services', name:'test-services', version:"${ANDROID_TEST_SERVICES_VERSION_MATCHER}", ext:'apk'
+    }
+}
+
+android {
+    compileSdkVersion ANDROID_COMPILE_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_COMPILE_SDK_VERSION) : ANDROID_COMPILE_SDK_VERSION
+
+    resourcePrefix 'com_twofortyfouram_memento_impl_'
+
+    defaultConfig {
+        minSdkVersion ANDROID_MIN_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_MIN_SDK_VERSION) : ANDROID_MIN_SDK_VERSION
+        targetSdkVersion ANDROID_TARGET_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_TARGET_SDK_VERSION) : ANDROID_TARGET_SDK_VERSION
+        versionCode Integer.parseInt(LIBRARY_VERSION_CODE)
+        versionName LIBRARY_VERSION_NAME
+        testInstrumentationRunner 'com.twofortyfouram.test.runner.TestButlerRunner'
+        consumerProguardFiles 'proguard-consumer.txt'
+        if (is_dexguard) {
+            // This is additive; it doesn't replace but instead appends the AAR's embedded proguard config
+            consumerProguardFiles 'dexguard-consumer.txt'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lintOptions {
+        lintConfig file('lint.xml')
+        checkDependencies Boolean.parseBoolean(IS_LINT_CHECK_DEPENDENCIES)
+    }
+
+    buildTypes {
+        debug {
+            testCoverageEnabled Boolean.parseBoolean(IS_COVERAGE_ENABLED)
+        }
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file("${rootProject.projectDir}/tools/debug.keystore")
+        }
+    }
+
+    testOptions {
+        animationsDisabled true
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: 'https://api.bintray.com/maven/twofortyfouram/maven/android-memento-impl') {
+                authentication(userName: MAVEN_USERNAME, password: MAVEN_PASSWORD)
+            }
+            pom.project {
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Workaround for naming conflict between maven and android plugins
+// http://stackoverflow.com/questions/18559932/gradle-maven-plugin-install-task-does-not-work-with-android-library-project
+task installArchives(type: Upload) {
+    description "Installs artifacts to mavenLocal."
+    repositories.mavenInstaller {
+        configuration = configurations.default
+    }
+}
+
+android.libraryVariants.all { variant ->
+    createJavaDocTaskForVariant(variant, "com/twofortyfouram/memento", "com_twofortyfouram_memento_impl")
+}

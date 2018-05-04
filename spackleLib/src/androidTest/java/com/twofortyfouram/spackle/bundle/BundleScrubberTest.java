@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -17,7 +18,10 @@
 package com.twofortyfouram.spackle.bundle;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PersistableBundle;
+import android.support.test.filters.SdkSuppress;
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -98,5 +102,35 @@ public final class BundleScrubberTest {
         BundleAssertions.assertKeyCount(bundle, 1);
         BundleAssertions
                 .assertHasString(bundle, "test_key", "test_value"); //$NON-NLS-1$ //$NON-NLS-2$
+    }
+
+    @SmallTest
+    @Test
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.LOLLIPOP)
+    public void scrub_bundle_persistable_null() {
+        assertFalse(BundleScrubber.scrub((PersistableBundle) null));
+    }
+
+    @SmallTest
+    @Test
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.LOLLIPOP)
+    public void scrub_bundle_persistable_empty() {
+        final PersistableBundle bundle = new PersistableBundle();
+
+        assertThat(BundleScrubber.scrub(bundle), is(false));
+
+        BundleAssertions.assertKeyCount(bundle, 0);
+    }
+
+    @SmallTest
+    @Test
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.LOLLIPOP)
+    public void scrub_bundle_persistable_non_empty() {
+        final PersistableBundle bundle = new PersistableBundle();
+        bundle.putString("test_key", "test_value"); //$NON-NLS-1$ //$NON-NLS-2$
+
+        assertThat(BundleScrubber.scrub(bundle), is(false));
+
+        BundleAssertions.assertKeyCount(bundle, 1);
     }
 }

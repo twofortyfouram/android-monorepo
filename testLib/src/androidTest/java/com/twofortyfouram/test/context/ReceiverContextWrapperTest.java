@@ -1,6 +1,7 @@
 /*
- * android-test https://github.com/twofortyfouram/android-test
- * Copyright (C) 2014–2017 two forty four a.m. LLC
+ * android-test
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -33,7 +34,6 @@ import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 import android.text.format.DateUtils;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -63,7 +63,7 @@ public final class ReceiverContextWrapperTest {
                 InstrumentationRegistry.getContext());
 
         assertThat(fContext.getApplicationContext(),
-                Matchers.<Context>sameInstance(fContext));
+                sameInstance(fContext));
     }
 
     @SmallTest

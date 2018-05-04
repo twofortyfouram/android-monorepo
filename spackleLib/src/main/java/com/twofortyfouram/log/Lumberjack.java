@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -32,7 +33,6 @@ import android.util.Log;
 
 import com.twofortyfouram.spackle.AndroidSdkVersion;
 import com.twofortyfouram.spackle.AppBuildInfo;
-import com.twofortyfouram.spackle.ContextUtil;
 import com.twofortyfouram.spackle.ProcessUtil;
 import com.twofortyfouram.spackle.R;
 import com.twofortyfouram.spackle.ResourceUtil;
@@ -68,8 +68,9 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
  *
  * Note that prefixing of process, thread, class, and method is disabled on release builds,
  * as classes will probably be obfuscated and thus potentially concerning to users who look at
- * log messages on release builds.  This can be manually configured by setting a boolean resource
- * "com_twofortyfouram_log_is_debug".
+ * log messages on release builds.  This is automatically configured by the debug attribute injected
+ * into the manifest for debug builds.  This can also be manually configured by setting a boolean
+ * resource "com_twofortyfouram_log_is_debug", which overrides the automatic configuration.
  */
 /*
  * Printing the process and thread name in logcat is incredibly valuable, as this has helped two
@@ -138,18 +139,22 @@ public final class Lumberjack {
      * fact that ContentProvider objects are created before Application objects on some Android
      * platform versions).
      *
+     * This should be called after {@link com.twofortyfouram.spackle.AbstractProcessNameContentProvider}
+     * has had a chance to determine the process name.  Otherwise this class will fall back to
+     * an alternative implementation that is prone to failure.
+     *
      * @param context Application context.
      */
     public static void init(@NonNull final Context context) {
-        final Context ctx = ContextUtil.cleanContext(context);
+        assertNotNull(context, "context"); //$NON-NLS
 
-        sLogTag = getLogTag(ctx);
-        sProcessName = ProcessUtil.getProcessName(ctx);
+        sLogTag = getLogTag(context);
+        sProcessName = ProcessUtil.getProcessName(context);
 
         try {
-            sIsDebuggable = ResourceUtil.getBoolean(ctx, BOOLEAN_RESOURCE_IS_DEBUG);
+            sIsDebuggable = ResourceUtil.getBoolean(context, BOOLEAN_RESOURCE_IS_DEBUG);
         } catch (final Resources.NotFoundException e) {
-            sIsDebuggable = AppBuildInfo.isDebuggable(ctx);
+            sIsDebuggable = AppBuildInfo.isDebuggable(context);
         }
     }
 
@@ -411,6 +416,8 @@ public final class Lumberjack {
      */
     @NonNull
     private static String getLogTag(@NonNull final Context context) {
+        assertNotNull(context, "context"); //$NON-NLS
+
         final String logTag = context.getString(R.string.com_twofortyfouram_log_tag);
 
         if (0 == logTag.length()) {

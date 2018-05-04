@@ -1,6 +1,7 @@
 /*
- * android-test https://github.com/twofortyfouram/android-test
- * Copyright (C) 2014–2017 two forty four a.m. LLC
+ * android-test
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -120,8 +121,8 @@ public final class MockableContentProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Cursor query(@NonNull final Uri uri, @Nullable final String[] projection, @Nullable
-    final String selection, @Nullable final String[]
+    public Cursor query(@NonNull final Uri uri, @Nullable final String[] projection,
+            @Nullable final String selection, @Nullable final String[]
             selectionArgs,
             @Nullable final String sortOrder) {
         assertAttachInfoCalled();
@@ -174,7 +175,8 @@ public final class MockableContentProvider extends ContentProvider {
     }
 
     @Override
-    public int delete(@NonNull final Uri uri, @Nullable final String s, @Nullable final String[] strings) {
+    public int delete(@NonNull final Uri uri, @Nullable final String s,
+            @Nullable final String[] strings) {
         assertAttachInfoCalled();
 
         mDeleteCount++;
@@ -368,7 +370,7 @@ public final class MockableContentProvider extends ContentProvider {
 
         final Context mockContext = new ContentProviderMockContext(
                 InstrumentationRegistry.getContext(),
-                Collections.<String, ContentProvider>singletonMap(authority,
+                Collections.singletonMap(authority,
                         mockableContentProvider));
 
         final ProviderInfo info = new ProviderInfo();
@@ -401,9 +403,9 @@ public final class MockableContentProvider extends ContentProvider {
         @Nullable
         private final String mOrderBy;
 
-        public QueryParams(@NonNull final Uri uri, @Nullable final String[] projection, @Nullable
-        final String selection, @Nullable final String[] selectionArgs, @Nullable
-        final String orderBy) {
+        public QueryParams(@NonNull final Uri uri, @Nullable final String[] projection,
+                @Nullable final String selection, @Nullable final String[] selectionArgs,
+                @Nullable final String orderBy) {
             mUri = uri;
             mProjection = null == projection ? projection : copyArray(projection);
             mSelection = selection;
@@ -584,19 +586,13 @@ public final class MockableContentProvider extends ContentProvider {
          * @param method Method that was provided.
          * @param arg    Argument that was provided.
          * @param extras Extras that were provided.  Note that only a shallow copy of {@code
-         *               extras}
-         *               is made by this class.
+         *               extras} is made by this class.
          */
         public CallParams(@NonNull final String method, @Nullable final String arg,
                 @Nullable final Bundle extras) {
             mMethod = method;
             mArg = arg;
-            if (null != extras) {
-                // Note: shallow copy
-                mExtras = new Bundle(extras);
-            } else {
-                mExtras = null;
-            }
+            mExtras = shallowCopy(extras);
         }
 
         @NonNull
@@ -613,8 +609,17 @@ public final class MockableContentProvider extends ContentProvider {
          */
         @Nullable
         public Bundle getExtras() {
-            // Note: shallow copy for Bundle
-            return new Bundle(mExtras);
+            return shallowCopy(mExtras);
+        }
+
+        @Nullable
+        private static Bundle shallowCopy(@Nullable final Bundle bundleToCopy) {
+            if (null != bundleToCopy) {
+                // Note: shallow copy for Bundle
+                return new Bundle(bundleToCopy);
+            } else {
+                return null;
+            }
         }
     }
 }

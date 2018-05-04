@@ -1,6 +1,7 @@
 /*
- * android-test https://github.com/twofortyfouram/android-test
- * Copyright (C) 2014–2017 two forty four a.m. LLC
+ * android-test
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -18,7 +19,6 @@ package com.twofortyfouram.test.context;
 
 
 import android.Manifest;
-import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -26,7 +26,6 @@ import android.support.test.filters.SdkSuppress;
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -37,6 +36,7 @@ import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.sameInstance;
 
 @RunWith(AndroidJUnit4.class)
 public final class FeatureContextWrapperTest {
@@ -48,7 +48,7 @@ public final class FeatureContextWrapperTest {
                 null);
 
         assertThat(fContext.getApplicationContext(),
-                Matchers.<Context>sameInstance(fContext));
+                sameInstance(fContext));
     }
 
     @SmallTest

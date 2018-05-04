@@ -4,8 +4,8 @@
 # This makes it easier to autocomplete methods in an IDE using this obfuscated library.
 -keepparameternames
 
-# Keep attributes necessary for a distributed API library.
--keepattributes EnclosingMethod,InnerClasses,Signature,Exceptions,*Annotation*
+# The ProGuard manual recommends keeping these attributes for libraries.
+-keepattributes EnclosingMethod,InnerClasses,Exceptions,Signature,*Annotation*
 
 # Keep the public classes of the library.
 -keep public class com.twofortyfouram.test.assertion.* { public protected *; }

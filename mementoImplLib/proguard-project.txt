@@ -1,0 +1,13 @@
+# This improves obfuscation and moves non-public classes to their own namespace.
+-repackageclasses 'com.twofortyfouram.memento.impl.internal'
+
+# This makes it easier to autocomplete methods in an IDE using this obfuscated library.
+-keepparameternames
+
+# The ProGuard manual recommends keeping these attributes for libraries.
+-keepattributes EnclosingMethod,InnerClasses,Exceptions,Signature,*Annotation*
+
+# Keep the public classes of the library.
+-keep public class com.twofortyfouram.memento.model.* { public protected *; }
+-keep public class com.twofortyfouram.memento.provider.* { public protected *; }
+-keep public class com.twofortyfouram.memento.util.* { public protected *; }

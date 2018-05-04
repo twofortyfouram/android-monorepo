@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -17,6 +18,7 @@
 package com.twofortyfouram.spackle;
 
 import android.os.Build;
+import android.support.annotation.IntRange;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -30,6 +32,8 @@ public final class AndroidSdkVersion {
      * Yes, it is silly to have a class just for this when doing a
      * simple >= check should be so easy. So why is this class here? Because we've seen those >=
      * end up being wrong. FML.
+     *
+     * Even Google got on this bandwagon with the support library having a similar class.
      */
 
     /**
@@ -37,10 +41,10 @@ public final class AndroidSdkVersion {
      * @return {@code true} if {@link android.os.Build.VERSION#SDK_INT} is greater than or equal to
      * {@code sdkInt}.
      */
-    public static boolean isAtLeastSdk(final int sdkInt) {
+    public static boolean isAtLeastSdk(
+            @IntRange(from = Build.VERSION_CODES.BASE) final int sdkInt) {
         return Build.VERSION.SDK_INT >= sdkInt;
     }
-
 
     /**
      * Private constructor prevents instantiation.

@@ -1,6 +1,7 @@
 /*
- * android-test https://github.com/twofortyfouram/android-test
- * Copyright (C) 2014–2017 two forty four a.m. LLC
+ * android-test
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -19,7 +20,6 @@ package com.twofortyfouram.test.context;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.Nullable;
@@ -44,11 +44,11 @@ public final class ContentProviderMockContextTest {
     public void getApplicationContext_does_not_break_out() {
         final ContentProviderMockContext fContext = new ContentProviderMockContext(
                 InstrumentationRegistry.getContext(),
-                Collections.<String, ContentProvider>singletonMap("authority",
+                Collections.singletonMap("authority",
                         new ContentProviderImpl()));
 
         assertThat(fContext.getApplicationContext(),
-                Matchers.<Context>sameInstance(fContext));
+                Matchers.sameInstance(fContext));
     }
 
     @SmallTest
@@ -56,7 +56,7 @@ public final class ContentProviderMockContextTest {
     public void getContentResolver_query() {
         final ContentProviderMockContext fContext = new ContentProviderMockContext(
                 InstrumentationRegistry.getContext(),
-                Collections.<String, ContentProvider>singletonMap("authority",
+                Collections.singletonMap("authority",
                         new ContentProviderImpl()));
 
         final Cursor result = fContext.getContentResolver()

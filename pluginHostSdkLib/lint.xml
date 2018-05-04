@@ -17,6 +17,4 @@
   -->
 
 <lint>
-    <!-- App indexing for a library doesn't make sense. -->
-    <issue id="GoogleAppIndexingWarning" severity="ignore"/>
 </lint>

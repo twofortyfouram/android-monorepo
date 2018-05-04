@@ -1,6 +1,7 @@
 /*
- * android-assertion https://github.com/twofortyfouram/android-assertion
- * Copyright (C) 2014–2017 two forty four a.m. LLC
+ * android-assertion
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -253,15 +254,15 @@ public final class BundleAssertions {
      *                        correct type.
      */
     @SuppressLint("NewApi")
-    public static void assertHasParcelable(@NonNull final Bundle bundle,
-            @Nullable final String requiredKey, @NonNull Class<? extends Parcelable> expectedClass)
+    public static <T extends Parcelable> T assertHasParcelable(@NonNull final Bundle bundle,
+            @Nullable final String requiredKey, @NonNull final Class<T> expectedClass)
             throws AssertionError {
         Assertions.assertNotNull(bundle, "bundle"); //$NON-NLS-1$
         Assertions.assertNotNull(expectedClass, "expectedClass");  //$NON-NLS-1$
 
         assertHasKey(bundle, requiredKey);
 
-        final Parcelable p = bundle.getParcelable(requiredKey);
+        @Nullable final Parcelable p = bundle.getParcelable(requiredKey);
 
         /*
          * Because assertHasKey ensures that the key maps to a non-null value, we can be confident
@@ -276,6 +277,44 @@ public final class BundleAssertions {
             throw new AssertionError(formatMessage("Extra %s is not an instance of %s", requiredKey,
                     expectedClass.getName()));
         }
+
+        return (T) p;
+    }
+
+    /**
+     * Asserts {@code bundle} contains a value of the correct type for {@code requiredKey}.
+     *
+     * @param bundle        Bundle to check keys of.
+     * @param requiredKey   Key that {@code bundle} must have mapping to a non-null Serializable.
+     * @param expectedClass Expected class type for the Serializable {@code requiredKey} maps to.
+     * @throws AssertionError If {@code bundle} doesn't contain {@code requiredKey} mapping to the
+     *                        correct type.
+     */
+    public static <T extends Serializable> T assertHasSerializable(@NonNull final Bundle bundle,
+            @Nullable final String requiredKey, @NonNull final Class<T> expectedClass)
+            throws AssertionError {
+        Assertions.assertNotNull(bundle, "bundle"); //$NON-NLS-1$
+        Assertions.assertNotNull(expectedClass, "expectedClass");  //$NON-NLS-1$
+
+        assertHasKey(bundle, requiredKey);
+
+        @Nullable final Serializable p = bundle.getSerializable(requiredKey);
+
+        /*
+         * Because assertHasKey ensures that the key maps to a non-null value, we can be confident
+         * that null coming back now means the key does not map to a Parcelable.
+         */
+        if (null == p) {
+            throw new AssertionError(
+                    formatMessage("Extra %s is not Serializable", requiredKey));  //$NON-NLS-1$
+        }
+
+        if (p.getClass() != expectedClass) {
+            throw new AssertionError(formatMessage("Extra %s is not an instance of %s", requiredKey,
+                    expectedClass.getName()));
+        }
+
+        return (T) p;
     }
 
     /**

@@ -1,6 +1,7 @@
 /*
- * android-assertion https://github.com/twofortyfouram/android-assertion
- * Copyright (C) 2014–2017 two forty four a.m. LLC
+ * android-assertion
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -338,19 +339,15 @@ public final class AssertionsTest {
         try {
             thread = new HandlerThread("test thread", android.os.Process.THREAD_PRIORITY_DEFAULT);
             thread.start();
-            new Handler(thread.getLooper()).post(new Runnable() {
-
-                @Override
-                public void run() {
-                    try {
-                        Assertions.assertIsMainThread();
-                        Assert.fail();
-                    } catch (final AssertionError e) {
-                        // Expected exception
-                    }
-
-                    latch.countDown();
+            new Handler(thread.getLooper()).post(() -> {
+                try {
+                    Assertions.assertIsMainThread();
+                    Assert.fail();
+                } catch (final AssertionError e) {
+                    // Expected exception
                 }
+
+                latch.countDown();
             });
 
             assertThat(latch.await(250, TimeUnit.MILLISECONDS), is(true));
@@ -366,13 +363,10 @@ public final class AssertionsTest {
     public void assertIsMainThread_on_main() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                Assertions.assertIsMainThread();
+        new Handler(Looper.getMainLooper()).post(() -> {
+            Assertions.assertIsMainThread();
 
-                latch.countDown();
-            }
+            latch.countDown();
         });
 
         assertThat(latch.await(1 * DateUtils.SECOND_IN_MILLIS, TimeUnit.MILLISECONDS), is(true));
@@ -388,14 +382,11 @@ public final class AssertionsTest {
         try {
             thread = new HandlerThread("test thread", android.os.Process.THREAD_PRIORITY_DEFAULT);
             thread.start();
-            new Handler(thread.getLooper()).post(new Runnable() {
-                @Override
-                public void run() {
+            new Handler(thread.getLooper()).post(() -> {
 
-                    Assertions.assertIsNotMainThread();
+                Assertions.assertIsNotMainThread();
 
-                    latch.countDown();
-                }
+                latch.countDown();
             });
 
             assertThat(latch.await(250, TimeUnit.MILLISECONDS), is(true));
@@ -411,18 +402,15 @@ public final class AssertionsTest {
     public void assertIsNotMainThread_on_main() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Assertions.assertIsNotMainThread();
-                    Assert.fail();
-                } catch (final AssertionError e) {
-                    // Expected exception
-                }
-
-                latch.countDown();
+        new Handler(Looper.getMainLooper()).post(() -> {
+            try {
+                Assertions.assertIsNotMainThread();
+                Assert.fail();
+            } catch (final AssertionError e) {
+                // Expected exception
             }
+
+            latch.countDown();
         });
 
         assertThat(latch.await(1 * DateUtils.SECOND_IN_MILLIS, TimeUnit.MILLISECONDS), is(true));

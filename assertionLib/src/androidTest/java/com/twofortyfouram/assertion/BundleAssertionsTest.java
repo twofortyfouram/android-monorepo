@@ -1,6 +1,7 @@
 /*
- * android-assertion https://github.com/twofortyfouram/android-assertion
- * Copyright (C) 2014–2017 two forty four a.m. LLC
+ * android-assertion
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -424,6 +425,32 @@ public final class BundleAssertionsTest {
         bundle.putString("test_key", "test_value"); //$NON-NLS-1$
 
         BundleAssertions.assertHasParcelable(bundle, "test_key", Location.class); //$NON-NLS-1$
+    }
+
+    @SmallTest
+    @Test(expected = AssertionError.class)
+    public void hasSerializable_missing() {
+        final Bundle bundle = new Bundle();
+
+        BundleAssertions.assertHasSerializable(bundle, "test_key", Integer.class); //$NON-NLS-1$
+    }
+
+    @SmallTest
+    @Test(expected = AssertionError.class)
+    public void hasSerializable_null() {
+        final Bundle bundle = new Bundle();
+        bundle.putParcelable("test_key", null); //$NON-NLS-1$
+
+        BundleAssertions.assertHasSerializable(bundle, "test_key", Integer.class); //$NON-NLS-1$
+    }
+
+    @SmallTest
+    @Test(expected = AssertionError.class)
+    public void hasParcelable_not_serializable() {
+        final Bundle bundle = new Bundle();
+        bundle.putParcelable("test_key", new Location(LocationManager.PASSIVE_PROVIDER)); //$NON-NLS-1$
+
+        BundleAssertions.assertHasSerializable(bundle, "test_key", Integer.class); //$NON-NLS-1$
     }
 
     @SmallTest

@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="locale-plugin-api" pattern="file[pluginApiLib]:*/" />
+</component>

@@ -4,7 +4,8 @@
 # This makes it easier to autocomplete methods in an IDE using this obfuscated library.
 -keepparameternames
 
--keepattributes EnclosingMethod,InnerClasses,Signature,Exceptions,*Annotation*
+# The ProGuard manual recommends keeping these attributes for libraries.
+-keepattributes EnclosingMethod,InnerClasses,Exceptions,Signature,*Annotation*
 
 # Ensure that stacktraces are reversible.
 -renamesourcefileattribute SourceFile

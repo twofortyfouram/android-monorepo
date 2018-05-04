@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -16,6 +17,7 @@
 
 package com.twofortyfouram.spackle;
 
+import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
@@ -33,10 +35,13 @@ import static org.hamcrest.Matchers.sameInstance;
 @RunWith(AndroidJUnit4.class)
 public final class ProcessUtilTest {
 
+    @NonNull
+    /*package*/ static final String TEST_PACKAGE_PROCESS = "com.twofortyfouram.spackle.test";
+            //$NON-NLS
+
     @SmallTest
     @Test
     public void getProcessName() {
-        final String TEST_PACKAGE_PROCESS = "com.twofortyfouram.spackle.test"; //$NON-NLS
 
         assertThat(ProcessUtil.getProcessName(InstrumentationRegistry.getContext()),
                 is(TEST_PACKAGE_PROCESS));
@@ -64,5 +69,27 @@ public final class ProcessUtilTest {
         assertThat(ProcessUtil.getProcessName(InstrumentationRegistry.getContext()),
                 sameInstance(
                         ProcessUtil.getProcessName(InstrumentationRegistry.getContext())));
+    }
+
+    @SmallTest
+    @Test
+    public void searchForProcessName() {
+        assertThat(ProcessUtil.searchForProcessName(InstrumentationRegistry.getContext()),
+                is(TEST_PACKAGE_PROCESS));
+    }
+
+    @SmallTest
+    @Test
+    public void setProcessName() {
+        final String expectedProcessName = "bork"; //$NON-NLS
+
+        final String before = ProcessUtil.getProcessName(InstrumentationRegistry.getContext());
+        try {
+            ProcessUtil.setProcessName(expectedProcessName);
+            assertThat(ProcessUtil.getProcessName(InstrumentationRegistry.getContext()),
+                    is(expectedProcessName));
+        } finally {
+            ProcessUtil.setProcessName(before);
+        }
     }
 }

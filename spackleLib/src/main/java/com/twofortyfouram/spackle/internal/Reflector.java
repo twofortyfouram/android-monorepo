@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -19,6 +20,7 @@ package com.twofortyfouram.spackle.internal;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RestrictTo;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -31,6 +33,7 @@ import java.lang.reflect.InvocationTargetException;
  * designed for calling methods that must exist in newer versions of Android.
  */
 @ThreadSafe
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public final class Reflector {
 
     /**
@@ -108,13 +111,7 @@ public final class Reflector {
             }
 
             return (T) cls.getMethod(methodName, argTypes).invoke(target, args);
-        } catch (final NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        } catch (final IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (final InvocationTargetException e) {
-            throw new RuntimeException(e);
-        } catch (final ClassNotFoundException e) {
+        } catch (final NoSuchMethodException | ClassNotFoundException | InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }

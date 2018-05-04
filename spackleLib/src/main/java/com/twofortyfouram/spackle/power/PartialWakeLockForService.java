@@ -1,6 +1,7 @@
 /*
- * android-spackle https://github.com/twofortyfouram/android-spackle
- * Copyright (C) 2009–2017 two forty four a.m. LLC
+ * android-spackle
+ * https://github.com/twofortyfouram/android-monorepo
+ * Copyright (C) 2008–2018 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -49,6 +50,10 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
  * (for example, the Service is restarted due to {@link android.app.Service#START_STICKY}).
  * <p>
  * Clients of this class must have the permission {@link android.Manifest.permission#WAKE_LOCK}.
+ * <p>
+ * Warning: Use caution with WakeLocks and multiple processes.  If starting a service
+ * in another process, it would be best to send a broadcast to a BroadcastReceiver in the same
+ * process as the Service, then let the BroadcastReceiver acquire the WakeLock.
  */
 @ThreadSafe
 public final class PartialWakeLockForService {
@@ -91,13 +96,14 @@ public final class PartialWakeLockForService {
      * context.
      */
     @NonNull
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @VisibleForTesting
     /* package */PartialWakeLock getWakeLock(@NonNull final Context context) {
         assertNotNull(context, "context"); //$NON-NLS-1$
 
         /*
          * Double-checked idiom for lazy initialization, Effective Java 2nd edition page 283.
          */
+        @SuppressWarnings("FieldAccessNotGuarded")
         PartialWakeLock wakeLock = mWakeLock;
         if (null == wakeLock) {
             synchronized (mIntrinsicLock) {
@@ -170,6 +176,8 @@ public final class PartialWakeLockForService {
 
     @Override
     public String toString() {
+        // mWakeLock may be null
+        //noinspection FieldAccessNotGuarded
         return String.format(Locale.US,
                 "PartialWakeLockForService [mWakeLockName=%s, mWakeLock=%s]", //$NON-NLS-1$
                 mWakeLockName, mWakeLock);

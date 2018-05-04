@@ -1,6 +1,7 @@
 <!--
-  ~ android-spackle https://github.com/twofortyfouram/android-spackle
-  ~ Copyright (C) 2009–2017 two forty four a.m. LLC
+  ~ android-spackle
+  ~ https://github.com/twofortyfouram/android-monorepo
+  ~ Copyright (C) 2008–2018 two forty four a.m. LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not use
   ~ this file except in compliance with the License. You may obtain a copy of the
@@ -15,6 +16,7 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
           package="com.twofortyfouram.spackle">
 
     <!-- Required for testing PartialWakeLock. -->
@@ -26,6 +28,7 @@
     <!-- For code coverage -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
-    <application />
+    <application>
+    </application>
 
 </manifest>
