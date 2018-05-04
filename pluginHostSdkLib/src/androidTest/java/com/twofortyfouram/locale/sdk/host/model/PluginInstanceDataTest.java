@@ -22,7 +22,7 @@ import android.os.Parcel;
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 import com.twofortyfouram.locale.sdk.host.test.fixture.PluginInstanceDataFixture;
 import com.twofortyfouram.spackle.bundle.BundleComparer;
 
@@ -101,14 +101,14 @@ public final class PluginInstanceDataTest {
 
         assertNotEquals(defaultData,
                 new PluginInstanceData(PluginInstanceDataFixture.DEFAULT_TYPE,
-                        Plugin.generateRegistryName("bar", "foo"),
+                        ThirdPartyPlugin.generateRegistryName("bar", "foo"),
                         PluginInstanceDataFixture.getDefaultBundle(),
                         PluginInstanceDataFixture.DEFAULT_BLURB)
         );
 
         {
             final Bundle bundle = new Bundle();
-            bundle.putString(LocalePluginIntent.EXTRA_STRING_JSON, new JSONObject().toString());
+            bundle.putString(LocalePluginIntentV1.EXTRA_STRING_JSON, new JSONObject().toString());
             assertNotEquals(defaultData,
                     new PluginInstanceData(PluginInstanceDataFixture.DEFAULT_TYPE,
                             PluginInstanceDataFixture.DEFAULT_REGISTRY_NAME, bundle,

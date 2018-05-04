@@ -24,8 +24,9 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
+import com.twofortyfouram.locale.sdk.host.model.ComponentType;
+import com.twofortyfouram.locale.sdk.host.model.ThirdPartyPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.locale.sdk.host.test.fixture.PluginConfigurationFixture;
@@ -52,8 +53,8 @@ public final class SettingTest {
                 InstrumentationRegistry.getContext());
 
         final Setting setting = new Setting(context, Clock.getInstance(),
-                new Plugin(PluginType.SETTING,
-                        "foo", "bar", "baz", 1, PluginConfigurationFixture
+                new ThirdPartyPlugin(PluginType.SETTING,
+                        "foo", "bar", ComponentType.BROADCAST_RECEIVER, "baz", 1, PluginConfigurationFixture
                         .newPluginConfiguration()
                 )); //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
 
@@ -61,7 +62,7 @@ public final class SettingTest {
         bundle.putString("test_key", "test_value"); //$NON-NLS-1$//$NON-NLS-2$
 
         setting.fire(new PluginInstanceData(PluginType.SETTING,
-                Plugin.generateRegistryName("foo", "bar"),//$NON-NLS-1$//$NON-NLS-2$
+                ThirdPartyPlugin.generateRegistryName("foo", "bar"),//$NON-NLS-1$//$NON-NLS-2$
                 bundle, "")); //$NON-NLS-1$
         setting.destroy();
 
@@ -76,16 +77,16 @@ public final class SettingTest {
             final Intent intent = sentIntent.getIntent();
 
             assertThat(intent.getAction(),
-                    is(LocalePluginIntent.ACTION_FIRE_SETTING));
+                    is(LocalePluginIntentV1.ACTION_FIRE_SETTING));
             assertThat(intent.getComponent(),
                     is(new ComponentName("foo", "baz"))); //$NON-NLS-1$ //$NON-NLS-2$
             assertThat(intent.getExtras(), notNullValue());
             assertThat(intent.getExtras().size(), is(1));
-            assertThat(intent.hasExtra(LocalePluginIntent.EXTRA_BUNDLE),
+            assertThat(intent.hasExtra(LocalePluginIntentV1.EXTRA_BUNDLE),
                     is(true));
 
             final Bundle extraBundle = intent
-                    .getBundleExtra(LocalePluginIntent.EXTRA_BUNDLE);
+                    .getBundleExtra(LocalePluginIntentV1.EXTRA_BUNDLE);
 
             assertThat(extraBundle.size(), is(1));
             assertThat(extraBundle.get("test_key"),

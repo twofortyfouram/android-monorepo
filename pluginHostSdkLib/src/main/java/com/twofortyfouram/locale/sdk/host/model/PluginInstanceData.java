@@ -17,12 +17,14 @@
 
 package com.twofortyfouram.locale.sdk.host.model;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
+import com.twofortyfouram.spackle.AndroidSdkVersion;
 import com.twofortyfouram.spackle.bundle.BundleComparer;
 import com.twofortyfouram.spackle.bundle.BundlePrinter;
 
@@ -78,7 +80,7 @@ public final class PluginInstanceData implements Parcelable {
     /**
      * The plug-in's Bundle.
      *
-     * @see LocalePluginIntent#EXTRA_BUNDLE
+     * @see LocalePluginIntentV1#EXTRA_BUNDLE
      */
     @NonNull
     private final Bundle mBundle;
@@ -86,7 +88,7 @@ public final class PluginInstanceData implements Parcelable {
     /**
      * The blurb.
      *
-     * @see LocalePluginIntent#EXTRA_STRING_BLURB
+     * @see LocalePluginIntentV1#EXTRA_STRING_BLURB
      */
     @NonNull
     private final String mBlurb;
@@ -111,8 +113,7 @@ public final class PluginInstanceData implements Parcelable {
         mType = type;
         mRegistryName = registryName;
 
-        // TODO: Android O perform a deep copy
-        mBundle = new Bundle(bundle);
+        mBundle = copyBundle(bundle);
         mBlurb = blurb;
     }
 
@@ -126,7 +127,7 @@ public final class PluginInstanceData implements Parcelable {
 
     /**
      * @return The registry name of the plug-in.
-     * @see Plugin#getRegistryName()
+     * @see ThirdPartyPlugin#getRegistryName()
      */
     @NonNull
     public String getRegistryName() {
@@ -139,8 +140,7 @@ public final class PluginInstanceData implements Parcelable {
      */
     @NonNull
     public Bundle getBundle() {
-        // TODO: Use O's deep copy API
-        return new Bundle(mBundle);
+        return copyBundle(mBundle);
     }
 
     /**
@@ -209,6 +209,14 @@ public final class PluginInstanceData implements Parcelable {
         dest.writeString(mRegistryName);
         dest.writeBundle(mBundle);
         dest.writeString(mBlurb);
+    }
+
+    private static Bundle copyBundle(@NonNull Bundle toCopy) {
+        if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.O)) {
+            return toCopy.deepCopy();
+        } else {
+            return new Bundle(toCopy);
+        }
     }
 
     @ThreadSafe

@@ -20,8 +20,8 @@ package com.twofortyfouram.locale.sdk.host.internal;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
+import com.twofortyfouram.locale.sdk.host.model.ThirdPartyPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.spackle.AndroidSdkVersion;
 
@@ -110,7 +110,7 @@ public final class PluginCharacteristics {
     private static Set<String> getConditionsRequiringBackwardsCompatibility() {
         final Set<String> set = new HashSet<>();
 
-        set.add(Plugin.generateRegistryName("com.DriftingAway.Skim", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.DriftingAway.Skim", //$NON-NLS-1$
                 "com.DriftingAway.Skim.EditActivity")); //$NON-NLS-1$
 
         return set;
@@ -128,152 +128,176 @@ public final class PluginCharacteristics {
 
         final Set<String> set = new HashSet<>();
 
-        set.add(Plugin.generateRegistryName("com.dattasmoon.gtalkcontrol", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.dattasmoon.gtalkcontrol", //$NON-NLS-1$
                 "com.dattasmoon.gtalkcontrol.LocaleEdit")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.droidmunkey.localePlaySound", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.droidmunkey.localePlaySound", //$NON-NLS-1$
                 "com.droidmunkey.localePlaySound.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.droidmunkey.LocaleSpeakerphone", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.droidmunkey.LocaleSpeakerphone", //$NON-NLS-1$
                 "com.droidmunkey.LocaleSpeakerphone.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.DroidMunkey.localeTextToSpeech", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.DroidMunkey.localeTextToSpeech", //$NON-NLS-1$
                 "com.DroidMunkey.localeTextToSpeech.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.DroidMunkey.LocaleTimer", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.DroidMunkey.LocaleTimer", //$NON-NLS-1$
                 "com.DroidMunkey.LocaleTimer.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.DroidMunkey.localeVariables", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.DroidMunkey.localeVariables", //$NON-NLS-1$
                 "com.DroidMunkey.localeVariables.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.DroidMunkey.LocaleVibrate", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.DroidMunkey.LocaleVibrate", //$NON-NLS-1$
                 "com.DroidMunkey.LocaleVibrate.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.google.ase", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.google.ase", //$NON-NLS-1$
                 "com.google.ase.locale.LocalePlugin")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.googlecode.android_scripting", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.googlecode.android_scripting", //$NON-NLS-1$
                 "com.googlecode.android_scripting.LocalePlugin")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.handyandy.whoisit", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.handyandy.whoisit", //$NON-NLS-1$
                 "com.handyandy.whoisit.TaskerActivateProfile")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("org.handydroid.openwatch.locale.button", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("org.handydroid.openwatch.locale.button", //$NON-NLS-1$
                 "org.handydroid.openwatch.locale.button.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("org.handydroid.openwatch.locale.graphic", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("org.handydroid.openwatch.locale.graphic", //$NON-NLS-1$
                 "org.handydroid.openwatch.locale.graphic.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("org.handydroid.openwatch.locale.message", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("org.handydroid.openwatch.locale.message", //$NON-NLS-1$
                 "org.handydroid.openwatch.locale.message.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.levelup.foxyring", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.levelup.foxyring", //$NON-NLS-1$
                 "com.levelup.foxyring.EditYourSettingActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.mariobialos.LocaleDialPlugIn", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.mariobialos.LocaleDialPlugIn", //$NON-NLS-1$
                 "com.mariobialos.LocaleDialPlugIn.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.mariobialos.LocaleHapticPlugIn", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.mariobialos.LocaleHapticPlugIn", //$NON-NLS-1$
                 "com.mariobialos.LocaleHapticPlugIn.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin
+        set.add(ThirdPartyPlugin
                 .generateRegistryName("com.mariobialos.LocalePrevLocationPlugIn", //$NON-NLS-1$
                         "com.mariobialos.LocalePrevLocationPlugIn.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin
+        set.add(ThirdPartyPlugin
                 .generateRegistryName("com.mariobialos.LocaleRotateScreenPlugIn", //$NON-NLS-1$
                         "com.mariobialos.LocaleRotateScreenPlugIn.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.mariobialos.LocaleVoiceCallPlugIn", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.mariobialos.LocaleVoiceCallPlugIn", //$NON-NLS-1$
                 "com.mariobialos.LocaleVoiceCallPlugIn.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.mb.locale.cardock", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.mb.locale.cardock", //$NON-NLS-1$
                 "com.mb.locale.cardock.LocaleEditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.mooapps.autolock", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.mooapps.autolock", //$NON-NLS-1$
                 "com.mooapps.autolock.LocaleSettings")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.mooapps.autolock2", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.mooapps.autolock2", //$NON-NLS-1$
                 "com.mooapps.autolock2.LocaleSettings")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.olib.locplug.scenemode", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.olib.locplug.scenemode", //$NON-NLS-1$
                 "com.olib.locplug.scenemode.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.olib.locplug.scenemodepro", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.olib.locplug.scenemodepro", //$NON-NLS-1$
                 "com.olib.locplug.scenemodepro.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.smartideas.handsfreesmsdemo", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.smartideas.handsfreesmsdemo", //$NON-NLS-1$
                 "com.smartideas.handsfreesmsdemo.locale.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.smartideas.handsfreesms", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.smartideas.handsfreesms", //$NON-NLS-1$
                 "com.smartideas.handsfreesms.locale.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.splunchy.android.speakingringtone", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.splunchy.android.speakingringtone", //$NON-NLS-1$
                 "com.splunchy.android.speakingringtone.LocaleSettingEditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.steelgirder.LocaleSendEmailPlugin", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.steelgirder.LocaleSendEmailPlugin", //$NON-NLS-1$
                 "com.steelgirder.LocaleSendEmailPlugin.EditYourSettingActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.steelgirder.LocaleWOLPlugin", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.steelgirder.LocaleWOLPlugin", //$NON-NLS-1$
                 "com.steelgirder.LocaleWOLPlugin.EditYourSettingActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.steelgirder.LocalePingFMPlugin", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.steelgirder.LocalePingFMPlugin", //$NON-NLS-1$
                 "com.steelgirder.LocalePingFMPlugin.EditYourSettingActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.sugree.jibjib", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.sugree.jibjib", //$NON-NLS-1$
                 "com.sugree.jibjib.LocaleSettingActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.al.SmartReply.Deluxe", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.al.SmartReply.Deluxe", //$NON-NLS-1$
                 "com.al.SmartReply.Deluxe.LocaleEditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.al.SmartReply.Pro", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.al.SmartReply.Pro", //$NON-NLS-1$
                 "com.al.SmartReply.Pro.LocaleEditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.pwnwithyourphone.talkingcalendar", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.pwnwithyourphone.talkingcalendar", //$NON-NLS-1$
                 "com.pwnwithyourphone.talkingcalendar.locale.SetupActivity")); //$NON-NLS-1$
 
-        set.add(Plugin
+        set.add(ThirdPartyPlugin
                 .generateRegistryName("com.pwnwithyourphone.talkingcalendar.trial", //$NON-NLS-1$
                         "com.pwnwithyourphone.talkingcalendar.locale.SetupActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.tenromans.locale.systemnotification", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.tenromans.locale.systemnotification", //$NON-NLS-1$
                 "com.tenromans.locale.systemnotification.EditSystemNotificationActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.tenromans.locale.emailsilencer", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.tenromans.locale.emailsilencer", //$NON-NLS-1$
                 "com.tenromans.locale.emailsilencer.EditSystemNotificationActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.twofortyfouram.locale.setting.gps", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("com.twofortyfouram.locale.setting.gps", //$NON-NLS-1$
                 "com.twofortyfouram.locale.setting.gps.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.yurivolkov.android.locale_audio_update_notifier",
+        set.add(ThirdPartyPlugin.generateRegistryName("com.yurivolkov.android.locale_audio_update_notifier",
                 //$NON-NLS-1$
                 "com.yurivolkov.android.locale_audio_update_notifier.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("de.elmicha.app.LocaleExecute", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("de.elmicha.app.LocaleExecute", //$NON-NLS-1$
                 "de.elmicha.app.LocaleExecute.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("de.sifl.wolcale", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("de.sifl.wolcale", //$NON-NLS-1$
                 "de.sifl.wolcale.EditYourSettingActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("mobi.gearsoft.android.wifisync", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("mobi.gearsoft.android.wifisync", //$NON-NLS-1$
                 "mobi.gearsoft.android.wifisync.LocaleEditSettings")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("net.andvari.android.notificationsetting", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("net.andvari.android.notificationsetting", //$NON-NLS-1$
                 "net.andvari.android.notificationsetting.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("net.andvari.android.syncsetting", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("net.andvari.android.syncsetting", //$NON-NLS-1$
                 "net.andvari.android.syncsetting.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("org.adaptroid.habitats", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("org.adaptroid.habitats", //$NON-NLS-1$
                 "org.adaptroid.habitats.EditLocaleSettingActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("org.damazio.notifier.locale.notify", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin
+                .generateRegistryName("org.damazio.notifier.locale.notify", //$NON-NLS-1$
                 "org.damazio.notifier.locale.notify.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("org.darune.autowakeonlan", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("org.darune.autowakeonlan", //$NON-NLS-1$
                 "org.darune.autowakeonlan.AutoWakeOnLan")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("org.mailboxer.saymyname", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("org.mailboxer.saymyname", //$NON-NLS-1$
                 "com.announcify.ui.activity.LocaleActivity")); //$NON-NLS-1$
 
         return set;
@@ -283,7 +307,7 @@ public final class PluginCharacteristics {
     private static Set<String> getConditionsThatDrainBattery() {
         final Set<String> set = new HashSet<>();
 
-        set.add(Plugin.generateRegistryName("com.DriftingAway.Skim", //$NON-NLS-1$
+        set.add(ThirdPartyPlugin.generateRegistryName("com.DriftingAway.Skim", //$NON-NLS-1$
                 "com.DriftingAway.Skim.EditActivity")); //$NON-NLS-1$
 
         return set;
@@ -307,23 +331,23 @@ public final class PluginCharacteristics {
     private static Set<String> getSettingsThatDisruptConnectivity() {
         final Set<String> set = new HashSet<>();
 
-        set.add(Plugin.generateRegistryName("com.codecarpet.apndroid.locale",
+        set.add(ThirdPartyPlugin.generateRegistryName("com.codecarpet.apndroid.locale",
                 //$NON-NLS-1$
                 "com.google.code.apndroid.LocaleActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.kludgenics.locale.superplane",
+        set.add(ThirdPartyPlugin.generateRegistryName("com.kludgenics.locale.superplane",
                 //$NON-NLS-1$
                 "com.kludgenics.locale.superplane.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.twofortyfouram.locale.setting.airplanemode",
+        set.add(ThirdPartyPlugin.generateRegistryName("com.twofortyfouram.locale.setting.airplanemode",
                 //$NON-NLS-1$
                 "com.twofortyfouram.locale.setting.airplanemode.EditActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.willemstoker.AutoPilot",
+        set.add(ThirdPartyPlugin.generateRegistryName("com.willemstoker.AutoPilot",
                 //$NON-NLS-1$
                 "com.willemstoker.AutoPilot.EditYourSettingActivity")); //$NON-NLS-1$
 
-        set.add(Plugin.generateRegistryName("com.suttco.locale.net",
+        set.add(ThirdPartyPlugin.generateRegistryName("com.suttco.locale.net",
                 //$NON-NLS-1$
                 "com.suttco.locale.net.DataEnabledSettingActivity")); //$NON-NLS-1$
 
@@ -334,7 +358,7 @@ public final class PluginCharacteristics {
     private static Set<String> getConditionsThatRequireConnectivity() {
         final Set<String> set = new HashSet<>();
 
-        set.add(Plugin.generateRegistryName(
+        set.add(ThirdPartyPlugin.generateRegistryName(
                 "com.twofortyfouram.locale",
                 "com.twofortyfouram.locale.ui.activities.LocationConditionActivity"));
 
@@ -354,7 +378,7 @@ public final class PluginCharacteristics {
 
         // Doesn't correctly request a requery, causing users to complain that Locale isn't working
         // unless they open the app. (Locale forces a query when the UI is launched).
-        set.add(Plugin.generateRegistryName("org.acm.steidinger.calendar.localePlugin",
+        set.add(ThirdPartyPlugin.generateRegistryName("org.acm.steidinger.calendar.localePlugin",
                 //$NON-NLS-1$
                 "org.acm.steidinger.calendar.localePlugin.EditConditionActivity")); //$NON-NLS-1$
 
@@ -366,7 +390,7 @@ public final class PluginCharacteristics {
         final Set<String> set = new HashSet<>();
 
         //Doesn't correctly handle unified volume streams on Android 4.0+; doesn't handle volume bugs on HTC 2.3 devices; doesn't handle new vibrate settings in Android 4.2; etc.
-        set.add(Plugin.generateRegistryName("com.akiware.locale.allvolumes",
+        set.add(ThirdPartyPlugin.generateRegistryName("com.akiware.locale.allvolumes",
                 //$NON-NLS-1$
                 "com.akiware.locale.allvolumes.EditActivity")); //$NON-NLS-1$
 
@@ -386,15 +410,15 @@ public final class PluginCharacteristics {
 
         if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.JELLY_BEAN)) {
 
-            set.add(Plugin.generateRegistryName("com.kludgenics.locale.superplane",
+            set.add(ThirdPartyPlugin.generateRegistryName("com.kludgenics.locale.superplane",
                     //$NON-NLS-1$
                     "com.kludgenics.locale.superplane.EditActivity")); //$NON-NLS-1$
 
-            set.add(Plugin.generateRegistryName("com.twofortyfouram.locale.setting.airplanemode",
+            set.add(ThirdPartyPlugin.generateRegistryName("com.twofortyfouram.locale.setting.airplanemode",
                     //$NON-NLS-1$
                     "com.twofortyfouram.locale.setting.airplanemode.EditActivity")); //$NON-NLS-1$
 
-            set.add(Plugin.generateRegistryName("com.willemstoker.AutoPilot",
+            set.add(ThirdPartyPlugin.generateRegistryName("com.willemstoker.AutoPilot",
                     //$NON-NLS-1$
                     "com.willemstoker.AutoPilot.EditYourSettingActivity")); //$NON-NLS-1$
         }
@@ -410,19 +434,19 @@ public final class PluginCharacteristics {
             final Set<String> builtInCalendarConditions;
             {
                 final Set<String> temp = new LinkedHashSet<>();
-                temp.add(Plugin.generateRegistryName(
+                temp.add(ThirdPartyPlugin.generateRegistryName(
                         "com.twofortyfouram.locale",
                         "com.twofortyfouram.locale.ui.activities.CalendarConditionActivity"));
 
                 builtInCalendarConditions = Collections.unmodifiableSet(temp);
             }
 
-            map.put(Plugin.generateRegistryName("org.acm.steidinger.calendar.localePlugin",
+            map.put(ThirdPartyPlugin.generateRegistryName("org.acm.steidinger.calendar.localePlugin",
                     "org.acm.steidinger.calendar.localePlugin.EditConditionActivity"),
                     builtInCalendarConditions
             );
 
-            map.put(Plugin.generateRegistryName("com.DroidMunkey.LocaleCalendarConditions",
+            map.put(ThirdPartyPlugin.generateRegistryName("com.DroidMunkey.LocaleCalendarConditions",
                     "com.DroidMunkey.LocaleCalendarConditions.EditActivity"),
                     builtInCalendarConditions
             );
@@ -432,43 +456,43 @@ public final class PluginCharacteristics {
             final Set<String> builtInLocationConditions;
             {
                 final Set<String> temp = new LinkedHashSet<>();
-                temp.add(Plugin.generateRegistryName(
+                temp.add(ThirdPartyPlugin.generateRegistryName(
                         "com.twofortyfouram.locale",
                         "com.twofortyfouram.locale.ui.activities.LocationConditionActivity"));
 
                 builtInLocationConditions = Collections.unmodifiableSet(temp);
             }
 
-            map.put(Plugin.generateRegistryName("at.pansy.droid.locale.location",
+            map.put(ThirdPartyPlugin.generateRegistryName("at.pansy.droid.locale.location",
                     "at.pansy.droid.locale.location.EditActivity"), builtInLocationConditions
             );
 
-            map.put(Plugin.generateRegistryName("com.DroidMunkey.LocaleWifiConditions",
+            map.put(ThirdPartyPlugin.generateRegistryName("com.DroidMunkey.LocaleWifiConditions",
                     "com.DroidMunkey.LocaleWifiConditions.EditActivity"), builtInLocationConditions
             );
 
-            map.put(Plugin.generateRegistryName("com.hush.locale.cell_beta",
+            map.put(ThirdPartyPlugin.generateRegistryName("com.hush.locale.cell_beta",
                     "com.hush.locale.cell_beta.EditActivity"), builtInLocationConditions
             );
 
-            map.put(Plugin.generateRegistryName("com.joaomgcd.autolocation",
+            map.put(ThirdPartyPlugin.generateRegistryName("com.joaomgcd.autolocation",
                     "com.joaomgcd.autolocation.activity.ActivityConfigRequestGeofenceReport"),
                     builtInLocationConditions
             );
 
-            map.put(Plugin.generateRegistryName("com.kanetik.geofence",
+            map.put(ThirdPartyPlugin.generateRegistryName("com.kanetik.geofence",
                     "com.kanetik.geofence.ui.EditActivity"), builtInLocationConditions
             );
 
-            map.put(Plugin.generateRegistryName("com.suttco.locale.condition.poi",
+            map.put(ThirdPartyPlugin.generateRegistryName("com.suttco.locale.condition.poi",
                     "com.suttco.locale.condition.poi.EditActivity"), builtInLocationConditions
             );
 
-            map.put(Plugin.generateRegistryName("net.appstalk.wifimatch",
+            map.put(ThirdPartyPlugin.generateRegistryName("net.appstalk.wifimatch",
                     "net.appstalk.wifimatch.ui.EditActivity"), builtInLocationConditions
             );
 
-            map.put(Plugin.generateRegistryName("org.johanhil.ssid",
+            map.put(ThirdPartyPlugin.generateRegistryName("org.johanhil.ssid",
                     "org.johanhil.ssid.EditActivity"), builtInLocationConditions);
         }
 
@@ -476,16 +500,16 @@ public final class PluginCharacteristics {
             final Set<String> builtInMovementConditions;
             {
                 final Set<String> temp = new LinkedHashSet<>();
-                temp.add(Plugin.generateRegistryName("com.twofortyfouram.locale",
+                temp.add(ThirdPartyPlugin.generateRegistryName("com.twofortyfouram.locale",
                         "com.twofortyfouram.locale.ui.activities.MovementConditionActivity"));
 
                 builtInMovementConditions = Collections.unmodifiableSet(temp);
             }
 
-            map.put(Plugin.generateRegistryName("com.jarettmillard.localeactivityplugin",
+            map.put(ThirdPartyPlugin.generateRegistryName("com.jarettmillard.localeactivityplugin",
                     "com.jarettmillard.localeactivityplugin.EditActivity"), builtInMovementConditions);
 
-            map.put(Plugin.generateRegistryName("com.kanetik.movement_detection",
+            map.put(ThirdPartyPlugin.generateRegistryName("com.kanetik.movement_detection",
                     "com.kanetik.movement_detection.ui.EditActivity"), builtInMovementConditions);
         }
 
@@ -500,27 +524,27 @@ public final class PluginCharacteristics {
             final Set<String> builtInVolumeSettings;
             {
                 final Set<String> temp = new LinkedHashSet<>();
-                temp.add(Plugin.generateRegistryName(
+                temp.add(ThirdPartyPlugin.generateRegistryName(
                         "com.twofortyfouram.locale",
                         "com.twofortyfouram.locale.ui.activities.VolumeSettingActivity"));
-                temp.add(Plugin.generateRegistryName(
+                temp.add(ThirdPartyPlugin.generateRegistryName(
                         "com.twofortyfouram.locale",
                         "com.twofortyfouram.locale.ui.activities.VolumeMediaSettingActivity"));
 
                 builtInVolumeSettings = Collections.unmodifiableSet(temp);
             }
 
-            map.put(Plugin.generateRegistryName("com.akiware.locale.allvolumes",
+            map.put(ThirdPartyPlugin.generateRegistryName("com.akiware.locale.allvolumes",
                     "com.akiware.locale.allvolumes.EditActivity"),
                     builtInVolumeSettings
             );
 
-            map.put(Plugin.generateRegistryName("com.olib.locplug.scenemode",
+            map.put(ThirdPartyPlugin.generateRegistryName("com.olib.locplug.scenemode",
                     "com.olib.locplug.scenemode.EditActivity"),
                     builtInVolumeSettings
             );
 
-            map.put(Plugin.generateRegistryName("com.olib.locplug.scenemodepro",
+            map.put(ThirdPartyPlugin.generateRegistryName("com.olib.locplug.scenemodepro",
                     "com.olib.locplug.scenemodepro.EditActivity"),
                     builtInVolumeSettings
             );
@@ -595,10 +619,10 @@ public final class PluginCharacteristics {
      * beta version of the plug-in API for Locale released in January 2009 was
      * slightly different from the final version of the API release in December
      * 2009. Prior to Locale 1.0,
-     * {@link LocalePluginIntent#EXTRA_BUNDLE} didn't exist and
+     * {@link LocalePluginIntentV1#EXTRA_BUNDLE} didn't exist and
      * plug-ins stored and retrieved their extras directly from the
-     * {@link LocalePluginIntent#ACTION_EDIT_SETTING} or
-     * {@link LocalePluginIntent#ACTION_FIRE_SETTING} Intents.
+     * {@link LocalePluginIntentV1#ACTION_EDIT_SETTING} or
+     * {@link LocalePluginIntentV1#ACTION_FIRE_SETTING} Intents.
      * Although this backwards compatibility should only apply to Setting plug-ins
      * (since Conditions weren't supported until the API was finalized in Locale
      * 1.0), some plug-in developers copy-pasted their setting implementations to
@@ -762,7 +786,7 @@ public final class PluginCharacteristics {
      * candidate for blacklisting.</li>
      * <li>A plug-in that contains serious security flaws is a candidate for blacklisting.  One
      * example would be a plug-in that stores unencrypted login
-     * credentials in {@link LocalePluginIntent#EXTRA_BUNDLE}.  Plug-ins are
+     * credentials in {@link LocalePluginIntentV1#EXTRA_BUNDLE}.  Plug-ins are
      * required to store such credentials in their own app private storage, rather than in the
      * Bundle.  Another example would be a plug-in that logs credentials to logcat.</li>
      * <li>A plug-in that can cost the user a large amount of money is a candidate for

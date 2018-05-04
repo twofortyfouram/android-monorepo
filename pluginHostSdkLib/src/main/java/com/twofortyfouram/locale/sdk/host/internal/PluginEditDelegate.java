@@ -25,8 +25,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.twofortyfouram.assertion.BundleAssertions;
-import com.twofortyfouram.locale.api.LocalePluginIntent;
-import com.twofortyfouram.locale.sdk.host.model.IPlugin;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
+import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginErrorEdit;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.locale.sdk.host.ui.fragment.AbstractPluginEditFragment;
@@ -50,7 +50,7 @@ public final class PluginEditDelegate {
 
     @NonNull
     public static EnumSet<PluginErrorEdit> isIntentValid(@Nullable final Intent intent,
-            @NonNull final IPlugin plugin) {
+            @NonNull final Plugin plugin) {
         final EnumSet<PluginErrorEdit> errors = EnumSet.noneOf(PluginErrorEdit.class);
 
         if (null == intent) {
@@ -67,7 +67,7 @@ public final class PluginEditDelegate {
                 errors.add(PluginErrorEdit.BUNDLE_MISSING);
             } else {
                 final Bundle localeBundle = intentExtras
-                        .getBundle(LocalePluginIntent.EXTRA_BUNDLE);
+                        .getBundle(LocalePluginIntentV1.EXTRA_BUNDLE);
 
                 if (BundleScrubber.scrub(localeBundle)) {
                     errors.add(PluginErrorEdit.PRIVATE_SERIALIZABLE);
@@ -76,8 +76,8 @@ public final class PluginEditDelegate {
                 if (null == localeBundle) {
                     if (plugin.getConfiguration().isBackwardsCompatibilityEnabled()) {
                         final Bundle newBundle = new Bundle(intent.getExtras());
-                        newBundle.remove(LocalePluginIntent.EXTRA_STRING_BLURB);
-                        intent.putExtra(LocalePluginIntent.EXTRA_BUNDLE,
+                        newBundle.remove(LocalePluginIntentV1.EXTRA_STRING_BLURB);
+                        intent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE,
                                 newBundle);
                     }
 
@@ -86,7 +86,7 @@ public final class PluginEditDelegate {
 
                 try {
                     BundleAssertions.assertHasString(intentExtras,
-                            LocalePluginIntent.EXTRA_STRING_BLURB, false, true);
+                            LocalePluginIntentV1.EXTRA_STRING_BLURB, false, true);
                 } catch (final AssertionError e) {
                     errors.add(PluginErrorEdit.BLURB_MISSING);
                 }
@@ -98,20 +98,20 @@ public final class PluginEditDelegate {
 
 
     @NonNull
-    public static Intent getPluginStartIntent(@NonNull final IPlugin plugin,
+    public static Intent getPluginStartIntent(@NonNull final Plugin plugin,
             @Nullable final PluginInstanceData pluginInstanceData,
             @Nullable final String breadcrumb) {
         assertNotNull(plugin, "plugin"); //$NON-NLS-1$
 
         final Intent intent = new Intent(plugin.getType().getActivityIntentAction());
         intent.setClassName(plugin.getPackageName(), plugin.getActivityClassName());
-        intent.putExtra(LocalePluginIntent.EXTRA_STRING_BREADCRUMB, breadcrumb);
+        intent.putExtra(LocalePluginIntentV1.EXTRA_STRING_BREADCRUMB, breadcrumb);
 
         if (null != pluginInstanceData) {
             final Bundle bundle = pluginInstanceData.getBundle();
 
-            intent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundle);
-            intent.putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
+            intent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, bundle);
+            intent.putExtra(LocalePluginIntentV1.EXTRA_STRING_BLURB,
                     pluginInstanceData.getBlurb());
 
             if (plugin.getConfiguration().isBackwardsCompatibilityEnabled()) {
@@ -131,7 +131,7 @@ public final class PluginEditDelegate {
      * @return Args necessary for starting {@link AbstractPluginEditFragment}.
      */
     @NonNull
-    public static Bundle newArgs(@NonNull final IPlugin plugin,
+    public static Bundle newArgs(@NonNull final Plugin plugin,
             @Nullable final PluginInstanceData previousPluginInstanceData) {
         assertNotNull(plugin, "plugin"); //$NON-NLS-1$
         if (null != previousPluginInstanceData) {
@@ -182,7 +182,7 @@ public final class PluginEditDelegate {
     }
 
     @NonNull
-    public static IPlugin getCurrentPlugin(@NonNull final Bundle bundle) {
+    public static Plugin getCurrentPlugin(@NonNull final Bundle bundle) {
         final Parcelable currentPluginArg = bundle.getParcelable(
                 IPluginEditFragment.ARG_EXTRA_PARCELABLE_CURRENT_PLUGIN);
         if (null == currentPluginArg) {
@@ -190,9 +190,9 @@ public final class PluginEditDelegate {
                     "Arg %s is missing",
                     IPluginEditFragment.ARG_EXTRA_PARCELABLE_CURRENT_PLUGIN)); //$NON-NLS-1$
         }
-        if (currentPluginArg instanceof IPlugin) {
+        if (currentPluginArg instanceof Plugin) {
             //noinspection CastToConcreteClass
-            return (IPlugin) currentPluginArg;
+            return (Plugin) currentPluginArg;
         } else {
             throw new IllegalArgumentException(formatMessage(
                     "Arg %s is the wrong type",

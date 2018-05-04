@@ -25,14 +25,14 @@ import android.support.annotation.Nullable;
 import android.support.annotation.Size;
 
 import com.twofortyfouram.locale.sdk.host.internal.ThirdPartyPluginRegistry;
-import com.twofortyfouram.locale.sdk.host.model.IPlugin;
 import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.sdk.host.model.ThirdPartyPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 
 import java.util.Map;
 
 /**
- * Dynamically discovers all {@link Plugin}s currently installed.  Initially loading the plug-ins
+ * Dynamically discovers all {@link ThirdPartyPlugin}s currently installed.  Initially loading the plug-ins
  * can take a few seconds, so there are both blocking {@link #getPluginMap(PluginType)} and
  * non-blocking {@link #peekPluginMap(PluginType)} calls to retrieve a snapshot
  * the registry.
@@ -95,7 +95,7 @@ public interface PluginRegistry {
      */
     @NonNull
     @Size(min = 0)
-    Map<String, IPlugin> getPluginMap(@NonNull final PluginType type);
+    Map<String, Plugin> getPluginMap(@NonNull final PluginType type);
 
     /**
      * Retrieves a snapshot of the registry's latest state or {@code null} if
@@ -114,5 +114,5 @@ public interface PluginRegistry {
      */
     @Nullable
     @Size(min = 0)
-    Map<String, IPlugin> peekPluginMap(@NonNull final PluginType type);
+    Map<String, Plugin> peekPluginMap(@NonNull final PluginType type);
 }

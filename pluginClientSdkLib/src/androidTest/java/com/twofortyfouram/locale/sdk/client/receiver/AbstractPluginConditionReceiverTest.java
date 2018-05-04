@@ -34,7 +34,7 @@ import android.support.test.filters.Suppress;
 import android.support.test.runner.AndroidJUnit4;
 import android.text.format.DateUtils;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 import com.twofortyfouram.locale.sdk.client.test.condition.receiver.PluginConditionReceiver;
 import com.twofortyfouram.locale.sdk.client.test.condition.receiver.PluginJsonValues;
 import com.twofortyfouram.log.Lumberjack;
@@ -74,7 +74,7 @@ public final class AbstractPluginConditionReceiverTest {
     @Test
     public void receiver_no_ordered_broadcast() {
         final Intent intent = getDefaultIntent(
-                LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
 
         final PluginConditionReceiver receiver = new PluginConditionReceiver();
 
@@ -89,71 +89,71 @@ public final class AbstractPluginConditionReceiverTest {
     @SmallTest
     @Test
     public void no_bundle() {
-        final Intent intent = getDefaultIntent(LocalePluginIntent.RESULT_CONDITION_UNSATISFIED);
-        intent.removeExtra(LocalePluginIntent.EXTRA_BUNDLE);
+        final Intent intent = getDefaultIntent(LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED);
+        intent.removeExtra(LocalePluginIntentV1.EXTRA_BUNDLE);
 
         assertOrderedBroadcastResultCode(intent,
-                LocalePluginIntent.RESULT_CONDITION_SATISFIED,
-                LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                LocalePluginIntentV1.RESULT_CONDITION_SATISFIED,
+                LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
     }
 
     @SmallTest
     @Test
     public void no_json() {
-        final Intent intent = getDefaultIntent(LocalePluginIntent.RESULT_CONDITION_UNSATISFIED);
-        intent.getBundleExtra(LocalePluginIntent.EXTRA_BUNDLE).clear();
+        final Intent intent = getDefaultIntent(LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED);
+        intent.getBundleExtra(LocalePluginIntentV1.EXTRA_BUNDLE).clear();
 
         assertOrderedBroadcastResultCode(intent,
-                LocalePluginIntent.RESULT_CONDITION_SATISFIED,
-                LocalePluginIntent.RESULT_CONDITION_SATISFIED);
+                LocalePluginIntentV1.RESULT_CONDITION_SATISFIED,
+                LocalePluginIntentV1.RESULT_CONDITION_SATISFIED);
         assertOrderedBroadcastResultCode(intent,
-                LocalePluginIntent.RESULT_CONDITION_UNSATISFIED,
-                LocalePluginIntent.RESULT_CONDITION_UNSATISFIED);
+                LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED,
+                LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED);
     }
 
     @SmallTest
     @Test
     public void receiver_wrong_action() {
         final Intent intent = getDefaultIntent(
-                LocalePluginIntent.RESULT_CONDITION_UNSATISFIED);
+                LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED);
         intent.setAction(ALTERNATIVE_ACTION_FOR_TEST);
 
         assertOrderedBroadcastResultCode(intent,
-                LocalePluginIntent.RESULT_CONDITION_SATISFIED,
-                LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                LocalePluginIntentV1.RESULT_CONDITION_SATISFIED,
+                LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
     }
 
     @SmallTest
     @Test
     public void result_satisfied() {
         final Intent intent = getDefaultIntent(
-                LocalePluginIntent.RESULT_CONDITION_SATISFIED);
+                LocalePluginIntentV1.RESULT_CONDITION_SATISFIED);
 
         assertOrderedBroadcastResultCode(intent,
-                LocalePluginIntent.RESULT_CONDITION_UNKNOWN,
-                LocalePluginIntent.RESULT_CONDITION_SATISFIED);
+                LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN,
+                LocalePluginIntentV1.RESULT_CONDITION_SATISFIED);
     }
 
     @SmallTest
     @Test
     public void result_unsatisfied() {
         final Intent intent = getDefaultIntent(
-                LocalePluginIntent.RESULT_CONDITION_UNSATISFIED);
+                LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED);
 
         assertOrderedBroadcastResultCode(intent,
-                LocalePluginIntent.RESULT_CONDITION_UNKNOWN,
-                LocalePluginIntent.RESULT_CONDITION_UNSATISFIED);
+                LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN,
+                LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED);
     }
 
     @SmallTest
     @Test
     public void result_unknown() {
         final Intent intent = getDefaultIntent(
-                LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
 
         assertOrderedBroadcastResultCode(intent,
-                LocalePluginIntent.RESULT_CONDITION_SATISFIED,
-                LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                LocalePluginIntentV1.RESULT_CONDITION_SATISFIED,
+                LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
     }
 
     @SmallTest
@@ -161,11 +161,11 @@ public final class AbstractPluginConditionReceiverTest {
     public void assertState() {
 
         AbstractPluginConditionReceiver
-                .assertResult(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                .assertResult(LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
         AbstractPluginConditionReceiver
-                .assertResult(LocalePluginIntent.RESULT_CONDITION_UNSATISFIED);
+                .assertResult(LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED);
         AbstractPluginConditionReceiver
-                .assertResult(LocalePluginIntent.RESULT_CONDITION_SATISFIED);
+                .assertResult(LocalePluginIntentV1.RESULT_CONDITION_SATISFIED);
 
         // throws
         AbstractPluginConditionReceiver.assertResult(Activity.RESULT_OK);
@@ -177,15 +177,15 @@ public final class AbstractPluginConditionReceiverTest {
         final Intent intent = new Intent();
         intent.setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES | Intent.FLAG_FROM_BACKGROUND);
         intent.setClassName(getContext(), PluginConditionReceiver.class.getName());
-        intent.setAction(LocalePluginIntent.ACTION_QUERY_CONDITION);
+        intent.setAction(LocalePluginIntentV1.ACTION_QUERY_CONDITION);
 
         final JSONObject json = PluginJsonValues.generateJson(getContext(), state);
         final String jsonString = json.toString();
 
         final Bundle bundle = new Bundle();
 
-        bundle.putString(LocalePluginIntent.EXTRA_STRING_JSON, jsonString);
-        intent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundle);
+        bundle.putString(LocalePluginIntentV1.EXTRA_STRING_JSON, jsonString);
+        intent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, bundle);
 
         return intent;
     }
@@ -232,7 +232,7 @@ public final class AbstractPluginConditionReceiverTest {
 
         @NonNull
         /* package */ final AtomicInteger mQueryResult = new AtomicInteger(
-                LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
 
         @Override
         public void onReceive(final Context context, final Intent intent) {
@@ -244,21 +244,21 @@ public final class AbstractPluginConditionReceiverTest {
             Lumberjack.v("Received %s", intent); //$NON-NLS-1$
 
             switch (getResultCode()) {
-                case LocalePluginIntent.RESULT_CONDITION_SATISFIED: {
+                case LocalePluginIntentV1.RESULT_CONDITION_SATISFIED: {
                     Lumberjack.v("Got RESULT_CONDITION_SATISFIED"); //$NON-NLS-1$
                     mQueryResult
-                            .set(LocalePluginIntent.RESULT_CONDITION_SATISFIED);
+                            .set(LocalePluginIntentV1.RESULT_CONDITION_SATISFIED);
                     break;
                 }
-                case LocalePluginIntent.RESULT_CONDITION_UNSATISFIED: {
+                case LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED: {
                     Lumberjack.v("Got RESULT_CONDITION_UNSATISFIED"); //$NON-NLS-1$
                     mQueryResult
-                            .set(LocalePluginIntent.RESULT_CONDITION_UNSATISFIED);
+                            .set(LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED);
                     break;
                 }
-                case LocalePluginIntent.RESULT_CONDITION_UNKNOWN: {
+                case LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN: {
                     Lumberjack.v("Got RESULT_CONDITION_UNKNOWN"); //$NON-NLS-1$
-                    mQueryResult.set(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                    mQueryResult.set(LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
                     break;
                 }
                 default: {
@@ -267,7 +267,7 @@ public final class AbstractPluginConditionReceiverTest {
                      * because bad 3rd party apps could give bad result codes
                      */
                     Lumberjack.w("Got unrecognized result code: %d", getResultCode()); //$NON-NLS-1$
-                    mQueryResult.set(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                    mQueryResult.set(LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
                 }
             }
 

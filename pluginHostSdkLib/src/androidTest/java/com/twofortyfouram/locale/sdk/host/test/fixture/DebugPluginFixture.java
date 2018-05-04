@@ -22,7 +22,8 @@ import android.support.annotation.RestrictTo;
 import android.support.annotation.VisibleForTesting;
 import android.support.test.InstrumentationRegistry;
 
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.sdk.host.model.ComponentType;
+import com.twofortyfouram.locale.sdk.host.model.ThirdPartyPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.locale.sdk.host.test.condition.receiver.PluginConditionReceiver;
 import com.twofortyfouram.locale.sdk.host.test.condition.ui.activity.PluginConditionActivity;
@@ -40,20 +41,20 @@ import net.jcip.annotations.ThreadSafe;
 public final class DebugPluginFixture {
 
     @NonNull
-    public static Plugin getDebugPluginCondition() {
-        return new Plugin(PluginType.CONDITION,
+    public static ThirdPartyPlugin getDebugPluginCondition() {
+        return new ThirdPartyPlugin(PluginType.CONDITION,
                 InstrumentationRegistry.getContext().getPackageName(),
                 PluginConditionActivity.class.getName(),
-                PluginConditionReceiver.class.getName(), 0,
+                ComponentType.BROADCAST_RECEIVER, PluginConditionReceiver.class.getName(), 0,
                 PluginConfigurationFixture.newPluginConfiguration());
     }
 
     @NonNull
-    public static Plugin getDebugPluginSetting() {
-        return new Plugin(PluginType.SETTING,
+    public static ThirdPartyPlugin getDebugPluginSetting() {
+        return new ThirdPartyPlugin(PluginType.SETTING,
                 InstrumentationRegistry.getContext().getPackageName(),
                 PluginSettingActivity.class.getName(),
-                PluginSettingReceiver.class.getName(), 0,
+                ComponentType.BROADCAST_RECEIVER, PluginSettingReceiver.class.getName(), 0,
                 PluginConfigurationFixture.newPluginConfiguration());
     }
 

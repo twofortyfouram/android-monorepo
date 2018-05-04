@@ -19,7 +19,7 @@ package com.twofortyfouram.locale.sdk.host.model;
 
 import android.support.annotation.NonNull;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -30,7 +30,7 @@ import static com.twofortyfouram.log.Lumberjack.formatMessage;
  * Possible errors that may occur during the edit phase of interacting with plug-ins.
  */
 @ThreadSafe
-public enum PluginErrorEdit implements IPluginError {
+public enum PluginErrorEdit implements PluginError {
     @NonNull
     ACTIVITY_NOT_FOUND_EXCEPTION(
             "The Activity could not be found.  To resolve this issue, make sure the plug-in package is still installed.",
@@ -41,14 +41,14 @@ public enum PluginErrorEdit implements IPluginError {
     BLURB_MISSING(formatMessage(
             "%s is missing.  To resolve this issue, put the blurb extra in the Activity result Intent.",
             //$NON-NLS-1$
-            LocalePluginIntent.EXTRA_STRING_BLURB), true),
+            LocalePluginIntentV1.EXTRA_STRING_BLURB), true),
 
     @NonNull
     BUNDLE_TOO_LARGE(
             formatMessage(
                     "%s is larger than the allowed maximum of %d bytes.  To resolve this issue, store less data in the Bundle.",
                     //$NON-NLS-1$
-                    LocalePluginIntent.EXTRA_BUNDLE,
+                    LocalePluginIntentV1.EXTRA_BUNDLE,
                     PluginInstanceData.MAXIMUM_BUNDLE_SIZE_BYTES), true
     ),
     @NonNull
@@ -56,7 +56,7 @@ public enum PluginErrorEdit implements IPluginError {
             formatMessage(
                     "Extra %s is required.  To resolve this issue, put the Bundle extra in the Activity result Intent.",
                     //$NON-NLS-1$
-                    LocalePluginIntent.EXTRA_BUNDLE), true
+                    LocalePluginIntentV1.EXTRA_BUNDLE), true
     ),
 
     @NonNull
@@ -64,7 +64,7 @@ public enum PluginErrorEdit implements IPluginError {
             formatMessage(
                     "%s could not be serialized.  To resolve this issue, be sure the Bundle doesn't contain Parcelable or private Serializable subclasses",
                     //$NON-NLS-1$
-                    LocalePluginIntent.EXTRA_BUNDLE), true
+                    LocalePluginIntentV1.EXTRA_BUNDLE), true
     ),
 
     @NonNull

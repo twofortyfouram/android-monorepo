@@ -21,7 +21,7 @@ package com.twofortyfouram.locale.sdk.client.test.condition.receiver;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
-import com.twofortyfouram.locale.annotation.ConditionResult;
+import com.twofortyfouram.locale.api.v1.annotation.ConditionResult;
 import com.twofortyfouram.locale.sdk.client.receiver.AbstractPluginConditionReceiver;
 
 import net.jcip.annotations.ThreadSafe;

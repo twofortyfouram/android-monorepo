@@ -19,8 +19,10 @@ package com.twofortyfouram.locale.sdk.host.api;
 
 import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,8 +32,9 @@ import android.text.format.DateUtils;
 
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.annotation.Slow.Speed;
-import com.twofortyfouram.locale.api.LocalePluginIntent;
-import com.twofortyfouram.locale.sdk.host.model.IPlugin;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
+import com.twofortyfouram.locale.api.v2.PluginSettingContract;
+import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.log.Lumberjack;
@@ -61,6 +64,11 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 public final class Setting {
 
     /**
+     * Max time a plug-in is allowed to run.  This prevents a plug-in from totally blocking the app.
+     */
+    private static final int PROVIDER_TIMEOUT_MILLIS = 30 * (int) DateUtils.SECOND_IN_MILLIS;
+
+    /**
      * Timeout in milliseconds when waiting for an ordered broadcast.
      */
     private static final int BROADCAST_TIMEOUT_MILLIS = 11 * (int) DateUtils.SECOND_IN_MILLIS;
@@ -72,7 +80,7 @@ public final class Setting {
     private final Clock mClock;
 
     @NonNull
-    private final IPlugin mPlugin;
+    private final Plugin mPlugin;
 
     @NonNull
     private final HandlerThread mHandlerThread = HandlerThreadFactory.newHandlerThread(
@@ -93,7 +101,7 @@ public final class Setting {
      * @param plugin  The plug-in details.
      */
     public Setting(@NonNull final Context context, @NonNull final Clock clock,
-            @NonNull final IPlugin plugin) {
+            @NonNull final Plugin plugin) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotNull(clock, "clock"); //$NON-NLS-1$
         assertNotNull(plugin, "plugin"); //$NON-NLS-1$
@@ -129,6 +137,61 @@ public final class Setting {
      */
     @Slow(Speed.SECONDS)
     public void fire(@NonNull final Bundle pluginBundle) {
+        switch (mPlugin.getComponentType()) {
+            case CONTENT_PROVIDER: {
+                // API 2.0
+                fireProvider(pluginBundle);
+                break;
+            }
+            case BROADCAST_RECEIVER: {
+                // API 1.0
+                fireReceiver(pluginBundle);
+                break;
+            }
+            case NONE: {
+                throw new UnsupportedOperationException();
+            }
+            default: {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
+
+    @Slow(Speed.SECONDS)
+    private void fireProvider(@NonNull final Bundle pluginBundle) {
+        assertNotNull(pluginBundle, "pluginBundle"); //$NON-NLS-1$
+
+        /*
+         * Keep this log statement here for the benefit of 3rd party developers
+         */
+        Lumberjack.always("Firing plug-in setting %s", mPlugin.getRegistryName()); //$NON-NLS-1$
+
+        // TODO: figure out a way to avoid building this each time
+        @NonNull final Uri uri = new Uri.Builder()
+                .scheme(ContentResolver.SCHEME_CONTENT)
+                .authority(mPlugin.getComponentIdentifier()).build();
+
+        /*
+         * There is no system imposed limit on the duration of a ContentProvider call.  A malicious plug-in could
+         * theoretically keep the host waiting forever.  This should
+         */
+        // FIXME: Wrap this in a thread that we can kill, so that an infinitely long running
+        // provider call won't hose us.
+        final long startRealtimeMillis = mClock.getRealTimeMillis();
+        try {
+            mContext.getContentResolver().call(uri, PluginSettingContract.METHOD_FIRE_SETTING, null,
+                    pluginBundle);
+
+            Lumberjack.v("Fire completed after %d [milliseconds]",
+                    mClock.getRealTimeMillis() - startRealtimeMillis);
+        }
+        catch (final Exception e) {
+            // Anything can happen so catchall is necessary.
+        }
+    }
+
+    @Slow(Speed.SECONDS)
+    private void fireReceiver(@NonNull final Bundle pluginBundle) {
         assertNotNull(pluginBundle, "pluginBundle"); //$NON-NLS-1$
         /*
          * Keep this log statement here for the benefit of 3rd party developers
@@ -136,18 +199,22 @@ public final class Setting {
         Lumberjack.always("Firing plug-in setting %s", mPlugin.getRegistryName()); //$NON-NLS-1$
 
         final Intent intent = new Intent();
-        intent.setAction(LocalePluginIntent.ACTION_FIRE_SETTING);
-        intent.setFlags(Intent.FLAG_FROM_BACKGROUND);
+        intent.setAction(LocalePluginIntentV1.ACTION_FIRE_SETTING);
+        intent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+
+        // Nasty hack for Intent queue flooding.
+        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.HONEYCOMB_MR1)) {
             addFlagsHoneycombMr1(intent);
         }
+
         /*
          * Setting class name explicitly ensures the intent goes only to its
          * intended recipient.
          */
-        intent.setClassName(mPlugin.getPackageName(), mPlugin.getReceiverClassName());
+        intent.setClassName(mPlugin.getPackageName(), mPlugin.getComponentIdentifier());
 
-        intent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, pluginBundle);
+        intent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, pluginBundle);
 
         if (mPlugin.getConfiguration().isBackwardsCompatibilityEnabled()) {
             intent.putExtras(pluginBundle);
@@ -162,7 +229,7 @@ public final class Setting {
             final FireResultReceiver resultReceiver = new FireResultReceiver();
             final long startRealtimeMillis = mClock.getRealTimeMillis();
             mContext.sendOrderedBroadcast(intent, null, resultReceiver, mHandler,
-                    LocalePluginIntent.RESULT_CONDITION_UNKNOWN, null, null);
+                    LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN, null, null);
 
             try {
                 final boolean isReceived = resultReceiver.mLatch.await(BROADCAST_TIMEOUT_MILLIS,

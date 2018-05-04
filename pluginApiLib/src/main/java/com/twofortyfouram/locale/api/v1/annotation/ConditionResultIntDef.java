@@ -15,18 +15,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.locale.annotation;
+package com.twofortyfouram.locale.api.v1.annotation;
 
 import android.support.annotation.IntDef;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-@IntDef({LocalePluginIntent.RESULT_CONDITION_SATISFIED, LocalePluginIntent.RESULT_CONDITION_UNKNOWN, LocalePluginIntent
+@IntDef({LocalePluginIntentV1.RESULT_CONDITION_SATISFIED, LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN, LocalePluginIntentV1
         .RESULT_CONDITION_UNSATISFIED})
 @Retention(RetentionPolicy.SOURCE)
-public @interface ConditionResult {
+public @interface ConditionResultIntDef {
 
 }

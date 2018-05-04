@@ -17,25 +17,23 @@
 
 package com.twofortyfouram.locale.sdk.host.model;
 
-import android.support.annotation.NonNull;
+public enum ComponentType {
 
-/**
- * Common interface for plug-in errors.  An error is a problem that occurs while interacting with
- * the plug-in.
- */
-public interface IPluginError {
 
     /**
-     * @return A non-localized error message with an explanation of the error.
-     * This is intended to display to plug-in developers via a log
-     * message.
+     * BroadcastReceiver component type for plug-ins implementing version 1.0 of the plug-in API
+     * specification.
      */
-    @NonNull
-    String getDeveloperExplanation();
+    BROADCAST_RECEIVER,
 
     /**
-     * @return True if the error is fatal.  If false, the error is non-fatal and should be
-     * considered to be a warning.
+     * ContentProvider component type for plug-ins implementing version 2.0 of the plug-in API
+     * specification.
      */
-    boolean isFatal();
+    CONTENT_PROVIDER,
+
+    /**
+     * Special type used internally by host implementations.
+     */
+    NONE
 }

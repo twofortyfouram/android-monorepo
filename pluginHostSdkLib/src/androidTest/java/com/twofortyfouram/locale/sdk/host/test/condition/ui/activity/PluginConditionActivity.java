@@ -25,7 +25,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 import com.twofortyfouram.locale.sdk.client.ui.activity.AbstractPluginActivity;
 import com.twofortyfouram.locale.sdk.host.test.R;
 import com.twofortyfouram.locale.sdk.host.test.condition.bundle.PluginJsonValues;
@@ -93,13 +93,13 @@ public final class PluginConditionActivity extends AbstractPluginActivity {
                 final int code;
                 if (R.string.com_twofortyfouram_locale_sdk_host_condition_satisfied
                         == resourceId) {
-                    code = LocalePluginIntent.RESULT_CONDITION_SATISFIED;
+                    code = LocalePluginIntentV1.RESULT_CONDITION_SATISFIED;
                 } else if (R.string.com_twofortyfouram_locale_sdk_host_condition_unsatisfied
                         == resourceId) {
-                    code = LocalePluginIntent.RESULT_CONDITION_UNSATISFIED;
+                    code = LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED;
                 } else if (R.string.com_twofortyfouram_locale_sdk_host_condition_unknown
                         == resourceId) {
-                    code = LocalePluginIntent.RESULT_CONDITION_UNKNOWN;
+                    code = LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN;
                 } else {
                     throw new AssertionError();
                 }
@@ -125,15 +125,15 @@ public final class PluginConditionActivity extends AbstractPluginActivity {
     private static int getResourceIdForCode(final int code) {
         final int resourceId;
         switch (code) {
-            case LocalePluginIntent.RESULT_CONDITION_SATISFIED: {
+            case LocalePluginIntentV1.RESULT_CONDITION_SATISFIED: {
                 resourceId = R.string.com_twofortyfouram_locale_sdk_host_condition_satisfied;
                 break;
             }
-            case LocalePluginIntent.RESULT_CONDITION_UNSATISFIED: {
+            case LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED: {
                 resourceId = R.string.com_twofortyfouram_locale_sdk_host_condition_unsatisfied;
                 break;
             }
-            case LocalePluginIntent.RESULT_CONDITION_UNKNOWN: {
+            case LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN: {
                 resourceId = R.string.com_twofortyfouram_locale_sdk_host_condition_unknown;
                 break;
             }

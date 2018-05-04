@@ -44,8 +44,8 @@ public final class InitObjTest {
         try {
             final Handler handler = new Handler(thread.getLooper());
             final CountDownLatch latch = new CountDownLatch(1);
-            final PluginRegistryHandlerCallback.InitObj obj
-                    = new PluginRegistryHandlerCallback.InitObj(handler, latch);
+            final ThirdPartyPluginRegistryHandlerCallback.InitObj obj
+                    = new ThirdPartyPluginRegistryHandlerCallback.InitObj(handler, latch);
 
             assertThat(obj.getHandler(), is(handler));
         } finally {
@@ -61,8 +61,8 @@ public final class InitObjTest {
         try {
             final Handler handler = new Handler(thread.getLooper());
             final CountDownLatch latch = new CountDownLatch(1);
-            final PluginRegistryHandlerCallback.InitObj obj
-                    = new PluginRegistryHandlerCallback.InitObj(
+            final ThirdPartyPluginRegistryHandlerCallback.InitObj obj
+                    = new ThirdPartyPluginRegistryHandlerCallback.InitObj(
                     handler, latch);
 
             assertThat(obj.getCountDownLatch(), is(latch));

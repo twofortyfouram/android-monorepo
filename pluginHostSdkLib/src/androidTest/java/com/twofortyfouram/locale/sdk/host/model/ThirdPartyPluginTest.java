@@ -44,12 +44,12 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 
 @RunWith(AndroidJUnit4.class)
-public final class PluginTest {
+public final class ThirdPartyPluginTest {
 
     @SmallTest
     @Test
     public void getPackageName() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
         assertThat(defaultPlugin.getPackageName(), is(PluginFixture.DEFAULT_PACKAGE));
     }
@@ -57,7 +57,7 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void getActivityClassName() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
         assertThat(defaultPlugin.getActivityClassName(), is(PluginFixture.DEFAULT_ACTIVITY));
     }
@@ -65,15 +65,15 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void getReceiverClassName() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
-        assertThat(defaultPlugin.getReceiverClassName(), is(PluginFixture.DEFAULT_RECEIVER));
+        assertThat(defaultPlugin.getComponentIdentifier(), is(PluginFixture.DEFAULT_RECEIVER));
     }
 
     @SmallTest
     @Test
     public void getVersionCode() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
         assertThat(defaultPlugin.getVersionCode(), is(PluginFixture.DEFAULT_VERSION_CODE));
     }
@@ -81,7 +81,7 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void getConfiguration() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
         assertThat(defaultPlugin.getConfiguration(), is(PluginFixture.DEFAULT_CONFIGURATION));
     }
@@ -89,7 +89,7 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void equals_null() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
         assertThat(defaultPlugin, not(equalTo(null)));
     }
@@ -97,7 +97,7 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void equals_different_object_type() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
         assertThat(defaultPlugin, not(equalTo(new Object())));
     }
@@ -105,7 +105,7 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void equals_same_object() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
         assertThat(defaultPlugin, is(defaultPlugin));
     }
@@ -113,8 +113,8 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void equals_different_object() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
-        final Plugin defaultPlugin2 = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin2 = PluginFixture.newDefaultPlugin();
 
         assertThat(defaultPlugin, is(defaultPlugin2));
     }
@@ -122,11 +122,11 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void equals_different_type() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
-        final Plugin differentPlugin = new Plugin(PluginType.SETTING,
+        final ThirdPartyPlugin differentPlugin = new ThirdPartyPlugin(PluginType.SETTING,
                 PluginFixture.DEFAULT_PACKAGE, PluginFixture.DEFAULT_ACTIVITY,
-                PluginFixture.DEFAULT_RECEIVER,
+                ComponentType.BROADCAST_RECEIVER, PluginFixture.DEFAULT_RECEIVER,
                 PluginFixture.DEFAULT_VERSION_CODE,
                 PluginFixture.DEFAULT_CONFIGURATION);
 
@@ -136,11 +136,11 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void equals_different_package() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
-        final Plugin differentPlugin = new Plugin(PluginType.CONDITION,
+        final ThirdPartyPlugin differentPlugin = new ThirdPartyPlugin(PluginType.CONDITION,
                 PluginFixture.DEFAULT_PACKAGE + "foo", PluginFixture.DEFAULT_ACTIVITY,
-                PluginFixture.DEFAULT_RECEIVER,
+                ComponentType.BROADCAST_RECEIVER, PluginFixture.DEFAULT_RECEIVER,
                 PluginFixture.DEFAULT_VERSION_CODE,
                 PluginFixture.DEFAULT_CONFIGURATION);
 
@@ -150,11 +150,11 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void equals_different_activity() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
-        final Plugin differentPlugin = new Plugin(PluginType.CONDITION,
+        final ThirdPartyPlugin differentPlugin = new ThirdPartyPlugin(PluginType.CONDITION,
                 PluginFixture.DEFAULT_PACKAGE, PluginFixture.DEFAULT_ACTIVITY + "foo",
-                PluginFixture.DEFAULT_RECEIVER,
+                ComponentType.BROADCAST_RECEIVER, PluginFixture.DEFAULT_RECEIVER,
                 PluginFixture.DEFAULT_VERSION_CODE,
                 PluginFixture.DEFAULT_CONFIGURATION);
 
@@ -164,11 +164,11 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void equals_different_receiver() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
-        final Plugin differentPlugin = new Plugin(PluginType.CONDITION,
+        final ThirdPartyPlugin differentPlugin = new ThirdPartyPlugin(PluginType.CONDITION,
                 PluginFixture.DEFAULT_PACKAGE, PluginFixture.DEFAULT_ACTIVITY,
-                PluginFixture.DEFAULT_RECEIVER + "foo",
+                ComponentType.BROADCAST_RECEIVER, PluginFixture.DEFAULT_RECEIVER + "foo",
                 PluginFixture.DEFAULT_VERSION_CODE,
                 PluginFixture.DEFAULT_CONFIGURATION);
 
@@ -178,11 +178,11 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void equals_different_version() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
-        final Plugin differentPlugin = new Plugin(PluginType.CONDITION,
+        final ThirdPartyPlugin differentPlugin = new ThirdPartyPlugin(PluginType.CONDITION,
                 PluginFixture.DEFAULT_PACKAGE, PluginFixture.DEFAULT_ACTIVITY,
-                PluginFixture.DEFAULT_RECEIVER,
+                ComponentType.BROADCAST_RECEIVER, PluginFixture.DEFAULT_RECEIVER,
                 PluginFixture.DEFAULT_VERSION_CODE + 1,
                 PluginFixture.DEFAULT_CONFIGURATION);
 
@@ -192,11 +192,11 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void equals_different_configuration() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
-        final Plugin differentPlugin = new Plugin(PluginType.CONDITION,
+        final ThirdPartyPlugin differentPlugin = new ThirdPartyPlugin(PluginType.CONDITION,
                 PluginFixture.DEFAULT_PACKAGE, PluginFixture.DEFAULT_ACTIVITY,
-                PluginFixture.DEFAULT_RECEIVER,
+                ComponentType.BROADCAST_RECEIVER, PluginFixture.DEFAULT_RECEIVER,
                 PluginFixture.DEFAULT_VERSION_CODE,
                 new PluginConfiguration(true, true, true, true, true, true,
                         Collections.emptyList()));
@@ -207,14 +207,14 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void hashCode_same() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
         assertThat(defaultPlugin.hashCode(), is(defaultPlugin.hashCode()));
     }
 
     @SmallTest
     @Test
     public void toString_not_null() {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
         final String pluginString = plugin.toString();
 
         assertThat(pluginString, notNullValue());
@@ -223,7 +223,7 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void toString_type() {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
         final String pluginString = plugin.toString();
 
         assertThat(pluginString, containsString(plugin.getType().toString()));
@@ -232,7 +232,7 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void toString_package() {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
         final String pluginString = plugin.toString();
 
         assertThat(pluginString, containsString(plugin.getPackageName()));
@@ -241,7 +241,7 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void toString_activity() {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
         final String pluginString = plugin.toString();
 
         assertThat(pluginString, containsString(plugin.getActivityClassName()));
@@ -250,16 +250,16 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void toString_receiver() {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
         final String pluginString = plugin.toString();
 
-        assertThat(pluginString, containsString(plugin.getReceiverClassName()));
+        assertThat(pluginString, containsString(plugin.getComponentIdentifier()));
     }
 
     @SmallTest
     @Test
     public void toString_version() {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
         final String pluginString = plugin.toString();
 
         assertThat(pluginString, containsString(Integer.toString(plugin.getVersionCode())));
@@ -268,7 +268,7 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void toString_configuration() {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
         final String pluginString = plugin.toString();
 
         assertThat(pluginString, containsString(plugin.getConfiguration().toString()));
@@ -277,7 +277,7 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void parcelable() {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
 
         final Parcel parcel = Parcel.obtain();
         try {
@@ -288,7 +288,7 @@ public final class PluginTest {
              */
             parcel.setDataPosition(0);
 
-            final Plugin pluginUnparceled = Plugin.CREATOR.createFromParcel(parcel);
+            final ThirdPartyPlugin pluginUnparceled = ThirdPartyPlugin.CREATOR.createFromParcel(parcel);
             assertThat(pluginUnparceled, is(plugin));
         } finally {
             parcel.recycle();
@@ -298,7 +298,7 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void parcelable_describe_contents() {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
 
         assertThat(plugin.describeContents(), is(0));
     }
@@ -306,7 +306,7 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void getLabel_none() {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
 
         final String actual = plugin.getActivityLabel(InstrumentationRegistry.getContext());
 
@@ -318,8 +318,9 @@ public final class PluginTest {
     public void getLabel_debug_condition() {
         final Context context = InstrumentationRegistry.getContext();
 
-        final Plugin plugin = new Plugin(PluginType.SETTING, context.getPackageName(),
-                PluginConditionActivity.class.getName(), PluginConditionReceiver.class.getName(),
+        final ThirdPartyPlugin plugin = new ThirdPartyPlugin(PluginType.SETTING, context.getPackageName(),
+                PluginConditionActivity.class.getName(), ComponentType.BROADCAST_RECEIVER,
+                PluginConditionReceiver.class.getName(),
                 1, PluginConfigurationFixture.newPluginConfiguration());
 
         final String expected = context
@@ -333,8 +334,9 @@ public final class PluginTest {
     public void getLabel_debug_setting() {
         final Context context = InstrumentationRegistry.getContext();
 
-        final Plugin plugin = new Plugin(PluginType.SETTING, context.getPackageName(),
-                PluginSettingActivity.class.getName(), PluginSettingReceiver.class.getName(), 1,
+        final ThirdPartyPlugin plugin = new ThirdPartyPlugin(PluginType.SETTING, context.getPackageName(),
+                PluginSettingActivity.class.getName(), ComponentType.BROADCAST_RECEIVER,
+                PluginSettingReceiver.class.getName(), 1,
                 PluginConfigurationFixture.newPluginConfiguration());
 
         final String expected = context
@@ -346,7 +348,7 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void getIcon_none() {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
         final Context context = InstrumentationRegistry.getContext();
 
         assertThat(plugin.getActivityIcon(context), is(notNullValue()));
@@ -355,9 +357,9 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void getRegistryName() {
-        final Plugin defaultPlugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin defaultPlugin = PluginFixture.newDefaultPlugin();
 
-        final String expected = Plugin.generateRegistryName(PluginFixture.DEFAULT_PACKAGE,
+        final String expected = ThirdPartyPlugin.generateRegistryName(PluginFixture.DEFAULT_PACKAGE,
                 PluginFixture.DEFAULT_ACTIVITY);
 
         assertThat(defaultPlugin.getRegistryName(), is(expected));
@@ -366,30 +368,30 @@ public final class PluginTest {
     @SmallTest
     @Test
     public void generateRegistryName() {
-        assertThat(Plugin.generateRegistryName("foo", "bar"), is("foo:bar")); //$NON-NLS
+        assertThat(ThirdPartyPlugin.generateRegistryName("foo", "bar"), is("foo:bar")); //$NON-NLS
     }
 
     @SmallTest
     @Test(expected = AssertionError.class)
     public void testGenerateRegistryName_null_package() {
-        Plugin.generateRegistryName(null, "foo"); //$NON-NLS-1$
+        ThirdPartyPlugin.generateRegistryName(null, "foo"); //$NON-NLS-1$
     }
 
     @SmallTest
     @Test(expected = AssertionError.class)
     public void testGenerateRegistryName_null_class() {
-        Plugin.generateRegistryName("foo", null); //$NON-NLS-1$
+        ThirdPartyPlugin.generateRegistryName("foo", null); //$NON-NLS-1$
     }
 
     @SmallTest
     @Test(expected = AssertionError.class)
     public void testGenerateRegistryName_empty_package() {
-        Plugin.generateRegistryName("", "foo"); //$NON-NLS
+        ThirdPartyPlugin.generateRegistryName("", "foo"); //$NON-NLS
     }
 
     @SmallTest
     @Test(expected = AssertionError.class)
     public void testGenerateRegistryName_empty_class() {
-        Plugin.generateRegistryName("foo", ""); //$NON-NLS
+        ThirdPartyPlugin.generateRegistryName("foo", ""); //$NON-NLS
     }
 }

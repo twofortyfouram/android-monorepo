@@ -21,14 +21,15 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RestrictTo;
 import android.support.annotation.VisibleForTesting;
 
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.sdk.host.model.ComponentType;
+import com.twofortyfouram.locale.sdk.host.model.ThirdPartyPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginConfiguration;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 
 import net.jcip.annotations.ThreadSafe;
 
 /**
- * Fixture values for {@link Plugin}.
+ * Fixture values for {@link ThirdPartyPlugin}.
  */
 @ThreadSafe
 @RestrictTo(RestrictTo.Scope.TESTS)
@@ -53,9 +54,9 @@ public final class PluginFixture {
             .newPluginConfiguration();
 
     @NonNull
-    public static final Plugin newDefaultPlugin() {
-        return new Plugin(PluginType.CONDITION, DEFAULT_PACKAGE, DEFAULT_ACTIVITY,
-                DEFAULT_RECEIVER, DEFAULT_VERSION_CODE,
+    public static final ThirdPartyPlugin newDefaultPlugin() {
+        return new ThirdPartyPlugin(PluginType.CONDITION, DEFAULT_PACKAGE, DEFAULT_ACTIVITY,
+                ComponentType.BROADCAST_RECEIVER, DEFAULT_RECEIVER, DEFAULT_VERSION_CODE,
                 PluginConfigurationFixture.newPluginConfiguration());
     }
 

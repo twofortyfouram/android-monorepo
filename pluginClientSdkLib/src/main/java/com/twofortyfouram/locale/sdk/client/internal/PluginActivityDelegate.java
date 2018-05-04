@@ -23,8 +23,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
-import com.twofortyfouram.locale.sdk.client.ui.activity.IPluginActivity;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
+import com.twofortyfouram.locale.sdk.client.ui.activity.PluginActivity;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.bundle.BundleScrubber;
 
@@ -36,7 +36,7 @@ import org.json.JSONObject;
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
 /**
- * Activities that implement the {@link IPluginActivity} interface can delegate much of their
+ * Activities that implement the {@link PluginActivity} interface can delegate much of their
  * responsibility to this class.
  *
  * @param <T> Plug-in activity.
@@ -47,7 +47,7 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
  * This class has no state, so therefore is immutable.
  */
 @Immutable
-public final class PluginActivityDelegate<T extends Activity & IPluginActivity> {
+public final class PluginActivityDelegate<T extends Activity & PluginActivity> {
 
     /**
      * @param intent Intent to check.
@@ -58,8 +58,8 @@ public final class PluginActivityDelegate<T extends Activity & IPluginActivity> 
 
         final String action = intent.getAction();
 
-        return LocalePluginIntent.ACTION_EDIT_CONDITION.equals(action)
-                || LocalePluginIntent.ACTION_EDIT_SETTING.equals(action);
+        return LocalePluginIntentV1.ACTION_EDIT_CONDITION.equals(action)
+                || LocalePluginIntentV1.ACTION_EDIT_SETTING.equals(action);
     }
 
     public void onCreate(@NonNull final T activity, @Nullable final Bundle savedInstanceState) {
@@ -120,14 +120,14 @@ public final class PluginActivityDelegate<T extends Activity & IPluginActivity> 
                     if (!newResultJsonString.equals(oldResultJsonString)
                             || !blurb.equals(activity.getPreviousBlurb())) {
                         final Bundle resultBundle = new Bundle();
-                        resultBundle.putString(LocalePluginIntent.EXTRA_STRING_JSON,
+                        resultBundle.putString(LocalePluginIntentV1.EXTRA_STRING_JSON,
                                 newResultJsonString);
 
                         final Intent resultIntent = new Intent();
-                        resultIntent.putExtra(LocalePluginIntent.EXTRA_BUNDLE,
+                        resultIntent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE,
                                 resultBundle);
                         resultIntent.putExtra(
-                                LocalePluginIntent.EXTRA_STRING_BLURB,
+                                LocalePluginIntentV1.EXTRA_STRING_BLURB,
                                 blurb);
 
                         activity.setResult(Activity.RESULT_OK, resultIntent);
@@ -141,7 +141,7 @@ public final class PluginActivityDelegate<T extends Activity & IPluginActivity> 
     @Nullable
     public final String getPreviousBlurb(@NonNull final T activity) {
         return activity.getIntent().getStringExtra(
-                LocalePluginIntent.EXTRA_STRING_BLURB);
+                LocalePluginIntentV1.EXTRA_STRING_BLURB);
     }
 
     @Nullable
@@ -149,12 +149,12 @@ public final class PluginActivityDelegate<T extends Activity & IPluginActivity> 
         assertNotNull(activity, "activity"); //$NON-NLS-1$
 
         final Bundle bundle = activity.getIntent().getBundleExtra(
-                LocalePluginIntent.EXTRA_BUNDLE);
+                LocalePluginIntentV1.EXTRA_BUNDLE);
 
         if (!BundleScrubber.scrub(bundle)) {
             if (null != bundle) {
                 final String jsonString = bundle
-                        .getString(LocalePluginIntent.EXTRA_STRING_JSON);
+                        .getString(LocalePluginIntentV1.EXTRA_STRING_JSON);
                 if (null != jsonString) {
                     JSONObject jsonObject = null;
                     try {

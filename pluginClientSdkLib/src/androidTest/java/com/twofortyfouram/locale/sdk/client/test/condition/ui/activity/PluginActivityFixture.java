@@ -21,7 +21,7 @@ package com.twofortyfouram.locale.sdk.client.test.condition.ui.activity;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 import com.twofortyfouram.locale.sdk.client.ui.activity.PluginType;
 
 import net.jcip.annotations.Immutable;
@@ -35,7 +35,7 @@ public final class PluginActivityFixture {
      * @param type Plug-in type.
      * @return The default Intent to start the plug-in Activity. The Intent will
      * contain
-     * {@link LocalePluginIntent#EXTRA_STRING_BREADCRUMB}
+     * {@link LocalePluginIntentV1#EXTRA_STRING_BREADCRUMB}
      * .
      */
     @NonNull
@@ -43,7 +43,7 @@ public final class PluginActivityFixture {
         assertNotNull(type, "type"); //$NON-NLS-1$
         final Intent activityIntentAction = new Intent(type.getActivityIntentAction());
 
-        activityIntentAction.putExtra(LocalePluginIntent.EXTRA_STRING_BREADCRUMB,
+        activityIntentAction.putExtra(LocalePluginIntentV1.EXTRA_STRING_BREADCRUMB,
                 "Edit Situation"); //$NON-NLS-1$
 
         return activityIntentAction;

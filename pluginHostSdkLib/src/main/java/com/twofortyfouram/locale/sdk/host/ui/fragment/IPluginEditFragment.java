@@ -20,7 +20,7 @@ package com.twofortyfouram.locale.sdk.host.ui.fragment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Size;
 
-import com.twofortyfouram.locale.sdk.host.model.IPlugin;
+import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginErrorEdit;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 
@@ -32,7 +32,7 @@ import java.util.EnumSet;
 public interface IPluginEditFragment {
 
     /**
-     * Type: {@code Plugin} (e.g. Parcelable).
+     * Type: {@code ThirdPartyPlugin} (e.g. Parcelable).
      * <p>
      * The plug-in currently being edited by this Fragment.
      */
@@ -59,7 +59,7 @@ public interface IPluginEditFragment {
      * @param plugin                The plug-in.
      * @param newPluginInstanceData The new plug-in instance data.
      */
-    void handleSave(@NonNull final IPlugin plugin,
+    void handleSave(@NonNull final Plugin plugin,
             @NonNull final PluginInstanceData newPluginInstanceData);
 
     /**
@@ -69,7 +69,7 @@ public interface IPluginEditFragment {
      *
      * @param plugin The plug-in.
      */
-    void handleCancel(@NonNull final IPlugin plugin);
+    void handleCancel(@NonNull final Plugin plugin);
 
     /**
      * Called when a plug-in has an error.
@@ -79,6 +79,6 @@ public interface IPluginEditFragment {
      * @param plugin The plug-in
      * @param error  The errors that occurred.
      */
-    void handleErrors(@NonNull final IPlugin plugin,
+    void handleErrors(@NonNull final Plugin plugin,
             @NonNull @Size(min = 1) final EnumSet<PluginErrorEdit> error);
 }

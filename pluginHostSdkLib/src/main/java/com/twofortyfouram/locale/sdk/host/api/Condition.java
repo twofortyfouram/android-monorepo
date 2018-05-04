@@ -19,8 +19,10 @@ package com.twofortyfouram.locale.sdk.host.api;
 
 import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,12 +30,12 @@ import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 import android.text.format.DateUtils;
-
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.annotation.Slow.Speed;
-import com.twofortyfouram.locale.annotation.ConditionResult;
-import com.twofortyfouram.locale.api.LocalePluginIntent;
-import com.twofortyfouram.locale.sdk.host.model.IPlugin;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
+import com.twofortyfouram.locale.api.v1.annotation.ConditionResultIntDef;
+import com.twofortyfouram.locale.api.v2.PluginConditionContract;
+import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.log.Lumberjack;
@@ -43,7 +45,6 @@ import com.twofortyfouram.spackle.ContextUtil;
 import com.twofortyfouram.spackle.HandlerThreadFactory;
 import com.twofortyfouram.spackle.HandlerThreadFactory.ThreadPriority;
 import com.twofortyfouram.spackle.bundle.BundleScrubber;
-
 import net.jcip.annotations.NotThreadSafe;
 import net.jcip.annotations.ThreadSafe;
 
@@ -76,7 +77,7 @@ public final class Condition {
     private final Clock mClock;
 
     @NonNull
-    private final IPlugin mPlugin;
+    private final Plugin mPlugin;
 
     @NonNull
     private final HandlerThread mHandlerThread = HandlerThreadFactory.newHandlerThread(
@@ -96,7 +97,7 @@ public final class Condition {
      * @param plugin  The plug-in details.
      */
     public Condition(@NonNull final Context context, @NonNull final Clock clock,
-            @NonNull final IPlugin plugin) {
+                     @NonNull final Plugin plugin) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotNull(clock, "clock"); //$NON-NLS-1$
         assertNotNull(plugin, "plugin"); //$NON-NLS-1$
@@ -117,47 +118,48 @@ public final class Condition {
      * @param previousState The previous query result of the plug-in, to be set as the initial
      *                      result code
      *                      when querying the plug-in.  This must be one of {@link
-     *                      LocalePluginIntent#RESULT_CONDITION_SATISFIED
+     *                      LocalePluginIntentV1#RESULT_CONDITION_SATISFIED
      *                      RESULT_CONDITION_SATISFIED}
      *                      ,
-     *                      {@link LocalePluginIntent#RESULT_CONDITION_UNSATISFIED
+     *                      {@link LocalePluginIntentV1#RESULT_CONDITION_UNSATISFIED
      *                      RESULT_CONDITION_UNSATISFIED}
      *                      , or
-     *                      {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
+     *                      {@link LocalePluginIntentV1#RESULT_CONDITION_UNKNOWN
      *                      RESULT_CONDITION_UNKNOWN}.
      *                      Plug-in implementations might use this
      *                      previous result code for hysteresis.  If no previous state is
      *                      available,
-     *                      pass {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
+     *                      pass {@link LocalePluginIntentV1#RESULT_CONDITION_UNKNOWN
      *                      RESULT_CONDITION_UNKNOWN}.
      * @return One of the Locale plug-in query results:
-     * {@link LocalePluginIntent#RESULT_CONDITION_SATISFIED
+     * {@link LocalePluginIntentV1#RESULT_CONDITION_SATISFIED
      * RESULT_CONDITION_SATISFIED}
      * ,
-     * {@link LocalePluginIntent#RESULT_CONDITION_UNSATISFIED
+     * {@link LocalePluginIntentV1#RESULT_CONDITION_UNSATISFIED
      * RESULT_CONDITION_UNSATISFIED}
      * , or
-     * {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
+     * {@link LocalePluginIntentV1#RESULT_CONDITION_UNKNOWN
      * RESULT_CONDITION_UNKNOWN}
      * .
      */
     @Slow(Speed.SECONDS)
-    @ConditionResult
-    public int query(@NonNull final PluginInstanceData data, @ConditionResult final int
+    @ConditionResultIntDef
+    public int query(@NonNull final PluginInstanceData data, @ConditionResultIntDef final int
             previousState) {
         assertNotNull(data, "data"); //$NON-NLS-1$
-        assertInRangeInclusive(previousState, LocalePluginIntent.
-                RESULT_CONDITION_SATISFIED, LocalePluginIntent.
+        assertInRangeInclusive(previousState, LocalePluginIntentV1.
+                RESULT_CONDITION_SATISFIED, LocalePluginIntentV1.
                 RESULT_CONDITION_UNKNOWN, "previousState");
 
         final Bundle pluginBundle = data.getBundle();
+
 
         return query(pluginBundle, previousState);
     }
 
     /**
      * Performs a blocking query to the plug-in condition.
-     *
+     * <p>
      * Note: PluginInstanceData is immutable and provides a safe interface, however guaranteed
      * immutability requires a memory copy and deserialization, which are not efficient.
      * This method provides an alternative for clients to optimize performance by deserializing
@@ -168,37 +170,100 @@ public final class Condition {
      * @param previousState The previous query result of the plug-in, to be set as the initial
      *                      result code
      *                      when querying the plug-in.  This must be one of {@link
-     *                      LocalePluginIntent#RESULT_CONDITION_SATISFIED
+     *                      LocalePluginIntentV1#RESULT_CONDITION_SATISFIED
      *                      RESULT_CONDITION_SATISFIED}
      *                      ,
-     *                      {@link LocalePluginIntent#RESULT_CONDITION_UNSATISFIED
+     *                      {@link LocalePluginIntentV1#RESULT_CONDITION_UNSATISFIED
      *                      RESULT_CONDITION_UNSATISFIED}
      *                      , or
-     *                      {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
+     *                      {@link LocalePluginIntentV1#RESULT_CONDITION_UNKNOWN
      *                      RESULT_CONDITION_UNKNOWN}.
      *                      Plug-in implementations might use this
      *                      previous result code for hysteresis.  If no previous state is
      *                      available,
-     *                      pass {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
+     *                      pass {@link LocalePluginIntentV1#RESULT_CONDITION_UNKNOWN
      *                      RESULT_CONDITION_UNKNOWN}.
      * @return One of the Locale plug-in query results:
-     * {@link LocalePluginIntent#RESULT_CONDITION_SATISFIED
+     * {@link LocalePluginIntentV1#RESULT_CONDITION_SATISFIED
      * RESULT_CONDITION_SATISFIED}
      * ,
-     * {@link LocalePluginIntent#RESULT_CONDITION_UNSATISFIED
+     * {@link LocalePluginIntentV1#RESULT_CONDITION_UNSATISFIED
      * RESULT_CONDITION_UNSATISFIED}
      * , or
-     * {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
+     * {@link LocalePluginIntentV1#RESULT_CONDITION_UNKNOWN
      * RESULT_CONDITION_UNKNOWN}
      * .
      */
     @Slow(Speed.SECONDS)
-    @ConditionResult
-    public int query(@NonNull final Bundle pluginBundle, @ConditionResult final int
+    @ConditionResultIntDef
+    public int query(@NonNull final Bundle pluginBundle, @ConditionResultIntDef final int
             previousState) {
+        switch (mPlugin.getComponentType()) {
+            case CONTENT_PROVIDER: {
+                // API 2.0
+                return queryProvider(pluginBundle, previousState);
+            }
+            case BROADCAST_RECEIVER: {
+                // API 1.0
+                return queryReceiver(pluginBundle, previousState);
+            }
+            case NONE:{
+                throw new UnsupportedOperationException();
+            }
+            default: {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
+
+    @Slow(Speed.SECONDS)
+    private int queryProvider(@NonNull final Bundle pluginBundle, @ConditionResultIntDef final int previousState) {
         assertNotNull(pluginBundle, "pluginBundle"); //$NON-NLS-1$
-        assertInRangeInclusive(previousState, LocalePluginIntent.
-                RESULT_CONDITION_SATISFIED, LocalePluginIntent.
+
+        /*
+         * Keep this log statement here for the benefit of 3rd party developers
+         */
+        Lumberjack.always("Querying plug-in condition %s", mPlugin.getRegistryName()); //$NON-NLS-1$
+
+        // TODO: figure out a way to avoid building this each time
+        @NonNull final Uri uri = new Uri.Builder()
+                .scheme(ContentResolver.SCHEME_CONTENT)
+                .authority(mPlugin.getComponentIdentifier()).build();
+
+        /*
+         * There is no system imposed limit on the duration of a ContentProvider call.  A malicious plug-in could
+         * theoretically keep the host waiting forever.  This should
+         */
+        // FIXME: Wrap this in a thread that we can kill, so that an infinitely long running
+        // provider call won't hose us.
+        final long startRealtimeMillis = mClock.getRealTimeMillis();
+        try {
+            @NonNull final Bundle result = mContext.getContentResolver().call(uri, PluginConditionContract.METHOD_QUERY_CONDITION, null,
+                    pluginBundle);
+
+            Lumberjack.v("Query completed after %d [milliseconds]",
+                    mClock.getRealTimeMillis() - startRealtimeMillis);
+
+            if (BundleScrubber.scrub(result)) {
+                Lumberjack.always("Plug-in returned a Bundle containing a non-system Parcelable object"); //$NON-NLS
+                return PluginConditionContract.RESULT_CONDITION_UNKNOWN;
+            }
+
+            Lumberjack.v("result=%s", result); //$NON-NLS
+
+            return pluginBundle.getInt(PluginConditionContract.EXTRA_INT_RESULT, PluginConditionContract.RESULT_CONDITION_UNKNOWN);
+        } catch (final Exception e) {
+            // Anything can happen so catchall is necessary.
+        }
+
+        return PluginConditionContract.RESULT_CONDITION_UNKNOWN;
+    }
+
+    @Slow(Speed.SECONDS)
+    private int queryReceiver(@NonNull final Bundle pluginBundle, @ConditionResultIntDef final int previousState) {
+        assertNotNull(pluginBundle, "pluginBundle"); //$NON-NLS-1$
+        assertInRangeInclusive(previousState, LocalePluginIntentV1.
+                RESULT_CONDITION_SATISFIED, LocalePluginIntentV1.
                 RESULT_CONDITION_UNKNOWN, "previousState");
 
         /*
@@ -228,7 +293,7 @@ public final class Condition {
             Lumberjack.e("Error waiting on plug-in%s", e); //$NON-NLS-1$
         }
 
-        @ConditionResult final int conditionResult = resultReceiver.mQueryResult.get();
+        @ConditionResultIntDef final int conditionResult = resultReceiver.mQueryResult.get();
 
         return conditionResult;
     }
@@ -245,13 +310,13 @@ public final class Condition {
 
     @NonNull
     @VisibleForTesting
-    /*package*/ static Intent newQueryIntent(@NonNull final IPlugin plugin,
-            @NonNull final Bundle extraBundle) {
+    /*package*/ static Intent newQueryIntent(@NonNull final Plugin plugin,
+                                             @NonNull final Bundle extraBundle) {
         assertNotNull(plugin, "plugin"); //$NON-NLS-1$
         assertNotNull(extraBundle, "extraBundle"); //$NON-NLS-1$
 
         final Intent intent = new Intent();
-        intent.setAction(LocalePluginIntent.ACTION_QUERY_CONDITION);
+        intent.setAction(LocalePluginIntentV1.ACTION_QUERY_CONDITION);
         intent.setFlags(Intent.FLAG_FROM_BACKGROUND);
         if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.HONEYCOMB_MR1)) {
             addFlagsHoneycombMr1(intent);
@@ -260,8 +325,8 @@ public final class Condition {
          * Setting class name explicitly ensures the Intent goes only to its
          * intended recipient.
          */
-        intent.setClassName(plugin.getPackageName(), plugin.getReceiverClassName());
-        intent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, extraBundle);
+        intent.setClassName(plugin.getPackageName(), plugin.getComponentIdentifier());
+        intent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, extraBundle);
 
         return intent;
     }
@@ -279,7 +344,7 @@ public final class Condition {
 
         @NonNull
         /* package */ final AtomicInteger mQueryResult = new AtomicInteger(
-                LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
 
         @Override
         public void onReceive(final Context context, final Intent intent) {
@@ -287,29 +352,29 @@ public final class Condition {
                 if (BundleScrubber.scrub(intent)) {
                     // TODO: In the future, errors should be signaled to the user of the SDK.
                     mQueryResult
-                            .set(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                            .set(LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
                     return;
                 }
 
                 Lumberjack.v("Received %s", intent); //$NON-NLS-1$
 
                 switch (getResultCode()) {
-                    case LocalePluginIntent.RESULT_CONDITION_SATISFIED: {
+                    case LocalePluginIntentV1.RESULT_CONDITION_SATISFIED: {
                         Lumberjack.always("Got RESULT_CONDITION_SATISFIED"); //$NON-NLS-1$
                         mQueryResult
-                                .set(LocalePluginIntent.RESULT_CONDITION_SATISFIED);
+                                .set(LocalePluginIntentV1.RESULT_CONDITION_SATISFIED);
                         break;
                     }
-                    case LocalePluginIntent.RESULT_CONDITION_UNSATISFIED: {
+                    case LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED: {
                         Lumberjack.always("Got RESULT_CONDITION_UNSATISFIED"); //$NON-NLS-1$
                         mQueryResult
-                                .set(LocalePluginIntent.RESULT_CONDITION_UNSATISFIED);
+                                .set(LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED);
                         break;
                     }
-                    case LocalePluginIntent.RESULT_CONDITION_UNKNOWN: {
+                    case LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN: {
                         Lumberjack.always("Got RESULT_CONDITION_UNKNOWN"); //$NON-NLS-1$
                         mQueryResult
-                                .set(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                                .set(LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
                         break;
                     }
                     default: {
@@ -321,7 +386,7 @@ public final class Condition {
                         Lumberjack.w("Got unrecognized result code: %d",
                                 getResultCode()); //$NON-NLS-1$
                         mQueryResult
-                                .set(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                                .set(LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
                     }
                 }
             } finally {

@@ -20,7 +20,7 @@ package com.twofortyfouram.locale.sdk.host.model;
 
 import android.support.annotation.NonNull;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -31,7 +31,7 @@ import static com.twofortyfouram.log.Lumberjack.formatMessage;
  * Possible errors that may occur during the register phase of interacting with plug-ins.
  */
 @ThreadSafe
-public enum PluginErrorRegister implements IPluginError {
+public enum PluginErrorRegister implements PluginError {
 
     @NonNull
     ACTIVITY_REQUIRES_PERMISSION(
@@ -54,11 +54,6 @@ public enum PluginErrorRegister implements IPluginError {
             false), //$NON-NLS-1$
 
     @NonNull
-    RECEIVER_REQUIRES_PERMISSION(
-            "The BroadcastReceiver requires a permission that is not granted to the host.  To resolve this issue, remove the permission attribute from the BroadcastReceiver's entry in the Android Manifest.",
-            true), //$NON-NLS-1$
-
-    @NonNull
     APPLICATION_NOT_ENABLED(
             "The Application is disabled.  To resolve this issue, remove enabled=\"false\" from the Application element in the Android Manifest.",
             true), //$NON-NLS-1$
@@ -66,6 +61,12 @@ public enum PluginErrorRegister implements IPluginError {
     @NonNull
     RECEIVER_NOT_ENABLED(
             "The BroadcastReceiver is disabled.  To resolve this issue, remove enabled=\"false\" from the BroadcastReceiver element in the Android Manifest.",
+            true), //$NON-NLS-1$
+
+
+    @NonNull
+    RECEIVER_REQUIRES_PERMISSION(
+            "The BroadcastReceiver requires a permission that is not granted to the host.  To resolve this issue, remove the permission attribute from the BroadcastReceiver's entry in the Android Manifest.",
             true), //$NON-NLS-1$
 
     @NonNull
@@ -78,17 +79,51 @@ public enum PluginErrorRegister implements IPluginError {
             formatMessage(
                     "The plug-in has multiple BroadcastReceivers for the plug-in Intent action.  To resolve this issue, each plug-in must only have a single BroadcastReceiver for %s and/or %s",
                     //$NON-NLS-1$
-                    LocalePluginIntent.ACTION_QUERY_CONDITION,
-                    LocalePluginIntent.ACTION_FIRE_SETTING), true
+                    LocalePluginIntentV1.ACTION_QUERY_CONDITION,
+                    LocalePluginIntentV1.ACTION_FIRE_SETTING), true
     ),
 
     @NonNull
-    MISSING_RECEIVER(
+    PROVIDER_NOT_ENABLED(
+            "The ContentProvider is disabled.  To resolve this issue, remove enabled=\"false\" "
+                    + "from the ContentProvider's element in the Android Manifest.",
+            true), //$NON-NLS-1$
+
+
+    @NonNull
+    PROVIDER_REQUIRES_PERMISSION(
+            "The ContentProvider requires a permission that is not granted to the host.  To "
+                    + "resolve this issue, remove the permission attribute from the "
+                    + "ContentProvider's entry in the Android Manifest.",
+            true), //$NON-NLS-1$
+
+    @NonNull
+    PROVIDER_NOT_EXPORTED(
+            "The ContentProvider is not exported.  To resolve this issue, remove "
+                    + "exported=\"false\" from the ContentProvider element in the Android "
+                    + "Manifest.",
+            true), //$NON-NLS-1$
+
+    @NonNull
+    PROVIDER_DUPLICATE(
             formatMessage(
-                    "The plug-in has no BroadcastReceivers for the plug-in Intent action.  To resolve this issue, each plug-in must have a single BroadcastReceiver for %s and/or %s",
+                    "The plug-in has multiple ContentProviders for the plug-in Intent action.  "
+                            + "To resolve this issue, each plug-in must only have a single "
+                            + "ContentProvider for %s and/or %s",
                     //$NON-NLS-1$
-                    LocalePluginIntent.ACTION_QUERY_CONDITION,
-                    LocalePluginIntent.ACTION_FIRE_SETTING), true
+                    LocalePluginIntentV1.ACTION_QUERY_CONDITION,
+                    LocalePluginIntentV1.ACTION_FIRE_SETTING), true
+    ),
+
+    @NonNull
+    MISSING_COMPONENT(
+            formatMessage(
+                    "The plug-in has no BroadcastReceiver or ContentProvider for the plug-in "
+                            + "Intent action.  To resolve this issue, each plug-in must have a "
+                            + "single BroadcastReceiver+ContentProvider for %s and/or %s",
+                    //$NON-NLS-1$
+                    LocalePluginIntentV1.ACTION_QUERY_CONDITION,
+                    LocalePluginIntentV1.ACTION_FIRE_SETTING), true
     );
 
     /**

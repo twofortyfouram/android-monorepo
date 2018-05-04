@@ -30,7 +30,7 @@ import android.support.annotation.RestrictTo;
 import android.support.annotation.VisibleForTesting;
 
 import com.twofortyfouram.locale.sdk.host.api.PluginRegistry;
-import com.twofortyfouram.locale.sdk.host.model.IPlugin;
+import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.spackle.AndroidSdkVersion;
 import com.twofortyfouram.spackle.ContextUtil;
@@ -124,7 +124,7 @@ public final class ThirdPartyPluginRegistry implements PluginRegistry {
      * Handler to queue and process changes to installed plug-ins.
      */
     @NonNull
-    private final PluginRegistryHandlerCallback mHandlerCallback;
+    private final ThirdPartyPluginRegistryHandlerCallback mHandlerCallback;
 
     /**
      * Handler running {@link #mHandlerCallback}.
@@ -170,11 +170,11 @@ public final class ThirdPartyPluginRegistry implements PluginRegistry {
         mRegistryChangeAction = notificationAction;
         mRegistryChangePermission = getInternalPermission(ctx);
 
-        mHandlerCallback = new PluginRegistryHandlerCallback(ctx,
+        mHandlerCallback = new ThirdPartyPluginRegistryHandlerCallback(ctx,
                 mRegistryChangeAction, mRegistryChangePermission);
 
         mHandlerThread = HandlerThreadFactory.newHandlerThread(
-                PluginRegistryHandlerCallback.class.getName(),
+                ThirdPartyPluginRegistryHandlerCallback.class.getName(),
                 ThreadPriority.BACKGROUND);
 
         mHandler = new Handler(mHandlerThread.getLooper(), mHandlerCallback);
@@ -187,8 +187,8 @@ public final class ThirdPartyPluginRegistry implements PluginRegistry {
     @VisibleForTesting
     /* package */void init() {
         final boolean isSuccessful = mHandler.sendMessage(mHandler.obtainMessage(
-                PluginRegistryHandlerCallback.MESSAGE_INIT,
-                new PluginRegistryHandlerCallback.InitObj(mHandler, mLoadLatch)));
+                ThirdPartyPluginRegistryHandlerCallback.MESSAGE_INIT,
+                new ThirdPartyPluginRegistryHandlerCallback.InitObj(mHandler, mLoadLatch)));
 
         if (!isSuccessful) {
             throw new AssertionError();
@@ -231,7 +231,7 @@ public final class ThirdPartyPluginRegistry implements PluginRegistry {
         //noinspection SynchronizeOnThis
         synchronized (this) {
             final boolean isSuccessful = mHandler
-                    .sendEmptyMessage(PluginRegistryHandlerCallback.MESSAGE_DESTROY);
+                    .sendEmptyMessage(ThirdPartyPluginRegistryHandlerCallback.MESSAGE_DESTROY);
             if (!isSuccessful) {
                 throw new AssertionError();
             }
@@ -259,7 +259,7 @@ public final class ThirdPartyPluginRegistry implements PluginRegistry {
 
     @NonNull
     @Override
-    public Map<String, IPlugin> getPluginMap(@NonNull final PluginType type) {
+    public Map<String, Plugin> getPluginMap(@NonNull final PluginType type) {
         assertNotNull(type, "type"); //$NON-NLS-1$
 
         StrictMode.noteSlowCall(
@@ -274,10 +274,10 @@ public final class ThirdPartyPluginRegistry implements PluginRegistry {
 
     @Nullable
     @Override
-    public Map<String, IPlugin> peekPluginMap(@NonNull final PluginType type) {
+    public Map<String, Plugin> peekPluginMap(@NonNull final PluginType type) {
         assertNotNull(type, "type"); //$NON-NLS-1$
 
-        final Map<String, IPlugin> result;
+        final Map<String, Plugin> result;
         switch (type) {
             case CONDITION: {
                 result = mHandlerCallback.getConditions();

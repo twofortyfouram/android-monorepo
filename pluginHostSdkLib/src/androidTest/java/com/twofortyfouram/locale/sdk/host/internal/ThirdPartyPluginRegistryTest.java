@@ -30,7 +30,7 @@ import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 import android.text.format.DateUtils;
 
-import com.twofortyfouram.locale.sdk.host.model.IPlugin;
+import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.HandlerThreadFactory;
@@ -108,7 +108,7 @@ public final class ThirdPartyPluginRegistryTest {
         try {
             registry.init();
 
-            final Map<String, IPlugin> conditions = registry.getPluginMap(PluginType.CONDITION);
+            final Map<String, Plugin> conditions = registry.getPluginMap(PluginType.CONDITION);
             assertThat(conditions, notNullValue());
         } finally {
             registry.destroy();
@@ -124,7 +124,7 @@ public final class ThirdPartyPluginRegistryTest {
         try {
             registry.init();
 
-            final Map<String, IPlugin> settings = registry.getPluginMap(PluginType.SETTING);
+            final Map<String, Plugin> settings = registry.getPluginMap(PluginType.SETTING);
             assertThat(settings, notNullValue());
         } finally {
             registry.destroy();

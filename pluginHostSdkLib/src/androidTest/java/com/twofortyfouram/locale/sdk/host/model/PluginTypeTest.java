@@ -20,7 +20,7 @@ package com.twofortyfouram.locale.sdk.host.model;
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,27 +35,27 @@ public final class PluginTypeTest {
     @SmallTest
     public void getActivityIntentAction_condition() {
         assertThat(PluginType.CONDITION.getActivityIntentAction(),
-                is(LocalePluginIntent.ACTION_EDIT_CONDITION));
+                is(LocalePluginIntentV1.ACTION_EDIT_CONDITION));
     }
 
     @Test
     @SmallTest
     public void getActivityIntentAction_setting() {
         assertThat(PluginType.SETTING.getActivityIntentAction(),
-                is(LocalePluginIntent.ACTION_EDIT_SETTING));
+                is(LocalePluginIntentV1.ACTION_EDIT_SETTING));
     }
 
     @Test
     @SmallTest
     public void getReceiverIntentAction_condition() {
-        assertThat(PluginType.CONDITION.getReceiverIntentAction(),
-                is(LocalePluginIntent.ACTION_QUERY_CONDITION));
+        assertThat(PluginType.CONDITION.getComponentIntentAction(),
+                is(LocalePluginIntentV1.ACTION_QUERY_CONDITION));
     }
 
     @Test
     @SmallTest
     public void getReceiverIntentAction_setting() {
-        assertThat(PluginType.SETTING.getReceiverIntentAction(),
-                is(LocalePluginIntent.ACTION_FIRE_SETTING));
+        assertThat(PluginType.SETTING.getComponentIntentAction(),
+                is(LocalePluginIntentV1.ACTION_FIRE_SETTING));
     }
 }

@@ -25,8 +25,9 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.twofortyfouram.locale.sdk.host.model.IPlugin;
+import com.twofortyfouram.locale.sdk.host.model.ComponentType;
 import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.sdk.host.model.ThirdPartyPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.locale.sdk.host.test.condition.ui.activity.PluginConditionActivity;
 import com.twofortyfouram.locale.sdk.host.test.fixture.PluginConfigurationFixture;
@@ -47,7 +48,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
 
 @RunWith(AndroidJUnit4.class)
-public final class PluginRegistryHandlerCallbackTest {
+public final class ThirdPartyPluginRegistryHandlerCallbackTest {
 
     @MediumTest
     @Test
@@ -55,7 +56,8 @@ public final class PluginRegistryHandlerCallbackTest {
         final Context context = InstrumentationRegistry.getContext();
         final String uuid = UUID.randomUUID().toString();
 
-        final PluginRegistryHandlerCallback registryHandler = new PluginRegistryHandlerCallback(
+        final ThirdPartyPluginRegistryHandlerCallback
+                registryHandler = new ThirdPartyPluginRegistryHandlerCallback(
                 context, uuid, uuid);
         assertThat(registryHandler.mMutableConditionMap, nullValue());
         assertThat(registryHandler.mMutableSettingMap, nullValue());
@@ -72,10 +74,10 @@ public final class PluginRegistryHandlerCallbackTest {
          * Verify the debug plug-in condition and debug plug-in setting were
          * detected.
          */
-        assertThat(registryHandler.mMutableConditionMap, hasKey(Plugin
+        assertThat(registryHandler.mMutableConditionMap, hasKey(ThirdPartyPlugin
                 .generateRegistryName(context.getPackageName(),
                         PluginConditionActivity.class.getName())));
-        assertThat(registryHandler.mMutableSettingMap, hasKey(Plugin.generateRegistryName(
+        assertThat(registryHandler.mMutableSettingMap, hasKey(ThirdPartyPlugin.generateRegistryName(
                 context.getPackageName(), PluginSettingActivity.class.getName())));
     }
 
@@ -85,23 +87,25 @@ public final class PluginRegistryHandlerCallbackTest {
         final Context context = InstrumentationRegistry.getContext();
         final String uuid = UUID.randomUUID().toString();
 
-        final PluginRegistryHandlerCallback registryHandler = new PluginRegistryHandlerCallback(
+        final ThirdPartyPluginRegistryHandlerCallback
+                registryHandler = new ThirdPartyPluginRegistryHandlerCallback(
                 context, uuid, uuid);
 
         registryHandler.handleInit();
 
-        final Map<String, IPlugin> conditionsBefore = new HashMap<>(
+        final Map<String, Plugin> conditionsBefore = new HashMap<>(
                 registryHandler.mMutableConditionMap);
-        final Map<String, IPlugin> settingsBefore = new HashMap<>(
+        final Map<String, Plugin> settingsBefore = new HashMap<>(
                 registryHandler.mMutableSettingMap);
 
         /*
          * Insert a fake condition
          */
-        final Plugin testPluginCondition = new Plugin(
+        final ThirdPartyPlugin testPluginCondition = new ThirdPartyPlugin(
                 PluginType.CONDITION,
                 "com.twofortyfouram.locale.condition.hack",//$NON-NLS
                 "com.twofortyfouram.locale.condition.hack.EditActivity",//$NON-NLS
+                ComponentType.BROADCAST_RECEIVER,
                 "com.twofortyfouram.locale.condition.hack.QueryReceiver",//$NON-NLS
                 1, PluginConfigurationFixture
                 .newPluginConfiguration());
@@ -111,10 +115,11 @@ public final class PluginRegistryHandlerCallbackTest {
         /*
          * Insert a fake setting
          */
-        final Plugin testPluginSetting = new Plugin(
+        final ThirdPartyPlugin testPluginSetting = new ThirdPartyPlugin(
                 PluginType.CONDITION,
                 "com.twofortyfouram.locale.condition.hack",//$NON-NLS
                 "com.twofortyfouram.locale.condition.hack.EditActivity",//$NON-NLS
+                ComponentType.BROADCAST_RECEIVER,
                 "com.twofortyfouram.locale.condition.hack.FireReceiver",//$NON-NLS
                 1, PluginConfigurationFixture
                 .newPluginConfiguration());
@@ -138,13 +143,14 @@ public final class PluginRegistryHandlerCallbackTest {
         final Context context = InstrumentationRegistry.getContext();
         final String uuid = UUID.randomUUID().toString();
 
-        final PluginRegistryHandlerCallback registryHandler = new PluginRegistryHandlerCallback(
+        final ThirdPartyPluginRegistryHandlerCallback
+                registryHandler = new ThirdPartyPluginRegistryHandlerCallback(
                 context, uuid, uuid);
         registryHandler.handleInit();
 
-        final Map<String, IPlugin> conditionsBefore = new HashMap<>(
+        final Map<String, Plugin> conditionsBefore = new HashMap<>(
                 registryHandler.mMutableConditionMap);
-        final Map<String, IPlugin> settingsBefore = new HashMap<>(
+        final Map<String, Plugin> settingsBefore = new HashMap<>(
                 registryHandler.mMutableSettingMap);
 
         assertThat(registryHandler
@@ -165,22 +171,24 @@ public final class PluginRegistryHandlerCallbackTest {
         final Context context = InstrumentationRegistry.getContext();
         final String uuid = UUID.randomUUID().toString();
 
-        final PluginRegistryHandlerCallback registryHandler = new PluginRegistryHandlerCallback(
+        final ThirdPartyPluginRegistryHandlerCallback
+                registryHandler = new ThirdPartyPluginRegistryHandlerCallback(
                 context, uuid, uuid);
         registryHandler.handleInit();
 
-        final Map<String, IPlugin> conditionsBefore = new HashMap<>(
+        final Map<String, Plugin> conditionsBefore = new HashMap<>(
                 registryHandler.mMutableConditionMap);
-        final Map<String, IPlugin> settingsBefore = new HashMap<>(
+        final Map<String, Plugin> settingsBefore = new HashMap<>(
                 registryHandler.mMutableSettingMap);
 
         /*
          * Insert a fake condition
          */
-        final Plugin testPlugin = new Plugin(
+        final ThirdPartyPlugin testPlugin = new ThirdPartyPlugin(
                 PluginType.CONDITION,
                 "com.twofortyfouram.locale.condition.hack",//$NON-NLS
                 "com.twofortyfouram.locale.condition.hack.EditActivity",//$NON-NLS
+                ComponentType.BROADCAST_RECEIVER,
                 "com.twofortyfouram.locale.condition.hack.QueryReceiver",//$NON-NLS
                 1, PluginConfigurationFixture
                 .newPluginConfiguration());
@@ -204,22 +212,24 @@ public final class PluginRegistryHandlerCallbackTest {
         final Context context = InstrumentationRegistry.getContext();
         final String uuid = UUID.randomUUID().toString();
 
-        final PluginRegistryHandlerCallback registryHandler = new PluginRegistryHandlerCallback(
+        final ThirdPartyPluginRegistryHandlerCallback
+                registryHandler = new ThirdPartyPluginRegistryHandlerCallback(
                 context, uuid, uuid);
         registryHandler.handleInit();
 
-        final Map<String, IPlugin> conditionsBefore = new HashMap<>(
+        final Map<String, Plugin> conditionsBefore = new HashMap<>(
                 registryHandler.mMutableConditionMap);
-        final Map<String, IPlugin> settingsBefore = new HashMap<>(
+        final Map<String, Plugin> settingsBefore = new HashMap<>(
                 registryHandler.mMutableSettingMap);
 
         /*
          * Insert a fake setting
          */
-        final Plugin testPlugin = new Plugin(
+        final ThirdPartyPlugin testPlugin = new ThirdPartyPlugin(
                 PluginType.SETTING,
                 "com.twofortyfouram.locale.setting.hack", //$NON-NLS
                 "com.twofortyfouram.locale.setting.hack.EditActivity",//$NON-NLS
+                ComponentType.BROADCAST_RECEIVER,
                 "com.twofortyfouram.locale.setting.hack.FireReceiver",//$NON-NLS
                 1, PluginConfigurationFixture
                 .newPluginConfiguration());
@@ -243,13 +253,14 @@ public final class PluginRegistryHandlerCallbackTest {
         final Context context = InstrumentationRegistry.getContext();
         final String uuid = UUID.randomUUID().toString();
 
-        final PluginRegistryHandlerCallback registryHandler = new PluginRegistryHandlerCallback(
+        final ThirdPartyPluginRegistryHandlerCallback
+                registryHandler = new ThirdPartyPluginRegistryHandlerCallback(
                 context, uuid, uuid);
         registryHandler.handleInit();
 
-        final Map<String, IPlugin> conditionsBefore = new HashMap<>(
+        final Map<String, Plugin> conditionsBefore = new HashMap<>(
                 registryHandler.mMutableConditionMap);
-        final Map<String, IPlugin> settingsBefore = new HashMap<>(
+        final Map<String, Plugin> settingsBefore = new HashMap<>(
                 registryHandler.mMutableSettingMap);
 
         assertThat(registryHandler
@@ -269,13 +280,14 @@ public final class PluginRegistryHandlerCallbackTest {
         final Context context = InstrumentationRegistry.getContext();
         final String uuid = UUID.randomUUID().toString();
 
-        final PluginRegistryHandlerCallback registryHandler = new PluginRegistryHandlerCallback(
+        final ThirdPartyPluginRegistryHandlerCallback
+                registryHandler = new ThirdPartyPluginRegistryHandlerCallback(
                 context, uuid, uuid);
         registryHandler.handleInit();
 
-        final Map<String, IPlugin> conditionsBefore = new HashMap<>(
+        final Map<String, Plugin> conditionsBefore = new HashMap<>(
                 registryHandler.mMutableConditionMap);
-        final Map<String, IPlugin> settingsBefore = new HashMap<>(
+        final Map<String, Plugin> settingsBefore = new HashMap<>(
                 registryHandler.mMutableSettingMap);
 
         assertThat(registryHandler.handlePackageAdded("com.google.maps"), //$NON-NLS-1$
@@ -297,7 +309,8 @@ public final class PluginRegistryHandlerCallbackTest {
         final ComponentName disabledComponent = new ComponentName(context,
                 PluginSettingActivity.class.getName());
 
-        final PluginRegistryHandlerCallback registryHandler = new PluginRegistryHandlerCallback(
+        final ThirdPartyPluginRegistryHandlerCallback
+                registryHandler = new ThirdPartyPluginRegistryHandlerCallback(
                 context, uuid, uuid);
         try {
             context.getPackageManager().setComponentEnabledSetting(disabledComponent,
@@ -312,7 +325,7 @@ public final class PluginRegistryHandlerCallbackTest {
                     .handlePackageAdded(
                             context.getPackageName()), is(PackageResult.CONDITIONS_CHANGED));
 
-            final String conditionKey = Plugin.generateRegistryName(context.getPackageName(),
+            final String conditionKey = ThirdPartyPlugin.generateRegistryName(context.getPackageName(),
                     PluginConditionActivity.class.getName());
 
             assertThat(registryHandler.mMutableConditionMap, hasKey(conditionKey));
@@ -334,7 +347,8 @@ public final class PluginRegistryHandlerCallbackTest {
 
         final HandlerThread thread = HandlerThreadFactory
                 .newHandlerThread(uuid, HandlerThreadFactory.ThreadPriority.DEFAULT);
-        final PluginRegistryHandlerCallback registryHandler = new PluginRegistryHandlerCallback(
+        final ThirdPartyPluginRegistryHandlerCallback
+                registryHandler = new ThirdPartyPluginRegistryHandlerCallback(
                 context, uuid, uuid);
         try {
             context.getPackageManager().setComponentEnabledSetting(disabledComponent,
@@ -349,7 +363,7 @@ public final class PluginRegistryHandlerCallbackTest {
                     .handlePackageAdded(
                             context.getPackageName()), is(PackageResult.SETTINGS_CHANGED));
 
-            final String settingKey = Plugin.generateRegistryName(context.getPackageName(),
+            final String settingKey = ThirdPartyPlugin.generateRegistryName(context.getPackageName(),
                     PluginSettingActivity.class.getName());
 
             assertThat(registryHandler.mMutableConditionMap.isEmpty(), is(true));
@@ -366,7 +380,8 @@ public final class PluginRegistryHandlerCallbackTest {
         final Context context = InstrumentationRegistry.getContext();
         final String uuid = UUID.randomUUID().toString();
 
-        final PluginRegistryHandlerCallback registryHandler = new PluginRegistryHandlerCallback(
+        final ThirdPartyPluginRegistryHandlerCallback
+                registryHandler = new ThirdPartyPluginRegistryHandlerCallback(
                 context, uuid, uuid);
         registryHandler.handleInit();
 
@@ -378,9 +393,9 @@ public final class PluginRegistryHandlerCallbackTest {
                                 context.getPackageName()),
                 is(PackageResult.CONDITIONS_AND_SETTINGS_CHANGED));
 
-        final String conditionKey = Plugin.generateRegistryName(context.getPackageName(),
+        final String conditionKey = ThirdPartyPlugin.generateRegistryName(context.getPackageName(),
                 PluginConditionActivity.class.getName());
-        final String settingKey = Plugin.generateRegistryName(context.getPackageName(),
+        final String settingKey = ThirdPartyPlugin.generateRegistryName(context.getPackageName(),
                 PluginSettingActivity.class.getName());
 
         assertThat(registryHandler.mMutableConditionMap, hasKey(conditionKey));
@@ -393,14 +408,15 @@ public final class PluginRegistryHandlerCallbackTest {
         final Context context = InstrumentationRegistry.getContext();
         final String uuid = UUID.randomUUID().toString();
 
-        final PluginRegistryHandlerCallback registryHandler = new PluginRegistryHandlerCallback(
+        final ThirdPartyPluginRegistryHandlerCallback
+                registryHandler = new ThirdPartyPluginRegistryHandlerCallback(
                 context, uuid, uuid);
 
         registryHandler.handleInit();
 
-        final Map<String, IPlugin> conditionsBefore = new HashMap<>(
+        final Map<String, Plugin> conditionsBefore = new HashMap<>(
                 registryHandler.mMutableConditionMap);
-        final Map<String, IPlugin> settingsBefore = new HashMap<>(
+        final Map<String, Plugin> settingsBefore = new HashMap<>(
                 registryHandler.mMutableSettingMap);
 
         assertThat(registryHandler
@@ -419,13 +435,14 @@ public final class PluginRegistryHandlerCallbackTest {
 
         final HandlerThread thread = HandlerThreadFactory
                 .newHandlerThread(uuid, HandlerThreadFactory.ThreadPriority.DEFAULT);
-        final PluginRegistryHandlerCallback registryHandler = new PluginRegistryHandlerCallback(
+        final ThirdPartyPluginRegistryHandlerCallback
+                registryHandler = new ThirdPartyPluginRegistryHandlerCallback(
                 context, uuid, uuid);
         registryHandler.handleInit();
 
-        final Map<String, IPlugin> conditionsBefore = new HashMap<>(
+        final Map<String, Plugin> conditionsBefore = new HashMap<>(
                 registryHandler.mMutableConditionMap);
-        final Map<String, IPlugin> settingsBefore = new HashMap<>(
+        final Map<String, Plugin> settingsBefore = new HashMap<>(
                 registryHandler.mMutableSettingMap);
 
         assertThat(registryHandler.handlePackageChanged("com.google.maps"), //$NON-NLS-1$
@@ -441,14 +458,15 @@ public final class PluginRegistryHandlerCallbackTest {
         final Context context = InstrumentationRegistry.getContext();
         final String uuid = UUID.randomUUID().toString();
 
-        final PluginRegistryHandlerCallback registryHandler = new PluginRegistryHandlerCallback(
+        final ThirdPartyPluginRegistryHandlerCallback
+                registryHandler = new ThirdPartyPluginRegistryHandlerCallback(
                 context, uuid, uuid);
 
         registryHandler.handleInit();
 
-        final Map<String, IPlugin> conditionsBefore = new HashMap<>(
+        final Map<String, Plugin> conditionsBefore = new HashMap<>(
                 registryHandler.mMutableConditionMap);
-        final Map<String, IPlugin> settingsBefore = new HashMap<>(
+        final Map<String, Plugin> settingsBefore = new HashMap<>(
                 registryHandler.mMutableSettingMap);
 
         assertThat(registryHandler

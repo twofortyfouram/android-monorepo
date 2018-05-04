@@ -22,7 +22,7 @@ import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.assertion.BundleAssertions;
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 import com.twofortyfouram.locale.sdk.host.test.fixture.JsonBundleSerializerFixture;
 
 import org.json.JSONObject;
@@ -65,7 +65,7 @@ public final class JsonBundleSerializerTest {
     @Test
     public void isJsonSerializable_wrong_type() {
         final Bundle bundle = new Bundle();
-        bundle.putInt(LocalePluginIntent.EXTRA_STRING_JSON, 1);
+        bundle.putInt(LocalePluginIntentV1.EXTRA_STRING_JSON, 1);
 
         assertThat(new JsonBundleSerializer().isSerializable(bundle), is(false));
     }
@@ -74,7 +74,7 @@ public final class JsonBundleSerializerTest {
     @Test
     public void isJsonSerializable_bad_json() {
         final Bundle bundle = new Bundle();
-        bundle.putString(LocalePluginIntent.EXTRA_STRING_JSON, "beep"); //$NON-NLS
+        bundle.putString(LocalePluginIntentV1.EXTRA_STRING_JSON, "beep"); //$NON-NLS
 
         assertThat(new JsonBundleSerializer().isSerializable(bundle), is(false));
     }
@@ -102,7 +102,7 @@ public final class JsonBundleSerializerTest {
     @Test(expected = BundleSerializer.BundleSerializationException.class)
     public void serialize_bad_json() {
         final Bundle bundle = new Bundle();
-        bundle.putString(LocalePluginIntent.EXTRA_STRING_JSON, "beep"); //$NON-NLS
+        bundle.putString(LocalePluginIntentV1.EXTRA_STRING_JSON, "beep"); //$NON-NLS
 
         new JsonBundleSerializer().serialize(bundle);
     }
@@ -114,6 +114,6 @@ public final class JsonBundleSerializerTest {
                 .deserialize(new JSONObject());
 
         assertThat(bundle, notNullValue());
-        BundleAssertions.assertHasString(bundle, LocalePluginIntent.EXTRA_STRING_JSON, false, false);
+        BundleAssertions.assertHasString(bundle, LocalePluginIntentV1.EXTRA_STRING_JSON, false, false);
     }
 }

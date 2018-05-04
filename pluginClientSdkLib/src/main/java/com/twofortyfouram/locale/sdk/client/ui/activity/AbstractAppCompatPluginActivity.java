@@ -22,7 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 import com.twofortyfouram.locale.sdk.client.internal.PluginActivityDelegate;
 
 import net.jcip.annotations.NotThreadSafe;
@@ -41,8 +41,8 @@ import org.json.JSONObject;
  * Implements the basic behaviors of a "Edit" activity for a plug-in, handling the Intent protocol
  * for storing and retrieving the plug-in's data. Recall that a plug-in Activity more or less saves
  * a Bundle and a String blurb via the Intent extras
- * {@link LocalePluginIntent#EXTRA_BUNDLE EXTRA_BUNDLE} and {@link
- * LocalePluginIntent#EXTRA_STRING_BLURB EXTRA_STRING_BLURB}.
+ * {@link LocalePluginIntentV1#EXTRA_BUNDLE EXTRA_BUNDLE} and {@link
+ * LocalePluginIntentV1#EXTRA_STRING_BLURB EXTRA_STRING_BLURB}.
  * Those extras represent the configured plug-in, so this Activity helps plug-ins store and retrieve
  * those extras while abstracting the actual Intent protocol.
  * </p>
@@ -50,10 +50,10 @@ import org.json.JSONObject;
  * The Activity can be started in one of two states:
  * <ul>
  * <li>New plug-in instance: The Activity's Intent will not contain
- * {@link LocalePluginIntent#EXTRA_BUNDLE EXTRA_BUNDLE}.</li>
+ * {@link LocalePluginIntentV1#EXTRA_BUNDLE EXTRA_BUNDLE}.</li>
  * <li>Old plug-in instance: The Activity's Intent will contain
- * {@link LocalePluginIntent#EXTRA_BUNDLE EXTRA_BUNDLE} and {@link
- * LocalePluginIntent#EXTRA_STRING_BLURB EXTRA_STRING_BLURB} from a previously
+ * {@link LocalePluginIntentV1#EXTRA_BUNDLE EXTRA_BUNDLE} and {@link
+ * LocalePluginIntentV1#EXTRA_STRING_BLURB EXTRA_STRING_BLURB} from a previously
  * saved plug-in instance that the user is editing. The previously saved Bundle
  * and blurb can be retrieved at any time via {@link #getPreviousJson()} and
  * {@link #getPreviousBlurb()}. These will also be delivered via
@@ -70,12 +70,12 @@ import org.json.JSONObject;
  * plug-in "edit" Intent actions.
  * </p>
  *
- * @see LocalePluginIntent#ACTION_EDIT_CONDITION ACTION_EDIT_CONDITION
- * @see LocalePluginIntent#ACTION_EDIT_SETTING ACTION_EDIT_SETTING
+ * @see LocalePluginIntentV1#ACTION_EDIT_CONDITION ACTION_EDIT_CONDITION
+ * @see LocalePluginIntentV1#ACTION_EDIT_SETTING ACTION_EDIT_SETTING
  */
 @NotThreadSafe
 public abstract class AbstractAppCompatPluginActivity extends AppCompatActivity
-        implements IPluginActivity {
+        implements PluginActivity {
 
     /**
      * Flag boolean that can be set prior to calling {@link #finish()} to control whether the

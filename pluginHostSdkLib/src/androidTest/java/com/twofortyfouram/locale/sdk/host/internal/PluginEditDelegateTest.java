@@ -26,8 +26,8 @@ import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.assertion.BundleAssertions;
-import com.twofortyfouram.locale.api.LocalePluginIntent;
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
+import com.twofortyfouram.locale.sdk.host.model.ThirdPartyPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginErrorEdit;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.locale.sdk.host.test.fixture.PluginFixture;
@@ -67,7 +67,7 @@ public final class PluginEditDelegateTest {
     @Test
     public void isIntentValid_missing_blurb() {
         assertThat(PluginEditDelegate.isIntentValid(
-                new Intent().putExtra(LocalePluginIntent.EXTRA_BUNDLE,
+                new Intent().putExtra(LocalePluginIntentV1.EXTRA_BUNDLE,
                         new Bundle()), PluginFixture.newDefaultPlugin()
         ), contains(PluginErrorEdit.BLURB_MISSING));
     }
@@ -76,7 +76,7 @@ public final class PluginEditDelegateTest {
     @Test
     public void isIntentValid_missing_bundle() {
         assertThat(PluginEditDelegate.isIntentValid(
-                new Intent().putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
+                new Intent().putExtra(LocalePluginIntentV1.EXTRA_STRING_BLURB,
                         "foo"), PluginFixture.newDefaultPlugin()
         ), not(empty())); //$NON-NLS-1$
     }
@@ -117,7 +117,7 @@ public final class PluginEditDelegateTest {
     @SmallTest
     @Test
     public void getPluginStartIntent_old_condition() throws Exception {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
         final PluginInstanceData pluginInstanceData = new PluginInstanceData(plugin.getType(),
                 plugin.getRegistryName(), new Bundle(),
                 "bar");
@@ -126,7 +126,7 @@ public final class PluginEditDelegateTest {
                 pluginInstanceData, "Edit Situation"); //$NON-NLS-1$ //$NON-NLS-2$
 
         assertThat(i, notNullValue());
-        assertThat(i, hasAction(LocalePluginIntent.ACTION_EDIT_CONDITION));
+        assertThat(i, hasAction(LocalePluginIntentV1.ACTION_EDIT_CONDITION));
         assertThat(i.getComponent(),
                 ComponentNameMatchers.hasPackageName(plugin.getPackageName()));
         assertThat(i.getComponent(),
@@ -134,7 +134,7 @@ public final class PluginEditDelegateTest {
         assertThat(i.getData(), nullValue());
 
         BundleAssertions.assertHasString(i.getExtras(),
-                LocalePluginIntent.EXTRA_STRING_BREADCRUMB,
+                LocalePluginIntentV1.EXTRA_STRING_BREADCRUMB,
                 "Edit Situation"); //$NON-NLS-1$
         BundleAssertions.assertKeyCount(i.getExtras(), 3);
     }
@@ -142,13 +142,13 @@ public final class PluginEditDelegateTest {
     @SmallTest
     @Test
     public void getPluginStartIntent_new_condition() {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
 
         final Intent i = PluginEditDelegate.getPluginStartIntent(
                 PluginFixture.newDefaultPlugin(), null, "Edit Situation"); //$NON-NLS-1$
 
         assertNotNull(i);
-        assertThat(i, hasAction(LocalePluginIntent.ACTION_EDIT_CONDITION));
+        assertThat(i, hasAction(LocalePluginIntentV1.ACTION_EDIT_CONDITION));
         assertThat(i.getComponent(),
                 ComponentNameMatchers.hasPackageName(plugin.getPackageName()));
         assertThat(i.getComponent(),
@@ -156,7 +156,7 @@ public final class PluginEditDelegateTest {
         assertThat(i.getData(), nullValue());
 
         BundleAssertions.assertHasString(i.getExtras(),
-                LocalePluginIntent.EXTRA_STRING_BREADCRUMB,
+                LocalePluginIntentV1.EXTRA_STRING_BREADCRUMB,
                 "Edit Situation"); //$NON-NLS-1$
         BundleAssertions.assertKeyCount(i.getExtras(), 1);
     }
@@ -165,8 +165,8 @@ public final class PluginEditDelegateTest {
     private static Bundle generateBundle(@Nullable final Bundle bundle,
             @Nullable final String blurb) {
         final Bundle result = new Bundle();
-        result.putString(LocalePluginIntent.EXTRA_STRING_BLURB, blurb);
-        result.putBundle(LocalePluginIntent.EXTRA_BUNDLE, bundle);
+        result.putString(LocalePluginIntentV1.EXTRA_STRING_BLURB, blurb);
+        result.putBundle(LocalePluginIntentV1.EXTRA_BUNDLE, bundle);
 
         return result;
     }

@@ -20,17 +20,17 @@ package com.twofortyfouram.locale.sdk.client.ui.activity;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 
 import org.json.JSONObject;
 
 /**
  * Common interface for plug-in Activities.
  */
-public interface IPluginActivity {
+public interface PluginActivity {
 
     /**
-     * @return The {@link LocalePluginIntent#EXTRA_STRING_JSON EXTRA_JSON} that
+     * @return The {@link LocalePluginIntentV1#EXTRA_STRING_JSON EXTRA_JSON} that
      * was previously saved to the host and subsequently passed back to this Activity for further
      * editing.  Internally, this method relies on {@link #isJsonValid(JSONObject)}.  If
      * the JSON exists but is not valid, this method will return null.
@@ -39,7 +39,7 @@ public interface IPluginActivity {
     JSONObject getPreviousJson();
 
     /**
-     * @return The {@link LocalePluginIntent#EXTRA_STRING_BLURB
+     * @return The {@link LocalePluginIntentV1#EXTRA_STRING_BLURB
      * EXTRA_STRING_BLURB} that was previously saved to the host and subsequently passed back to
      * this Activity for further editing.
      */

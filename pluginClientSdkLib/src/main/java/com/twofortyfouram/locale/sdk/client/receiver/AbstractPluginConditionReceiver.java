@@ -26,15 +26,12 @@ import android.support.annotation.AnyThread;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
-
-import com.twofortyfouram.locale.annotation.ConditionResult;
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
+import com.twofortyfouram.locale.api.v1.annotation.ConditionResultIntDef;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.AndroidSdkVersion;
 import com.twofortyfouram.spackle.bundle.BundleScrubber;
-
 import net.jcip.annotations.ThreadSafe;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -45,14 +42,14 @@ import org.json.JSONObject;
  * <li>{@link #onReceive(Context, Intent)} is called by the Android
  * frameworks.
  * onReceive() will verify that the Intent is valid.  If the Intent is invalid, then the receiver
- * sets the result to {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
+ * sets the result to {@link LocalePluginIntentV1#RESULT_CONDITION_UNKNOWN
  * RESULT_CONDITION_UNKNOWN} and
  * returns.  If the Intent appears to be valid, then the lifecycle continues.</li>
  * <li>{@link #isJsonValid(JSONObject)} is called to determine whether {@link
- * LocalePluginIntent#EXTRA_BUNDLE EXTRA_BUNDLE} is valid. If the Bundle is
+ * LocalePluginIntentV1#EXTRA_BUNDLE EXTRA_BUNDLE} is valid. If the Bundle is
  * invalid, then the
  * receiver
- * sets the result to {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
+ * sets the result to {@link LocalePluginIntentV1#RESULT_CONDITION_UNKNOWN
  * RESULT_CONDITION_UNKNOWN} and
  * returns.  If the bundle is valid, then the lifecycle continues.</li>
  * <li>{@link #isAsync()} is called to determine whether the remaining work should be performed on
@@ -65,7 +62,7 @@ import org.json.JSONObject;
  * <p>
  * Implementations of this BroadcastReceiver must be registered in the Android
  * Manifest with an Intent filter for
- * {@link LocalePluginIntent#ACTION_QUERY_CONDITION ACTION_QUERY_CONDITION}. The
+ * {@link LocalePluginIntentV1#ACTION_QUERY_CONDITION ACTION_QUERY_CONDITION}. The
  * BroadcastReceiver must be exported, enabled, and cannot have permissions
  * enforced on it.
  * </p>
@@ -90,12 +87,12 @@ public abstract class AbstractPluginConditionReceiver extends AbstractAsyncRecei
             return;
         }
 
-        if (!LocalePluginIntent.ACTION_QUERY_CONDITION.equals(intent
+        if (!LocalePluginIntentV1.ACTION_QUERY_CONDITION.equals(intent
                 .getAction())) {
             Lumberjack
                     .e("Intent action is not %s",
-                            LocalePluginIntent.ACTION_QUERY_CONDITION); //$NON-NLS-1$
-            setResultCode(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                            LocalePluginIntentV1.ACTION_QUERY_CONDITION); //$NON-NLS-1$
+            setResultCode(LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
             return;
         }
         /*
@@ -106,30 +103,30 @@ public abstract class AbstractPluginConditionReceiver extends AbstractAsyncRecei
         if (!new ComponentName(context, this.getClass().getName()).equals(intent
                 .getComponent())) {
             Lumberjack.e("Intent is not explicit"); //$NON-NLS-1$
-            setResultCode(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+            setResultCode(LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
             abortBroadcast();
             return;
         }
 
         final Bundle bundle = intent
-                .getBundleExtra(LocalePluginIntent.EXTRA_BUNDLE);
+                .getBundleExtra(LocalePluginIntentV1.EXTRA_BUNDLE);
         if (BundleScrubber.scrub(intent)) {
             return;
         }
 
         if (null == bundle) {
             Lumberjack.e("%s is missing",
-                    LocalePluginIntent.EXTRA_BUNDLE); //$NON-NLS-1$
-            setResultCode(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                    LocalePluginIntentV1.EXTRA_BUNDLE); //$NON-NLS-1$
+            setResultCode(LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
             return;
         }
 
         final JSONObject jsonObject;
         {
-            final String jsonString = bundle.getString(LocalePluginIntent.EXTRA_STRING_JSON);
+            final String jsonString = bundle.getString(LocalePluginIntentV1.EXTRA_STRING_JSON);
 
             if (null == jsonString) {
-                Lumberjack.v("%s is missing", LocalePluginIntent.EXTRA_STRING_JSON); //$NON-NLS
+                Lumberjack.v("%s is missing", LocalePluginIntentV1.EXTRA_STRING_JSON); //$NON-NLS
                 return;
             }
 
@@ -137,15 +134,15 @@ public abstract class AbstractPluginConditionReceiver extends AbstractAsyncRecei
                 jsonObject = new JSONObject(jsonString);
             } catch (final JSONException e) {
                 Lumberjack.e("%s=%s is invalid",
-                        LocalePluginIntent.EXTRA_STRING_JSON, jsonString); //$NON-NLS-1$
+                        LocalePluginIntentV1.EXTRA_STRING_JSON, jsonString); //$NON-NLS-1$
                 return;
             }
         }
 
         if (!isJsonValid(jsonObject)) {
             Lumberjack.e("%s is invalid",
-                    LocalePluginIntent.EXTRA_STRING_JSON); //$NON-NLS-1$
-            setResultCode(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                    LocalePluginIntentV1.EXTRA_STRING_JSON); //$NON-NLS-1$
+            setResultCode(LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
             return;
         }
 
@@ -181,16 +178,16 @@ public abstract class AbstractPluginConditionReceiver extends AbstractAsyncRecei
      */
     @VisibleForTesting
     /* package */ static void assertResult(final int result) {
-        if (LocalePluginIntent.RESULT_CONDITION_SATISFIED != result
-                && LocalePluginIntent.RESULT_CONDITION_UNSATISFIED != result
-                && LocalePluginIntent.RESULT_CONDITION_UNKNOWN != result) {
+        if (LocalePluginIntentV1.RESULT_CONDITION_SATISFIED != result
+                && LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED != result
+                && LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN != result) {
             throw new AssertionError(
                     Lumberjack
                             .formatMessage(
                                     "result=%d is not one of [%d, %d, %d]", result, //$NON-NLS-1$
-                                    LocalePluginIntent.RESULT_CONDITION_SATISFIED,
-                                    LocalePluginIntent.RESULT_CONDITION_UNSATISFIED,
-                                    LocalePluginIntent.RESULT_CONDITION_UNKNOWN)
+                                    LocalePluginIntentV1.RESULT_CONDITION_SATISFIED,
+                                    LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED,
+                                    LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN)
             );
         }
     }
@@ -241,20 +238,20 @@ public abstract class AbstractPluginConditionReceiver extends AbstractAsyncRecei
      * @param json    The plug-in's JSON previously returned by the edit
      *                Activity.
      * @return One of the Locale plug-in query results:
-     * {@link LocalePluginIntent#RESULT_CONDITION_SATISFIED
+     * {@link LocalePluginIntentV1#RESULT_CONDITION_SATISFIED
      * RESULT_CONDITION_SATISFIED}
      * ,
-     * {@link LocalePluginIntent#RESULT_CONDITION_UNSATISFIED
+     * {@link LocalePluginIntentV1#RESULT_CONDITION_UNSATISFIED
      * RESULT_CONDITION_UNSATISFIED}
      * , or
-     * {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
+     * {@link LocalePluginIntentV1#RESULT_CONDITION_UNKNOWN
      * RESULT_CONDITION_UNKNOWN}
      * . If {@code json} is invalid, implementations must return
-     * {@link LocalePluginIntent#RESULT_CONDITION_UNKNOWN
+     * {@link LocalePluginIntentV1#RESULT_CONDITION_UNKNOWN
      * RESULT_CONDITION_UNKNOWN}
      */
     @AnyThread
-    @ConditionResult
+    @ConditionResultIntDef
     protected abstract int getPluginConditionResult(@NonNull final Context context,
             @NonNull final JSONObject json);
 

@@ -25,7 +25,7 @@ import android.support.test.filters.SdkSuppress;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.locale.sdk.host.internal.ThirdPartyPluginRegistry;
-import com.twofortyfouram.locale.sdk.host.model.IPlugin;
+import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.locale.sdk.host.test.Junit4SupportLoaderTestCase;
 import com.twofortyfouram.locale.sdk.host.test.fixture.DebugPluginFixture;
@@ -53,7 +53,7 @@ public final class SupportPluginRegistryLoaderTest extends
                 ThirdPartyPluginRegistry.getInstance(InstrumentationRegistry.getContext()),
                 PluginType.CONDITION);
 
-        final Map<String, IPlugin> loaderRegistry = getLoaderResultSynchronously(loader);
+        final Map<String, Plugin> loaderRegistry = getLoaderResultSynchronously(loader);
 
         assertThat(loaderRegistry, notNullValue());
         assertThat(loaderRegistry,
@@ -68,7 +68,7 @@ public final class SupportPluginRegistryLoaderTest extends
                 ThirdPartyPluginRegistry.getInstance(InstrumentationRegistry.getContext()),
                 PluginType.SETTING);
 
-        final Map<String, IPlugin> loaderRegistry = getLoaderResultSynchronously(loader);
+        final Map<String, Plugin> loaderRegistry = getLoaderResultSynchronously(loader);
 
         assertThat(loaderRegistry, notNullValue());
         assertThat(loaderRegistry,

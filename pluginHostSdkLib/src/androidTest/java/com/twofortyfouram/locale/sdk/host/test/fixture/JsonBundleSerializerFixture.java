@@ -22,7 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RestrictTo;
 import android.support.annotation.VisibleForTesting;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -39,7 +39,7 @@ public final class JsonBundleSerializerFixture {
     @NonNull
     public static Bundle newEmptySerializableBundle() {
         final Bundle bundle = new Bundle();
-        bundle.putString(LocalePluginIntent.EXTRA_STRING_JSON, EMPTY_JSON_OBJECT);
+        bundle.putString(LocalePluginIntentV1.EXTRA_STRING_JSON, EMPTY_JSON_OBJECT);
 
         return bundle;
     }

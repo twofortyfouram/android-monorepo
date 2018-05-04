@@ -89,6 +89,48 @@ public final class PluginPackageScannerTest {
         assertThat(infos.size(), is(1));
     }
 
+
+    @SmallTest
+    @Test
+    public void findProviders_conditions() {
+        final Collection<ResolveInfo> infos = PluginPackageScanner
+                .findProviders(InstrumentationRegistry.getContext(),
+                        PluginType.CONDITION, null);
+        assertThat(infos, notNullValue());
+        assertThat(infos.size(), greaterThanOrEqualTo(1));
+    }
+
+    @SmallTest
+    @Test
+    public void findProviders_settings() {
+        final Collection<ResolveInfo> infos = PluginPackageScanner
+                .findProviders(InstrumentationRegistry.getContext(),
+                        PluginType.SETTING, null);
+        assertThat(infos, notNullValue());
+        assertThat(infos.size(), greaterThanOrEqualTo(1));
+    }
+
+    @SmallTest
+    @Test
+    public void findProviders_debug_condition() {
+        final Collection<ResolveInfo> infos = PluginPackageScanner
+                .findProviders(InstrumentationRegistry.getContext(),
+                        PluginType.CONDITION,
+                        InstrumentationRegistry.getContext().getPackageName());
+        assertThat(infos, notNullValue());
+        assertThat(infos.size(), is(1));
+    }
+
+    @SmallTest
+    @Test
+    public void findProviders_debug_setting() {
+        final Collection<ResolveInfo> infos = PluginPackageScanner
+                .findProviders(InstrumentationRegistry.getContext(),
+                        PluginType.SETTING, InstrumentationRegistry.getContext().getPackageName());
+        assertThat(infos, notNullValue());
+        assertThat(infos.size(), is(1));
+    }
+
     @SmallTest
     @Test
     public void findReceivers_conditions() {

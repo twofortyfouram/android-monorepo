@@ -31,8 +31,9 @@ import android.support.annotation.VisibleForTesting;
 
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.annotation.Slow.Speed;
-import com.twofortyfouram.locale.sdk.host.model.IPlugin;
+import com.twofortyfouram.locale.sdk.host.model.ComponentType;
 import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.sdk.host.model.ThirdPartyPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginConfiguration;
 import com.twofortyfouram.locale.sdk.host.model.PluginErrorRegister;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
@@ -89,7 +90,7 @@ public final class PluginPackageScanner {
      */
     @NonNull
     @Slow(Speed.SECONDS)
-    public static Map<String, IPlugin> loadPluginMap(@NonNull final Context context,
+    public static Map<String, Plugin> loadPluginMap(@NonNull final Context context,
             @NonNull final PluginType type, @Nullable final String onlyForPackage) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotNull(type, "type"); //$NON-NLS-1$
@@ -97,32 +98,52 @@ public final class PluginPackageScanner {
         final Clock clock = Clock.getInstance();
         final long start = clock.getRealTimeMillis();
 
-        final Map<String, IPlugin> result = new HashMap<>();
+        final Map<String, Plugin> result = new HashMap<>();
         for (final ResolveInfo activityResolveInfo : findActivities(context, type,
                 onlyForPackage)) {
             final String pluginPackageName = activityResolveInfo.activityInfo.packageName;
             final int pluginVersionCode = getVersionCode(context.getPackageManager(),
                     pluginPackageName);
+            final List<ResolveInfo> pluginProviderInfos = findProviders(context, type,
+                    pluginPackageName);
             final List<ResolveInfo> pluginReceiverInfos = findReceivers(context, type,
                     pluginPackageName);
 
             Lumberjack
-                    .always("Found plug-in %s with package: %s, Activity: %s, BroadcastReceiver: %s, versionCode: %d",
-                            type, pluginPackageName, activityResolveInfo, pluginReceiverInfos,
+                    .always("Found plug-in %s with package: %s, Activity: %s, ContentProvider: "
+                                    + "%s, BroadcastReceiver: %s, versionCode: %d",
+                            type, pluginPackageName, activityResolveInfo, pluginProviderInfos,
+                            pluginReceiverInfos,
                             pluginVersionCode); //$NON-NLS-1$
 
-            final EnumSet<PluginErrorRegister> errors = checkPluginForErrors(context, type,
-                    activityResolveInfo, pluginReceiverInfos);
+            @NonNull final EnumSet<PluginErrorRegister> errors = checkPluginForErrors(context, type,
+                    activityResolveInfo, pluginProviderInfos, pluginReceiverInfos);
 
             // TODO: Some errors are not fatal.
             if (errors.isEmpty()) {
-                // TODO: Plugin characteristics should be downloaded from the cloud.
-                final String registryName = Plugin.generateRegistryName(pluginPackageName,
+                // TODO: ThirdPartyPlugin characteristics should be downloaded from the cloud.
+                final String registryName = ThirdPartyPlugin.generateRegistryName(pluginPackageName,
                         activityResolveInfo.activityInfo.name);
 
-                final IPlugin plugin = new Plugin(type, pluginPackageName,
+                // This is the primary switching point between API 1.0 and 2.0 compatibility
+                @NonNull final ComponentType componentType;
+                @NonNull final String componentIdentifier;
+                if (pluginProviderInfos.isEmpty()) {
+                    Lumberjack.always("Using Locale plug-in API 1.0 with BroadcastReceiver");
+                    //$NON-NLS
+                    componentType = ComponentType.BROADCAST_RECEIVER;
+                    componentIdentifier = pluginReceiverInfos.get(0).activityInfo.name;
+                } else {
+                    Lumberjack.always("Using Locale plug-in API 2.0 with ContentProvider");
+                    //$NON-NLS
+                    componentType = ComponentType.CONTENT_PROVIDER;
+                    componentIdentifier = pluginProviderInfos.get(0).providerInfo.authority;
+                }
+
+                final Plugin plugin = new ThirdPartyPlugin(type, pluginPackageName,
                         activityResolveInfo.activityInfo.name,
-                        pluginReceiverInfos.get(0).activityInfo.name,
+                        componentType,
+                        componentIdentifier,
                         pluginVersionCode,
                         new PluginConfiguration(PluginCharacteristics
                                 .isBackwardsCompatibilityEnabled(type, registryName),
@@ -210,7 +231,7 @@ public final class PluginPackageScanner {
 
         final PackageManager packageManager = context.getPackageManager();
 
-        final Intent receiverIntent = new Intent(type.getReceiverIntentAction());
+        final Intent receiverIntent = new Intent(type.getComponentIntentAction());
         if (null != packageToFilterFor) {
             receiverIntent.setPackage(packageToFilterFor);
         }
@@ -226,6 +247,39 @@ public final class PluginPackageScanner {
                 receivers = new ArrayList<>(0);
             }
         }
+
+        /*
+         * Sort so that plug-ins always appear in the same order in the log.
+         * While not absolutely necessary, this makes debugging easier.
+         */
+        Collections.sort(receivers, PACKAGE_NAME_COMPARATOR);
+
+        return receivers;
+    }
+
+    /**
+     * @param context            Application context.
+     * @param type               Plug-in type.
+     * @param packageToFilterFor Optional package to restrict the search to.
+     * @return a set of plug-in ContentProviders that match the given type and
+     * package filter. May return an empty collection.
+     */
+    @NonNull
+    @VisibleForTesting
+    /* package */ static List<ResolveInfo> findProviders(@NonNull final Context context,
+            @NonNull final PluginType type, @Nullable final String packageToFilterFor) {
+        assertNotNull(context, "context"); //$NON-NLS-1$
+        assertNotNull(type, "type"); //$NON-NLS-1$
+
+        @NonNull final PackageManager packageManager = context.getPackageManager();
+
+        @NonNull final Intent providerIntent = new Intent(type.getComponentIntentAction());
+        if (null != packageToFilterFor) {
+            providerIntent.setPackage(packageToFilterFor);
+        }
+
+        List<ResolveInfo> receivers = packageManager.queryIntentContentProviders(providerIntent,
+                0);
 
         /*
          * Sort so that plug-ins always appear in the same order in the log.
@@ -281,8 +335,10 @@ public final class PluginPackageScanner {
      * @param context              Application context.
      * @param type                 Plug-in type.
      * @param activityResolveInfo  ResolveInfo for the plug-in's Activity.
+     * @param providerResolveInfos ResolveInfo for the plug-in's
+     *                             ContentProvider.
      * @param receiverResolveInfos ResolveInfo for the plug-in's
-     *                             BroadcastReceivers.
+     *                             BroadcastReceiver.
      * @return Set of errors detected in the plug-in. If the plug-in has no
      * errors, then it is valid.
      */
@@ -291,10 +347,12 @@ public final class PluginPackageScanner {
             @NonNull final Context context,
             @NonNull final PluginType type,
             @NonNull final ResolveInfo activityResolveInfo,
+            @NonNull final List<ResolveInfo> providerResolveInfos,
             @NonNull final List<ResolveInfo> receiverResolveInfos) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotNull(type, "type"); //$NON-NLS-1$
         assertNotNull(activityResolveInfo, "activityResolveInfo"); //$NON-NLS-1$
+        assertNotNull(providerResolveInfos, "providerResolveInfo"); //$NON-NLS-1$
         assertNotNull(receiverResolveInfos, "receiverResolveInfos"); //$NON-NLS-1$
 
         final EnumSet<PluginErrorRegister> errors = EnumSet.noneOf(PluginErrorRegister.class);
@@ -327,23 +385,44 @@ public final class PluginPackageScanner {
             errors.add(PluginErrorRegister.ACTIVITY_REQUIRES_PERMISSION);
         }
 
-        if (1 == receiverResolveInfos.size()) {
-            final ResolveInfo receiverResolveInfo = receiverResolveInfos.get(0);
-            if (!isComponentEnabled(receiverResolveInfo)) {
-                errors.add(PluginErrorRegister.RECEIVER_NOT_ENABLED);
+        // Check providers first, then fall back to receivers to avoid error overload.
+        // Also this allows for receivers to be disabled at runtime without warnings.
+        if (1 == providerResolveInfos.size()) {
+            final ResolveInfo providerResolveInfo = providerResolveInfos.get(0);
+            if (!isComponentEnabled(providerResolveInfo)) {
+                errors.add(PluginErrorRegister.PROVIDER_NOT_ENABLED);
             }
 
-            if (!isComponentExported(receiverResolveInfo)) {
-                errors.add(PluginErrorRegister.RECEIVER_NOT_EXPORTED);
+            if (!isComponentExported(providerResolveInfo)) {
+                errors.add(PluginErrorRegister.PROVIDER_NOT_EXPORTED);
             }
 
-            if (!isComponentPermissionGranted(context, receiverResolveInfo)) {
-                errors.add(PluginErrorRegister.RECEIVER_REQUIRES_PERMISSION);
+            if (!isComponentPermissionGranted(context, providerResolveInfo)) {
+                errors.add(PluginErrorRegister.PROVIDER_REQUIRES_PERMISSION);
             }
-        } else if (2 >= receiverResolveInfos.size()) {
-            errors.add(PluginErrorRegister.RECEIVER_DUPLICATE);
+        } else if (2 >= providerResolveInfos.size()) {
+            errors.add(PluginErrorRegister.PROVIDER_DUPLICATE);
         } else {
-            errors.add(PluginErrorRegister.MISSING_RECEIVER);
+            // Now fall back to checking BroadcastReceiver
+
+            if (1 == receiverResolveInfos.size()) {
+                final ResolveInfo receiverResolveInfo = receiverResolveInfos.get(0);
+                if (!isComponentEnabled(receiverResolveInfo)) {
+                    errors.add(PluginErrorRegister.RECEIVER_NOT_ENABLED);
+                }
+
+                if (!isComponentExported(receiverResolveInfo)) {
+                    errors.add(PluginErrorRegister.RECEIVER_NOT_EXPORTED);
+                }
+
+                if (!isComponentPermissionGranted(context, receiverResolveInfo)) {
+                    errors.add(PluginErrorRegister.RECEIVER_REQUIRES_PERMISSION);
+                }
+            } else if (2 >= receiverResolveInfos.size()) {
+                errors.add(PluginErrorRegister.RECEIVER_DUPLICATE);
+            } else {
+                errors.add(PluginErrorRegister.MISSING_COMPONENT);
+            }
         }
 
         return errors;

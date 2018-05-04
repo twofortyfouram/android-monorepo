@@ -22,7 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RestrictTo;
 import android.support.annotation.VisibleForTesting;
 
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.sdk.host.model.ThirdPartyPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 
@@ -37,7 +37,8 @@ public final class PluginInstanceDataFixture {
     public static final PluginType DEFAULT_TYPE = PluginType.SETTING;
 
     @NonNull
-    public static final String DEFAULT_REGISTRY_NAME = Plugin.generateRegistryName("foo", "bar");
+    public static final String DEFAULT_REGISTRY_NAME = ThirdPartyPlugin
+            .generateRegistryName("foo", "bar");
 
     @NonNull
     public static final String DEFAULT_BLURB = "Thanks Obama"; //$NON-NLS-1$

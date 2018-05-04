@@ -34,7 +34,7 @@ import android.support.test.filters.Suppress;
 import android.support.test.runner.AndroidJUnit4;
 import android.text.format.DateUtils;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.HandlerThreadFactory;
 import com.twofortyfouram.spackle.HandlerThreadFactory.ThreadPriority;
@@ -69,7 +69,7 @@ public final class AbstractPluginSettingReceiverTest {
     @Test
     public void no_bundle() {
         final Intent intent = getDefaultIntent();
-        intent.removeExtra(LocalePluginIntent.EXTRA_BUNDLE);
+        intent.removeExtra(LocalePluginIntentV1.EXTRA_BUNDLE);
 
         final PluginSettingReceiverImpl receiver = new PluginSettingReceiverImpl(false);
         receiver.onReceive(getContext(), intent);
@@ -108,7 +108,7 @@ public final class AbstractPluginSettingReceiverTest {
     @Test
     public void null_json() {
         final Intent intent = getDefaultIntent();
-        intent.getBundleExtra(LocalePluginIntent.EXTRA_BUNDLE).clear();
+        intent.getBundleExtra(LocalePluginIntentV1.EXTRA_BUNDLE).clear();
 
         final PluginSettingReceiverImpl receiver = new PluginSettingReceiverImpl(false);
         receiver.onReceive(getContext(), intent);
@@ -137,18 +137,18 @@ public final class AbstractPluginSettingReceiverTest {
         final Intent intent = getDefaultIntent();
 
         assertOrderedBroadcast(intent, Activity.RESULT_CANCELED, Activity.RESULT_OK, true, 1,
-                intent.getBundleExtra(LocalePluginIntent.EXTRA_BUNDLE));
+                intent.getBundleExtra(LocalePluginIntentV1.EXTRA_BUNDLE));
     }
 
     @NonNull
     private Intent getDefaultIntent() {
         final Bundle bundle = new Bundle();
-        bundle.putString(LocalePluginIntent.EXTRA_STRING_JSON, new JSONObject().toString());
+        bundle.putString(LocalePluginIntentV1.EXTRA_STRING_JSON, new JSONObject().toString());
 
         final Intent intent = new Intent();
         intent.setPackage(getContext().getPackageName());
-        intent.setAction(LocalePluginIntent.ACTION_FIRE_SETTING);
-        intent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundle);
+        intent.setAction(LocalePluginIntentV1.ACTION_FIRE_SETTING);
+        intent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, bundle);
 
         return intent;
     }
@@ -173,7 +173,7 @@ public final class AbstractPluginSettingReceiverTest {
         final PluginSettingReceiverImpl receiverImpl = new PluginSettingReceiverImpl(isAsync);
 
         final IntentFilter filter = new IntentFilter(
-                LocalePluginIntent.ACTION_FIRE_SETTING);
+                LocalePluginIntentV1.ACTION_FIRE_SETTING);
         filter.addAction(ALTERNATIVE_ACTION_FOR_TEST);
 
         InstrumentationRegistry.getContext().registerReceiver(receiverImpl, filter);

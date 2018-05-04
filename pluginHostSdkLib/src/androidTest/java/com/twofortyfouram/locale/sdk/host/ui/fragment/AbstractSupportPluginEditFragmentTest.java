@@ -25,7 +25,7 @@ import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.assertion.BundleAssertions;
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.sdk.host.model.ThirdPartyPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.locale.sdk.host.test.fixture.PluginFixture;
 
@@ -56,7 +56,7 @@ public final class AbstractSupportPluginEditFragmentTest {
     @SmallTest
     @Test
     public void newArgs_with_previous_values() {
-        final Plugin plugin = PluginFixture.newDefaultPlugin();
+        final ThirdPartyPlugin plugin = PluginFixture.newDefaultPlugin();
         final PluginInstanceData pluginInstanceData = new PluginInstanceData(plugin.getType(),
                 plugin.getRegistryName(), new Bundle(),
                 "foo");  //$NON-NLS-1$

@@ -21,8 +21,8 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.twofortyfouram.locale.annotation.ConditionResult;
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.annotation.ConditionResult;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 import com.twofortyfouram.spackle.AppBuildInfo;
 
 import net.jcip.annotations.ThreadSafe;
@@ -34,7 +34,7 @@ import static com.twofortyfouram.assertion.Assertions.assertInRangeInclusive;
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
 /**
- * Class for managing the {@link LocalePluginIntent#EXTRA_BUNDLE} for this
+ * Class for managing the {@link LocalePluginIntentV1#EXTRA_BUNDLE} for this
  * plug-in.
  */
 @ThreadSafe
@@ -46,9 +46,9 @@ public final class PluginJsonValues {
      * An extra that contains the result code that the test plug-in condition should return when
      * queried.
      *
-     * @see LocalePluginIntent#RESULT_CONDITION_SATISFIED
-     * @see LocalePluginIntent#RESULT_CONDITION_UNSATISFIED
-     * @see LocalePluginIntent#RESULT_CONDITION_UNKNOWN
+     * @see LocalePluginIntentV1#RESULT_CONDITION_SATISFIED
+     * @see LocalePluginIntentV1#RESULT_CONDITION_UNSATISFIED
+     * @see LocalePluginIntentV1#RESULT_CONDITION_UNKNOWN
      */
     private static final String INT_RESULT_CODE = "result_code"; //$NON-NLS-1$
 
@@ -120,8 +120,8 @@ public final class PluginJsonValues {
     public static JSONObject generateJson(@NonNull final Context context, final int resultCode) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertInRangeInclusive(resultCode,
-                LocalePluginIntent.RESULT_CONDITION_SATISFIED,
-                LocalePluginIntent.RESULT_CONDITION_UNKNOWN,
+                LocalePluginIntentV1.RESULT_CONDITION_SATISFIED,
+                LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN,
                 "resultCode"); //$NON-NLS-1$
 
         final JSONObject json = new JSONObject();

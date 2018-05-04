@@ -29,7 +29,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.assertion.Assertions;
 import com.twofortyfouram.assertion.BundleAssertions;
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 import com.twofortyfouram.locale.sdk.client.test.condition.ui.activity.PluginJsonValues;
 import com.twofortyfouram.spackle.bundle.BundleComparer;
 import com.twofortyfouram.test.espresso.UiTestPrerequesites;
@@ -54,7 +54,7 @@ import static junit.framework.Assert.assertTrue;
  * easier.
  */
 @RunWith(AndroidJUnit4.class)
-public abstract class AbstractPluginActivityImplTest<T extends Activity & IPluginActivity> extends
+public abstract class AbstractPluginActivityImplTest<T extends Activity & PluginActivity> extends
         UiTestPrerequesites{
 
     @NonNull
@@ -156,8 +156,8 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
         final Bundle bundle = generateBundle(getContext(), "some_old_test_value");  //$NON-NLS-1$
 
         final Intent activityIntent = getDefaultStartIntent(PluginType.CONDITION);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundle);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, bundle);
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_STRING_BLURB,
                 "Some old blurb"); //$NON-NLS-1$
 
         final T activity = mActivity.launchActivity(activityIntent);
@@ -192,8 +192,8 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
         final Bundle bundle = generateBundle(getContext(), "some_old_test_value");  //$NON-NLS-1$
 
         final Intent activityIntent = getDefaultStartIntent(PluginType.CONDITION);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundle);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, bundle);
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_STRING_BLURB,
                 "Some old blurb"); //$NON-NLS-1$
 
         final T activity = mActivity.launchActivity(activityIntent);
@@ -228,8 +228,8 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
         final Bundle bundle = generateBundle(getContext(), "some_old_test_value");  //$NON-NLS-1$
 
         final Intent activityIntent = getDefaultStartIntent(PluginType.CONDITION);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundle);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, bundle);
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_STRING_BLURB,
                 "Some old blurb"); //$NON-NLS-1$
 
         final T activity = mActivity.launchActivity(activityIntent);
@@ -261,8 +261,8 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
         final Bundle bundle = generateBundle(getContext(), "some_old_test_value");  //$NON-NLS-1$
 
         final Intent activityIntent = getDefaultStartIntent(PluginType.SETTING);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundle);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, bundle);
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_STRING_BLURB,
                 "Some old blurb"); //$NON-NLS-1$
 
         final T activity = mActivity.launchActivity(activityIntent);
@@ -298,8 +298,8 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
         final Bundle bundle = generateBundle(getContext(), "some_old_test_value");  //$NON-NLS-1$
 
         final Intent activityIntent = getDefaultStartIntent(PluginType.SETTING);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundle);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, bundle);
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_STRING_BLURB,
                 "Some old blurb"); //$NON-NLS-1$
 
         final T activity = mActivity.launchActivity(activityIntent);
@@ -335,8 +335,8 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
         final Bundle bundle = generateBundle(getContext(), "some_old_test_value");  //$NON-NLS-1$
 
         final Intent activityIntent = getDefaultStartIntent(PluginType.SETTING);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundle);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, bundle);
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_STRING_BLURB,
                 "Some old blurb"); //$NON-NLS-1$
 
         final T activity = mActivity.launchActivity(activityIntent);
@@ -368,8 +368,8 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
         final Bundle bundle = generateBundle(getContext(), "some_old_test_value");  //$NON-NLS-1$
 
         final Intent activityIntent = getDefaultStartIntent(PluginType.CONDITION);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundle);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, bundle);
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_STRING_BLURB,
                 "Some old blurb"); //$NON-NLS-1$
 
         final T activity = mActivity.launchActivity(activityIntent);
@@ -399,8 +399,8 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
         final Bundle bundle = generateBundle(getContext(), "some_old_test_value");  //$NON-NLS-1$
 
         final Intent activityIntent = getDefaultStartIntent(PluginType.SETTING);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundle);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, bundle);
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_STRING_BLURB,
                 "Some old blurb"); //$NON-NLS-1$
 
         final T activity = mActivity.launchActivity(activityIntent);
@@ -432,8 +432,8 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
         json.put("extra_key", "extra_value");
 
         final Intent activityIntent = getDefaultStartIntent(PluginType.CONDITION);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundleFromJson(json));
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, bundleFromJson(json));
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_STRING_BLURB,
                 "Some old blurb"); //$NON-NLS-1$
 
         final T activity = mActivity.launchActivity(activityIntent);
@@ -457,8 +457,8 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
         json.put("extra_key", "extra_value");
 
         final Intent activityIntent = getDefaultStartIntent(PluginType.SETTING);
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_BUNDLE, bundleFromJson(json));
-        activityIntent.putExtra(LocalePluginIntent.EXTRA_STRING_BLURB,
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_BUNDLE, bundleFromJson(json));
+        activityIntent.putExtra(LocalePluginIntentV1.EXTRA_STRING_BLURB,
                 "Some old blurb"); //$NON-NLS-1$
 
         final T activity = mActivity.launchActivity(activityIntent);
@@ -501,10 +501,10 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
             BundleAssertions.assertKeyCount(extras, 2);
 
             BundleAssertions.assertHasString(extras,
-                    LocalePluginIntent.EXTRA_STRING_BLURB, blurb);
+                    LocalePluginIntentV1.EXTRA_STRING_BLURB, blurb);
 
             final Bundle pluginBundle = extras
-                    .getBundle(LocalePluginIntent.EXTRA_BUNDLE);
+                    .getBundle(LocalePluginIntentV1.EXTRA_BUNDLE);
             assertTrue(BundleComparer.areBundlesEqual(bundle, pluginBundle));
         } else if (Activity.RESULT_CANCELED == resultCode) {
             assertNull(mActivity.getActivityResult().getResultData());
@@ -542,7 +542,7 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
      * @param type Plug-in type.
      * @return The default Intent to start the plug-in Activity. The Intent will
      * contain
-     * {@link LocalePluginIntent#EXTRA_STRING_BREADCRUMB}
+     * {@link LocalePluginIntentV1#EXTRA_STRING_BREADCRUMB}
      * .
      */
     @NonNull
@@ -550,7 +550,7 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
         Assertions.assertNotNull(type, "type"); //$NON-NLS-1$
         final Intent i = new Intent(type.getActivityIntentAction());
 
-        i.putExtra(LocalePluginIntent.EXTRA_STRING_BREADCRUMB,
+        i.putExtra(LocalePluginIntentV1.EXTRA_STRING_BREADCRUMB,
                 "Edit Situation"); //$NON-NLS-1$
 
         return i;
@@ -560,7 +560,7 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
     private static Bundle generateBundle(@NonNull final Context context,
             @NonNull final String value) {
         final Bundle result = new Bundle();
-        result.putString(LocalePluginIntent.EXTRA_STRING_JSON,
+        result.putString(LocalePluginIntentV1.EXTRA_STRING_JSON,
                 PluginJsonValues.generateJson(context, value).toString());
 
         return result;
@@ -569,7 +569,7 @@ public abstract class AbstractPluginActivityImplTest<T extends Activity & IPlugi
     @NonNull
     private static Bundle bundleFromJson(@NonNull final JSONObject object) {
         final Bundle result = new Bundle();
-        result.putString(LocalePluginIntent.EXTRA_STRING_JSON,
+        result.putString(LocalePluginIntentV1.EXTRA_STRING_JSON,
                 object.toString());
 
         return result;

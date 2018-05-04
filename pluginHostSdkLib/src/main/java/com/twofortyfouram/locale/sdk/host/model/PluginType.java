@@ -19,7 +19,7 @@ package com.twofortyfouram.locale.sdk.host.model;
 
 import android.support.annotation.NonNull;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -34,36 +34,36 @@ public enum PluginType {
     /**
      * A plug-in condition.
      *
-     * @see LocalePluginIntent#ACTION_EDIT_CONDITION
-     * @see LocalePluginIntent#ACTION_QUERY_CONDITION
+     * @see LocalePluginIntentV1#ACTION_EDIT_CONDITION
+     * @see LocalePluginIntentV1#ACTION_QUERY_CONDITION
      */
     @NonNull
-    CONDITION(LocalePluginIntent.ACTION_EDIT_CONDITION,
-            LocalePluginIntent.ACTION_QUERY_CONDITION),
+    CONDITION(LocalePluginIntentV1.ACTION_EDIT_CONDITION,
+            LocalePluginIntentV1.ACTION_QUERY_CONDITION),
 
     /**
      * A plug-in setting.
      *
-     * @see LocalePluginIntent#ACTION_EDIT_SETTING
-     * @see LocalePluginIntent#ACTION_FIRE_SETTING
+     * @see LocalePluginIntentV1#ACTION_EDIT_SETTING
+     * @see LocalePluginIntentV1#ACTION_FIRE_SETTING
      */
     @NonNull
-    SETTING(LocalePluginIntent.ACTION_EDIT_SETTING,
-            LocalePluginIntent.ACTION_FIRE_SETTING);
+    SETTING(LocalePluginIntentV1.ACTION_EDIT_SETTING,
+            LocalePluginIntentV1.ACTION_FIRE_SETTING);
 
     @NonNull
     private final String mActivityIntentAction;
 
     @NonNull
-    private final String mReceiverIntentAction;
+    private final String mComponentIntentAction;
 
     PluginType(@NonNull final String activityIntentAction,
-            @NonNull final String receiverIntentAction) {
+            @NonNull final String componentIntentAction) {
         assertNotEmpty(activityIntentAction, "activityIntentAction"); //$NON-NLS-1$
-        assertNotEmpty(receiverIntentAction, "receiverIntentAction"); //$NON-NLS-1$
+        assertNotEmpty(componentIntentAction, "componentIntentAction"); //$NON-NLS-1$
 
         mActivityIntentAction = activityIntentAction;
-        mReceiverIntentAction = receiverIntentAction;
+        mComponentIntentAction = componentIntentAction;
     }
 
     /**
@@ -75,10 +75,10 @@ public enum PluginType {
     }
 
     /**
-     * @return The BroadcastReceiver Intent action for the plug-in type.
+     * @return The component Intent action for the plug-in type.
      */
     @NonNull
-    public String getReceiverIntentAction() {
-        return mReceiverIntentAction;
+    public String getComponentIntentAction() {
+        return mComponentIntentAction;
     }
 }

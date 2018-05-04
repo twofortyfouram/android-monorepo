@@ -15,19 +15,19 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.locale.api;
+package com.twofortyfouram.locale.api.v1;
 
 
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
-
 import net.jcip.annotations.ThreadSafe;
 
 /**
- * Contains Intent constants necessary for interacting with the plug-in API for Locale.
+ * Contains Intent constants necessary for interacting with the plug-in API for Locale 1.0.  This API is deprecated,
+ * although hosts and plug-ins are expected to implement it for a period of time for backwards compatibility.
  */
 @ThreadSafe
-public final class LocalePluginIntent {
+public final class LocalePluginIntentV1 {
 
     /**
      * <p>{@code Intent} action sent by the host to create or
@@ -47,8 +47,8 @@ public final class LocalePluginIntent {
      * "plug-in" is being queried. To avoid user confusion, it is recommended
      * that only a single plug-in be implemented per APK.</p>
      *
-     * @see LocalePluginIntent#EXTRA_BUNDLE
-     * @see LocalePluginIntent#EXTRA_STRING_BREADCRUMB
+     * @see #EXTRA_BUNDLE
+     * @see #EXTRA_STRING_BREADCRUMB
      */
     @NonNull
     public static final String ACTION_EDIT_CONDITION
@@ -73,10 +73,10 @@ public final class LocalePluginIntent {
      * an Intent-filter for this action.
      * </p>
      *
-     * @see LocalePluginIntent#EXTRA_BUNDLE
-     * @see LocalePluginIntent#RESULT_CONDITION_SATISFIED
-     * @see LocalePluginIntent#RESULT_CONDITION_UNSATISFIED
-     * @see LocalePluginIntent#RESULT_CONDITION_UNKNOWN
+     * @see #EXTRA_BUNDLE
+     * @see #RESULT_CONDITION_SATISFIED
+     * @see #RESULT_CONDITION_UNSATISFIED
+     * @see #RESULT_CONDITION_UNKNOWN
      */
     @NonNull
     public static final String ACTION_QUERY_CONDITION
@@ -86,7 +86,7 @@ public final class LocalePluginIntent {
      * <p>
      * {@code Intent} action sent by the host to create or
      * edit a plug-in setting. When the host sends this {@code Intent}, it
-     * will be sent explicit (i.e. sent directly to the package and class of the plug-in's
+     * will be explicit (i.e. sent directly to the package and class of the plug-in's
      * {@code Activity}).</p>
      * <p>The {@code Intent} MAY contain a {@link #EXTRA_BUNDLE} and {@link
      * #EXTRA_STRING_BLURB}
@@ -104,8 +104,8 @@ public final class LocalePluginIntent {
      * only a single plug-in be implemented per APK.
      * </p>
      *
-     * @see LocalePluginIntent#EXTRA_BUNDLE
-     * @see LocalePluginIntent#EXTRA_STRING_BREADCRUMB
+     * @see #EXTRA_BUNDLE
+     * @see #EXTRA_STRING_BREADCRUMB
      */
     @NonNull
     public static final String ACTION_EDIT_SETTING
@@ -124,7 +124,7 @@ public final class LocalePluginIntent {
      * There MUST be only one {@code BroadcastReceiver} per APK that implements
      * an Intent-filter for this action.
      *
-     * @see LocalePluginIntent#EXTRA_BUNDLE
+     * @see #EXTRA_BUNDLE
      */
     @NonNull
     public static final String ACTION_FIRE_SETTING
@@ -157,7 +157,7 @@ public final class LocalePluginIntent {
      * Hosts MAY throttle plug-ins that request queries too frequently.
      * </p>
      *
-     * @see LocalePluginIntent#EXTRA_STRING_ACTIVITY_CLASS_NAME
+     * @see #EXTRA_STRING_ACTIVITY_CLASS_NAME
      */
     @NonNull
     public static final String ACTION_REQUEST_QUERY
@@ -246,8 +246,9 @@ public final class LocalePluginIntent {
      * @see #EXTRA_BUNDLE
      */
     @NonNull
-    public static final String EXTRA_STRING_JSON = "com.twofortyfouram.locale.intent.extra.STRING_JSON";
-            //$NON-NLS
+    public static final String EXTRA_STRING_JSON
+            = "com.twofortyfouram.locale.intent.extra.STRING_JSON";
+    //$NON-NLS
 
     /**
      * <p>
@@ -258,7 +259,7 @@ public final class LocalePluginIntent {
      * {@code Activity}.
      * </p>
      *
-     * @see LocalePluginIntent#ACTION_REQUEST_QUERY
+     * @see #ACTION_REQUEST_QUERY
      */
     @NonNull
     public static final String EXTRA_STRING_ACTIVITY_CLASS_NAME
@@ -269,7 +270,7 @@ public final class LocalePluginIntent {
      * Ordered broadcast result code indicating that a plug-in condition's state
      * is satisfied (true).
      *
-     * @see LocalePluginIntent#ACTION_QUERY_CONDITION
+     * @see #ACTION_QUERY_CONDITION
      */
     public static final int RESULT_CONDITION_SATISFIED = 16;
 
@@ -277,7 +278,7 @@ public final class LocalePluginIntent {
      * Ordered broadcast result code indicating that a plug-in condition's state
      * is not satisfied (false).
      *
-     * @see LocalePluginIntent#ACTION_QUERY_CONDITION
+     * @see #ACTION_QUERY_CONDITION
      */
     public static final int RESULT_CONDITION_UNSATISFIED = 17;
 
@@ -304,7 +305,7 @@ public final class LocalePluginIntent {
      * {@link #RESULT_CONDITION_UNSATISFIED}.
      * </p>
      *
-     * @see LocalePluginIntent#ACTION_QUERY_CONDITION
+     * @see #ACTION_QUERY_CONDITION
      */
     public static final int RESULT_CONDITION_UNKNOWN = 18;
 
@@ -314,7 +315,7 @@ public final class LocalePluginIntent {
      * @throws UnsupportedOperationException because this class cannot be
      *                                       instantiated.
      */
-    private LocalePluginIntent() {
+    private LocalePluginIntentV1() {
         throw new UnsupportedOperationException("This class is non-instantiable"); //$NON-NLS-1$
     }
 }

@@ -22,7 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 import com.twofortyfouram.spackle.AppBuildInfo;
 
 import net.jcip.annotations.ThreadSafe;
@@ -34,7 +34,7 @@ import static com.twofortyfouram.assertion.Assertions.assertNotEmpty;
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
 /**
- * Class for managing the {@link LocalePluginIntent#EXTRA_STRING_JSON} for this
+ * Class for managing the {@link LocalePluginIntentV1#EXTRA_STRING_JSON} for this
  * plug-in.
  */
 @ThreadSafe

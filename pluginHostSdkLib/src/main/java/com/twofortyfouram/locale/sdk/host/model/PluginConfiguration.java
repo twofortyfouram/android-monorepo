@@ -21,7 +21,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 
 import net.jcip.annotations.Immutable;
 
@@ -129,10 +129,10 @@ public final class PluginConfiguration implements Parcelable {
      * beta version of the plug-in API for Locale released in January 2009 was
      * slightly different from the final version of the API released in December
      * 2009. Prior to Locale 1.0,
-     * {@link LocalePluginIntent#EXTRA_BUNDLE} didn't exist and
+     * {@link LocalePluginIntentV1#EXTRA_BUNDLE} didn't exist and
      * plug-ins stored and retrieved their extras directly from the
-     * {@link LocalePluginIntent#ACTION_EDIT_SETTING} or
-     * {@link LocalePluginIntent#ACTION_FIRE_SETTING} Intents.
+     * {@link LocalePluginIntentV1#ACTION_EDIT_SETTING} or
+     * {@link LocalePluginIntentV1#ACTION_FIRE_SETTING} Intents.
      * Although this backwards compatibility should only apply to Setting plug-ins
      * (since Conditions weren't supported until the API was finalized in Locale
      * 1.0), some plug-in developers copy-pasted their setting implementations to
@@ -232,7 +232,7 @@ public final class PluginConfiguration implements Parcelable {
      * candidate for blacklisting.</li>
      * <li>A plug-in that contains serious security flaws is a candidate for blacklisting.  One
      * example would be a plug-in that stores unencrypted login
-     * credentials in {@link LocalePluginIntent#EXTRA_BUNDLE}.  Plug-ins are
+     * credentials in {@link LocalePluginIntentV1#EXTRA_BUNDLE}.  Plug-ins are
      * required to store such credentials in their own app private storage, rather than in the
      * Bundle.  Another example would be a plug-in that logs credentials to logcat.</li>
      * <li>A plug-in that can cost the user a large amount of money is a candidate for

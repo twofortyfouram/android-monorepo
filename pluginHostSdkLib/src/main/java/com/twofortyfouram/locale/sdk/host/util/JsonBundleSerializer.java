@@ -21,7 +21,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 
 import com.twofortyfouram.assertion.BundleAssertions;
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 import com.twofortyfouram.log.Lumberjack;
 
 import net.jcip.annotations.ThreadSafe;
@@ -38,7 +38,7 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 public final class JsonBundleSerializer implements BundleSerializer<JSONObject> {
 
     /**
-     * @return True if {@code bundle} contains exactly one extra, {@link LocalePluginIntent#EXTRA_STRING_JSON},
+     * @return True if {@code bundle} contains exactly one extra, {@link LocalePluginIntentV1#EXTRA_STRING_JSON},
      * and
      * that extra can be serialized as a JSON Object.
      */
@@ -50,12 +50,12 @@ public final class JsonBundleSerializer implements BundleSerializer<JSONObject> 
         }
 
         try {
-            BundleAssertions.assertHasString(bundle, LocalePluginIntent.EXTRA_STRING_JSON, false, false);
+            BundleAssertions.assertHasString(bundle, LocalePluginIntentV1.EXTRA_STRING_JSON, false, false);
         } catch (final AssertionError e) {
             return false;
         }
 
-        final String extra = bundle.getString(LocalePluginIntent.EXTRA_STRING_JSON);
+        final String extra = bundle.getString(LocalePluginIntentV1.EXTRA_STRING_JSON);
 
         try {
             new JSONObject(extra);
@@ -67,19 +67,19 @@ public final class JsonBundleSerializer implements BundleSerializer<JSONObject> 
     }
 
     /**
-     * @param bundle Contains {@link LocalePluginIntent#EXTRA_STRING_JSON}.
-     * @return {@link LocalePluginIntent#EXTRA_STRING_JSON}.
+     * @param bundle Contains {@link LocalePluginIntentV1#EXTRA_STRING_JSON}.
+     * @return {@link LocalePluginIntentV1#EXTRA_STRING_JSON}.
      */
     @NonNull
     @Override
     public JSONObject serialize(@NonNull final Bundle bundle) throws BundleSerializationException {
         assertNotNull(bundle, "bundle"); //$NON-NLS
 
-        final String result = bundle.getString(LocalePluginIntent.EXTRA_STRING_JSON, null);
+        final String result = bundle.getString(LocalePluginIntentV1.EXTRA_STRING_JSON, null);
 
         if (null == result) {
             throw new BundleSerializationException(Lumberjack
-                    .formatMessage("bundle does not contain extra %s", LocalePluginIntent.EXTRA_STRING_JSON));
+                    .formatMessage("bundle does not contain extra %s", LocalePluginIntentV1.EXTRA_STRING_JSON));
         }
 
         try {
@@ -91,7 +91,7 @@ public final class JsonBundleSerializer implements BundleSerializer<JSONObject> 
 
     /**
      * @param json Result previously returned by {@link #serialize(Bundle)}.
-     * @return A new {@code Bundle} containing {@code json} in {@link LocalePluginIntent#EXTRA_STRING_JSON}.
+     * @return A new {@code Bundle} containing {@code json} in {@link LocalePluginIntentV1#EXTRA_STRING_JSON}.
      */
     @NonNull
     @Override
@@ -99,7 +99,7 @@ public final class JsonBundleSerializer implements BundleSerializer<JSONObject> 
         assertNotNull(json, "json"); //$NON-NLS
 
         final Bundle bundle = new Bundle();
-        bundle.putString(LocalePluginIntent.EXTRA_STRING_JSON, json.toString());
+        bundle.putString(LocalePluginIntentV1.EXTRA_STRING_JSON, json.toString());
 
         return bundle;
     }

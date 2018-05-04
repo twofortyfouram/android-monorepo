@@ -27,7 +27,7 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
  * Possible errors that may occur during the execute phase of interacting with plug-ins.
  */
 @ThreadSafe
-public enum PluginErrorExecute implements IPluginError {
+public enum PluginErrorExecute implements PluginError {
 
     @NonNull
     CONDITION_RESULT_CODE_BAD(

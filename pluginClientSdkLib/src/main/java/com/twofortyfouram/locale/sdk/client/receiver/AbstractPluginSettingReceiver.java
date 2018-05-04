@@ -28,7 +28,7 @@ import android.support.annotation.AnyThread;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.AndroidSdkVersion;
 import com.twofortyfouram.spackle.bundle.BundleScrubber;
@@ -48,7 +48,7 @@ import org.json.JSONObject;
  * returns
  * immediately.  If the Intent appears to be valid, then the lifecycle continues.</li>
  * <li>{@link #isJsonValid(JSONObject)} is called to determine whether {@link
- * LocalePluginIntent#EXTRA_BUNDLE EXTRA_BUNDLE} is valid. If the Bundle is
+ * LocalePluginIntentV1#EXTRA_BUNDLE EXTRA_BUNDLE} is valid. If the Bundle is
  * invalid, then the
  * receiver returns immediately.  If the bundle is valid, then the lifecycle continues.</li>
  * <li>{@link #isAsync()} is called to determine whether the remaining work should be performed on
@@ -60,7 +60,7 @@ import org.json.JSONObject;
  * <p>
  * Implementations of this BroadcastReceiver must be registered in the Android
  * Manifest with an Intent filter for
- * {@link LocalePluginIntent#ACTION_FIRE_SETTING ACTION_FIRE_SETTING}. The
+ * {@link LocalePluginIntentV1#ACTION_FIRE_SETTING ACTION_FIRE_SETTING}. The
  * BroadcastReceiver must be exported, enabled, and cannot have permissions
  * enforced on it.
  * </p>
@@ -85,10 +85,10 @@ public abstract class AbstractPluginSettingReceiver extends AbstractAsyncReceive
          * plug-in setting finishes.
          */
 
-        if (!LocalePluginIntent.ACTION_FIRE_SETTING.equals(intent.getAction())) {
+        if (!LocalePluginIntentV1.ACTION_FIRE_SETTING.equals(intent.getAction())) {
             Lumberjack
                     .e("Intent action is not %s",
-                            LocalePluginIntent.ACTION_FIRE_SETTING); //$NON-NLS-1$
+                            LocalePluginIntentV1.ACTION_FIRE_SETTING); //$NON-NLS-1$
             return;
         }
 
@@ -108,23 +108,23 @@ public abstract class AbstractPluginSettingReceiver extends AbstractAsyncReceive
         }
 
         final Bundle bundle = intent
-                .getBundleExtra(LocalePluginIntent.EXTRA_BUNDLE);
+                .getBundleExtra(LocalePluginIntentV1.EXTRA_BUNDLE);
         if (BundleScrubber.scrub(intent)) {
             return;
         }
 
         if (null == bundle) {
             Lumberjack.e("%s is missing",
-                    LocalePluginIntent.EXTRA_BUNDLE); //$NON-NLS-1$
+                    LocalePluginIntentV1.EXTRA_BUNDLE); //$NON-NLS-1$
             return;
         }
 
         final JSONObject jsonObject;
         {
-            final String jsonString = bundle.getString(LocalePluginIntent.EXTRA_STRING_JSON);
+            final String jsonString = bundle.getString(LocalePluginIntentV1.EXTRA_STRING_JSON);
 
             if (null == jsonString) {
-                Lumberjack.v("%s is missing", LocalePluginIntent.EXTRA_STRING_JSON); //$NON-NLS
+                Lumberjack.v("%s is missing", LocalePluginIntentV1.EXTRA_STRING_JSON); //$NON-NLS
                 return;
             }
 
@@ -132,15 +132,15 @@ public abstract class AbstractPluginSettingReceiver extends AbstractAsyncReceive
                 jsonObject = new JSONObject(jsonString);
             } catch (final JSONException e) {
                 Lumberjack.e("%s=%s is invalid",
-                        LocalePluginIntent.EXTRA_STRING_JSON, jsonString); //$NON-NLS-1$
+                        LocalePluginIntentV1.EXTRA_STRING_JSON, jsonString); //$NON-NLS-1$
                 return;
             }
         }
 
         if (!isJsonValid(jsonObject)) {
             Lumberjack.e("%s is invalid",
-                    LocalePluginIntent.EXTRA_STRING_JSON); //$NON-NLS-1$
-            setResultCode(LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                    LocalePluginIntentV1.EXTRA_STRING_JSON); //$NON-NLS-1$
+            setResultCode(LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
             return;
         }
 

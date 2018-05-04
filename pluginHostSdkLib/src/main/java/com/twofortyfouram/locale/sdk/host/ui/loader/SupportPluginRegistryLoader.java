@@ -27,7 +27,7 @@ import android.support.annotation.WorkerThread;
 import android.support.v4.content.AsyncTaskLoader;
 
 import com.twofortyfouram.locale.sdk.host.api.PluginRegistry;
-import com.twofortyfouram.locale.sdk.host.model.IPlugin;
+import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.ContextUtil;
@@ -48,7 +48,7 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
  * plug-ins in the UI.
  */
 @NotThreadSafe
-public final class SupportPluginRegistryLoader extends AsyncTaskLoader<Map<String, IPlugin>> {
+public final class SupportPluginRegistryLoader extends AsyncTaskLoader<Map<String, Plugin>> {
 
     /**
      * Plug-in type.
@@ -81,7 +81,7 @@ public final class SupportPluginRegistryLoader extends AsyncTaskLoader<Map<Strin
      * The loaded plug-in map.
      */
     @Nullable
-    private Map<String, IPlugin> mResult = null;
+    private Map<String, Plugin> mResult = null;
 
     /**
      * @param context  {@code Context}.
@@ -102,7 +102,7 @@ public final class SupportPluginRegistryLoader extends AsyncTaskLoader<Map<Strin
 
     @Override
     @WorkerThread
-    public Map<String, IPlugin> loadInBackground() {
+    public Map<String, Plugin> loadInBackground() {
         /*
          * THREADING: This will be called on a background thread
          */
@@ -111,7 +111,7 @@ public final class SupportPluginRegistryLoader extends AsyncTaskLoader<Map<Strin
     }
 
     @Override
-    public void deliverResult(@NonNull final Map<String, IPlugin> result) {
+    public void deliverResult(@NonNull final Map<String, Plugin> result) {
         assertIsMainThread();
 
         // The registry for the other plugin type (e.g. conditions vs settings) could have changed,

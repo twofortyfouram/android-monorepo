@@ -28,8 +28,9 @@ import android.support.test.filters.SdkSuppress;
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.twofortyfouram.locale.api.LocalePluginIntent;
-import com.twofortyfouram.locale.sdk.host.model.Plugin;
+import com.twofortyfouram.locale.api.v1.LocalePluginIntentV1;
+import com.twofortyfouram.locale.sdk.host.model.ComponentType;
+import com.twofortyfouram.locale.sdk.host.model.ThirdPartyPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginInstanceData;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.locale.sdk.host.test.condition.bundle.PluginJsonValues;
@@ -61,10 +62,10 @@ public final class ConditionTest {
     @SmallTest
     @Test
     public void getQueryIntent() throws JSONException {
-        final Plugin plugin = DebugPluginFixture.getDebugPluginCondition();
+        final ThirdPartyPlugin plugin = DebugPluginFixture.getDebugPluginCondition();
         final Bundle bundle = newBundle(PluginJsonValues
                 .generateJson(InstrumentationRegistry.getContext(),
-                        LocalePluginIntent.RESULT_CONDITION_SATISFIED));
+                        LocalePluginIntentV1.RESULT_CONDITION_SATISFIED));
 
         final Intent intent = Condition.newQueryIntent(plugin, bundle);
         assertThat(intent, notNullValue());
@@ -78,10 +79,10 @@ public final class ConditionTest {
         assertThat(intent.getFlags(), is(expectedFlags));
 
         assertThat(intent.getAction(),
-                is(LocalePluginIntent.ACTION_QUERY_CONDITION));
+                is(LocalePluginIntentV1.ACTION_QUERY_CONDITION));
         assertThat(intent.getComponent(), hasMyPackageName());
         assertThat(intent.getComponent(),
-                hasClassName(plugin.getReceiverClassName()));
+                hasClassName(plugin.getComponentIdentifier()));
 
         assertThat(intent.getData(), nullValue());
         if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.JELLY_BEAN)) {
@@ -90,10 +91,10 @@ public final class ConditionTest {
         assertThat(intent.getExtras().size(), is(1));
 
         final Bundle extraBundle = intent
-                .getBundleExtra(LocalePluginIntent.EXTRA_BUNDLE);
+                .getBundleExtra(LocalePluginIntentV1.EXTRA_BUNDLE);
         assertThat(extraBundle, notNullValue());
 
-        final String jsonString = extraBundle.getString(LocalePluginIntent.EXTRA_STRING_JSON);
+        final String jsonString = extraBundle.getString(LocalePluginIntentV1.EXTRA_STRING_JSON);
         assertThat(jsonString, notNullValue());
 
         JSONObject jsonObject = new JSONObject(jsonString);
@@ -107,8 +108,8 @@ public final class ConditionTest {
         final ReceiverContextWrapper context = new ReceiverContextWrapper(
                 InstrumentationRegistry.getContext());
 
-        final Condition condition = new Condition(context, Clock.getInstance(), new Plugin(
-                PluginType.CONDITION, "foo", "bar", "baz",
+        final Condition condition = new Condition(context, Clock.getInstance(), new ThirdPartyPlugin(
+                PluginType.CONDITION, "foo", "bar", ComponentType.BROADCAST_RECEIVER, "baz",
                 1, PluginConfigurationFixture
                 .newPluginConfiguration()
         )); //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
@@ -117,8 +118,8 @@ public final class ConditionTest {
             bundle.putString("test_key", "test_value"); //$NON-NLS-1$//$NON-NLS-2$
 
             assertThat(condition.query(getPluginInstanceData(bundle),
-                    LocalePluginIntent.RESULT_CONDITION_UNKNOWN),
-                    is(LocalePluginIntent.RESULT_CONDITION_UNKNOWN)
+                    LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN),
+                    is(LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN)
 
             );
         } finally {
@@ -142,21 +143,21 @@ public final class ConditionTest {
     @Test
     public void query_satisfied() {
         assertQuerySatisfiedWithState(
-                LocalePluginIntent.RESULT_CONDITION_SATISFIED);
+                LocalePluginIntentV1.RESULT_CONDITION_SATISFIED);
     }
 
     @MediumTest
     @Test
     public void query_unsatisfied() {
         assertQuerySatisfiedWithState(
-                LocalePluginIntent.RESULT_CONDITION_UNSATISFIED);
+                LocalePluginIntentV1.RESULT_CONDITION_UNSATISFIED);
     }
 
     @MediumTest
     @Test
     public void query_unknown() {
         assertQuerySatisfiedWithState(
-                LocalePluginIntent.RESULT_CONDITION_UNKNOWN);
+                LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN);
     }
 
     @MediumTest
@@ -171,8 +172,8 @@ public final class ConditionTest {
                     1); //$NON-NLS-1$
 
             assertThat(condition.query(getPluginInstanceData(bundle),
-                    LocalePluginIntent.RESULT_CONDITION_UNKNOWN),
-                    is(LocalePluginIntent.RESULT_CONDITION_UNKNOWN));
+                    LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN),
+                    is(LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN));
         } finally {
             condition.destroy();
         }
@@ -186,7 +187,7 @@ public final class ConditionTest {
                     .generateJson(InstrumentationRegistry.getContext(), state));
             assertThat(condition
                             .query(getPluginInstanceData(bundle),
-                                    LocalePluginIntent.RESULT_CONDITION_UNKNOWN),
+                                    LocalePluginIntentV1.RESULT_CONDITION_UNKNOWN),
                     is(state));
         } finally {
             condition.destroy();
@@ -201,7 +202,7 @@ public final class ConditionTest {
 
     @NonNull
     private PluginInstanceData getPluginInstanceData(@NonNull final Bundle bundle) {
-        final Plugin debugPlugin = DebugPluginFixture.getDebugPluginCondition();
+        final ThirdPartyPlugin debugPlugin = DebugPluginFixture.getDebugPluginCondition();
 
         return new PluginInstanceData(debugPlugin.getType(), debugPlugin.getRegistryName(),
                 bundle, "");
@@ -210,7 +211,7 @@ public final class ConditionTest {
     @NonNull
     private static Bundle newBundle(@NonNull final JSONObject json) {
         final Bundle bundle = new Bundle();
-        bundle.putString(LocalePluginIntent.EXTRA_STRING_JSON, json.toString());
+        bundle.putString(LocalePluginIntentV1.EXTRA_STRING_JSON, json.toString());
 
         return bundle;
     }

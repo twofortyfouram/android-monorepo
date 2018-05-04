@@ -32,7 +32,7 @@ import android.support.annotation.VisibleForTesting;
 
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.annotation.Slow.Speed;
-import com.twofortyfouram.locale.sdk.host.model.IPlugin;
+import com.twofortyfouram.locale.sdk.host.model.Plugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginType;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.ContextUtil;
@@ -57,7 +57,7 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
  * After the Handler is initialized, the public API to retrieve the loaded map
  * of plug-ins is by calling {@link #getConditions()} and {@link #getSettings()}.
  */
-public final class PluginRegistryHandlerCallback implements Handler.Callback {
+public final class ThirdPartyPluginRegistryHandlerCallback implements Handler.Callback {
     /*
      * Design notes: The helper methods such as init(), onPackageAdded(),
      * onPackageChanged(), and onPackageRemoved() only modify the private
@@ -123,40 +123,40 @@ public final class PluginRegistryHandlerCallback implements Handler.Callback {
     private final String mRegistryReloadedPermission;
 
     /**
-     * Map of the registry name to {@link IPlugin} for all Conditions.
+     * Map of the registry name to {@link Plugin} for all Conditions.
      * <p/>
      * This field is lazily initialized. This map is mutable.
      */
     @Nullable
     @VisibleForTesting
-    /* package */ Map<String, IPlugin> mMutableConditionMap = null;
+    /* package */ Map<String, Plugin> mMutableConditionMap = null;
 
     /**
-     * Map of the registry name to {@link IPlugin} for all Conditions.
+     * Map of the registry name to {@link Plugin} for all Conditions.
      * <p/>
      * This field is lazily initialized. This map is mutable.
      */
     @Nullable
     @VisibleForTesting
-    /* package */ Map<String, IPlugin> mMutableSettingMap = null;
+    /* package */ Map<String, Plugin> mMutableSettingMap = null;
 
     /**
-     * Map of the registry name to {@link IPlugin} for all Conditions.
+     * Map of the registry name to {@link Plugin} for all Conditions.
      * <p/>
      * This field is lazily initialized. Once this field is initialized, it will
      * point to an immutable map (e.g. {@link Collections#unmodifiableMap(Map)}.
      */
     @Nullable
-    private volatile Map<String, IPlugin> mImmutableConditionMap = null;
+    private volatile Map<String, Plugin> mImmutableConditionMap = null;
 
     /**
-     * Map of the registry name to {@link IPlugin} for all Settings.
+     * Map of the registry name to {@link Plugin} for all Settings.
      * <p/>
      * This field is lazily initialized. Once this field is initialized, it will
      * point to an immutable map (e.g. {@link Collections#unmodifiableMap(Map)}.
      */
     @Nullable
-    private volatile Map<String, IPlugin> mImmutableSettingMap = null;
+    private volatile Map<String, Plugin> mImmutableSettingMap = null;
 
     /**
      * Handler thread where the BroadcastReceiver runs.
@@ -179,13 +179,13 @@ public final class PluginRegistryHandlerCallback implements Handler.Callback {
     private BroadcastReceiver mReceiver = null;
 
     /**
-     * Construct a new {@link PluginRegistryHandlerCallback}.
+     * Construct a new {@link ThirdPartyPluginRegistryHandlerCallback}.
      *
      * @param context                Application context.
      * @param notificationAction     Intent action to broadcast when the registry changes.
      * @param notificationPermission Permission to guard {@code notificationAction}.
      */
-    public PluginRegistryHandlerCallback(
+    public ThirdPartyPluginRegistryHandlerCallback(
             @NonNull final Context context,
             @NonNull final String notificationAction,
             @NonNull final String notificationPermission) {
@@ -197,6 +197,8 @@ public final class PluginRegistryHandlerCallback implements Handler.Callback {
 
         mRegistryReloadedIntent = new Intent(notificationAction);
         mRegistryReloadedIntent.setPackage(context.getPackageName());
+        // Nasty workaround for Intent queue flooding.
+        mRegistryReloadedIntent.setFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         mRegistryReloadedPermission = notificationPermission;
     }
 
@@ -413,9 +415,9 @@ public final class PluginRegistryHandlerCallback implements Handler.Callback {
     /* package */PackageResult handlePackageChanged(@NonNull final String packageName) {
         assertNotNull(packageName, "packageName"); //$NON-NLS-1$
 
-        final Map<String, IPlugin> scannedConditions = PluginPackageScanner.loadPluginMap(mContext,
+        final Map<String, Plugin> scannedConditions = PluginPackageScanner.loadPluginMap(mContext,
                 PluginType.CONDITION, packageName);
-        final Map<String, IPlugin> scannedSettings = PluginPackageScanner.loadPluginMap(mContext,
+        final Map<String, Plugin> scannedSettings = PluginPackageScanner.loadPluginMap(mContext,
                 PluginType.SETTING, packageName);
 
         boolean conditionsChanged = isPluginRemoved(PluginType.CONDITION, packageName,
@@ -434,7 +436,7 @@ public final class PluginRegistryHandlerCallback implements Handler.Callback {
          * upgraded. It is not necessary to relaunch settings, because they do
          * not typically have alarms or services that need to be restarted.
          */
-        for (final IPlugin newCondition : scannedConditions.values()) {
+        for (final Plugin newCondition : scannedConditions.values()) {
             if (mImmutableConditionMap.containsKey(newCondition
                     .getRegistryName())) {
                 final int oldConditionVersion = mImmutableConditionMap
@@ -465,11 +467,11 @@ public final class PluginRegistryHandlerCallback implements Handler.Callback {
      * returns true.
      */
     private boolean isPluginAdded(@NonNull final PluginType type,
-            @NonNull final Map<String, IPlugin> scannedPlugins) {
+            @NonNull final Map<String, Plugin> scannedPlugins) {
         assertNotNull(type, "type"); //$NON-NLS-1$
         assertNotNull(scannedPlugins, "scannedPlugins"); //$NON-NLS-1$
 
-        final Map<String, IPlugin> oldPlugins = getMutablePluginMap(type);
+        final Map<String, Plugin> oldPlugins = getMutablePluginMap(type);
 
         boolean isChanged = false;
         if (!oldPlugins.keySet().containsAll(scannedPlugins.keySet())) {
@@ -494,15 +496,15 @@ public final class PluginRegistryHandlerCallback implements Handler.Callback {
      */
     private boolean isPluginRemoved(@NonNull final PluginType type,
             @NonNull final String packageName,
-            @NonNull final Map<String, IPlugin> scannedPlugins) {
+            @NonNull final Map<String, Plugin> scannedPlugins) {
         assertNotNull(type, "type"); //$NON-NLS-1$
         assertNotNull(scannedPlugins, "scannedPlugins"); //$NON-NLS-1$
 
         boolean isChanged = false;
-        final Iterator<IPlugin> oldPluginsIterator = getMutablePluginMap(type).values()
+        final Iterator<Plugin> oldPluginsIterator = getMutablePluginMap(type).values()
                 .iterator();
         while (oldPluginsIterator.hasNext()) {
-            final IPlugin plugin = oldPluginsIterator.next();
+            final Plugin plugin = oldPluginsIterator.next();
 
             if (packageName.equals(plugin.getPackageName())) {
                 if (!scannedPlugins.containsKey(plugin.getRegistryName())) {
@@ -521,10 +523,10 @@ public final class PluginRegistryHandlerCallback implements Handler.Callback {
 
     @NonNull
     @Size(min = 0)
-    private Map<String, IPlugin> getMutablePluginMap(@NonNull final PluginType type) {
+    private Map<String, Plugin> getMutablePluginMap(@NonNull final PluginType type) {
         assertNotNull(type, "type"); //$NON-NLS-1$
 
-        final Map<String, IPlugin> pluginMap;
+        final Map<String, Plugin> pluginMap;
         switch (type) {
             case CONDITION: {
                 pluginMap = mMutableConditionMap;
@@ -593,7 +595,7 @@ public final class PluginRegistryHandlerCallback implements Handler.Callback {
      */
     @Nullable
     @Size(min = 0)
-    public Map<String, IPlugin> getConditions() {
+    public Map<String, Plugin> getConditions() {
         return mImmutableConditionMap;
     }
 
@@ -605,7 +607,7 @@ public final class PluginRegistryHandlerCallback implements Handler.Callback {
      */
     @Nullable
     @Size(min = 0)
-    public Map<String, IPlugin> getSettings() {
+    public Map<String, Plugin> getSettings() {
         return mImmutableSettingMap;
     }
 
@@ -760,7 +762,7 @@ public final class PluginRegistryHandlerCallback implements Handler.Callback {
     }
 
     /**
-     * Container for obj in {@link PluginRegistryHandlerCallback#MESSAGE_INIT}
+     * Container for obj in {@link ThirdPartyPluginRegistryHandlerCallback#MESSAGE_INIT}
      */
     @Immutable
     public static final class InitObj {
