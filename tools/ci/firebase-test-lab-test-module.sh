@@ -20,7 +20,7 @@
 # 4. Additional Firebase Test Lab arguments, as a quoted string.
 
 # Example usage:
-# ./tools/ci/firebase-test-lab-test-module.sh spackleLib test-lab-5fjjivmbih0ck-i7fd9i4fw50ym "model=NexusLowRes,version=25,orientation=portrait"
+# ./tools/ci/firebase-test-lab-test-module.sh spackleLib asdf "model=NexusLowRes,version=25,orientation=portrait"
 
 set -e
 

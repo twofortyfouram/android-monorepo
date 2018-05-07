@@ -1,0 +1,49 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/code
+    docker:
+      - image: circleci/android:api-27-alpha
+    environment:
+      JVM_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      - restore_cache:
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "gradle.properties" }}-{{ checksum  "gradle/wrapper/gradle-wrapper.properties" }}
+      - run:
+          name: Download Dependencies
+          command: ./gradlew androidDependencies
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "gradle.properties" }}-{{ checksum  "gradle/wrapper/gradle-wrapper.properties" }}
+      - run:
+          name: Run Tests
+          command: ./gradlew assemble lint
+      - store_artifacts:
+          path: annotationLib/build
+          destination: annotationLib/build
+      - store_artifacts:
+          path: assertionLib/build
+          destination: assertionLib/build
+      - store_artifacts:
+          path: mementoApiLib/build
+          destination: mementoApiLib/build
+      - store_artifacts:
+          path: mementoImplLib/build
+          destination: mementoImplLib/build
+      - store_artifacts:
+          path: pluginApiLib/build
+          destination: pluginApiLib/build
+      - store_artifacts:
+          path: pluginClientSdkLib/build
+          destination: pluginClientSdkLib/build
+      - store_artifacts:
+          path: pluginHostSdkLib/build
+          destination: pluginHostSdkLib/build
+      - store_artifacts:
+          path: spackleLib/build
+          destination: spackleLib/build
+      - store_artifacts:
+          path: testLib/build
+          destination: testLib/build

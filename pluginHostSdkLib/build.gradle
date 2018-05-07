@@ -100,7 +100,7 @@ uploadArchives {
     repositories {
         mavenDeployer {
             repository(url: 'https://api.bintray.com/maven/twofortyfouram/maven/android-plugin-host-sdk-for-locale') {
-                authentication(userName: MAVEN_USERNAME, password: MAVEN_PASSWORD)
+                authentication(userName: TWOFORTYFOURAM_MONOREPO_MAVEN_USERNAME, password: TWOFORTYFOURAM_MONOREPO_MAVEN_PASSWORD)
             }
             pom.project {
                 licenses {
