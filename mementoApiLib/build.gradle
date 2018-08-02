@@ -16,6 +16,7 @@
  */
 
 boolean is_dexguard = Boolean.parseBoolean(IS_DEXGUARD_ENABLED)
+boolean is_test_orchestrator = Boolean.parseBoolean(IS_USE_TEST_ORCHESTRATOR)
 
 apply plugin: 'com.android.library'
 apply from: '../scripts.gradle'
@@ -37,13 +38,8 @@ dependencies {
     androidTestImplementation group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
     androidTestImplementation project(':testLib')
 
-    if (Boolean.parseBoolean("${IS_INSTALL_TEST_BUTLER}")) {
-        androidTestUtil group:'com.linkedin.testbutler', name:'test-butler-app', version:"${TEST_BUTLER_VERSION_MATCHER}", ext:'apk'
-    }
-
-    if (Boolean.parseBoolean("${IS_INSTALL_TEST_ORCHESTRATOR}")) {
-        androidTestUtil group:'com.android.support.test', name:'orchestrator', version:"${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}", ext:'apk'
-        androidTestUtil group:'com.android.support.test.services', name:'test-services', version:"${ANDROID_TEST_SERVICES_VERSION_MATCHER}", ext:'apk'
+    if (is_test_orchestrator) {
+        androidTestUtil group:'androidx.test', name:'orchestrator', version:"${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}", ext:'apk'
     }
 }
 
@@ -89,6 +85,9 @@ android {
 
     testOptions {
         animationsDisabled true
+        if (is_test_orchestrator) {
+            execution 'ANDROID_TEST_ORCHESTRATOR'
+        }
     }
 }
 

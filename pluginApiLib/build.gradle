@@ -16,6 +16,7 @@
  */
 
 boolean is_dexguard = Boolean.parseBoolean(IS_DEXGUARD_ENABLED)
+boolean is_test_orchestrator = Boolean.parseBoolean(IS_USE_TEST_ORCHESTRATOR)
 
 apply plugin: 'com.android.library'
 apply plugin: 'findbugs'
@@ -28,6 +29,10 @@ version = LIBRARY_VERSION_NAME
 dependencies {
     implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
     implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+
+    if (is_test_orchestrator) {
+        androidTestUtil group:'androidx.test', name:'orchestrator', version:"${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}", ext:'apk'
+    }
 }
 
 android {
@@ -43,6 +48,9 @@ android {
         if (is_dexguard) {
             // This is additive; it doesn't replace but instead appends the AAR's embedded proguard config
             consumerProguardFiles 'dexguard-consumer.txt'
+        }
+        if (is_test_orchestrator) {
+            testInstrumentationRunnerArguments clearPackageData: 'true'
         }
     }
 
@@ -64,6 +72,9 @@ android {
 
     testOptions {
         animationsDisabled true
+        if (is_test_orchestrator) {
+            execution 'ANDROID_TEST_ORCHESTRATOR'
+        }
     }
 }
 
