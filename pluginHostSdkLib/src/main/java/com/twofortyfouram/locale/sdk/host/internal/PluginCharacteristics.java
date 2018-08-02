@@ -18,7 +18,7 @@
 package com.twofortyfouram.locale.sdk.host.internal;
 
 import android.os.Build;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.twofortyfouram.locale.api.LocalePluginIntent;
 import com.twofortyfouram.locale.sdk.host.model.Plugin;

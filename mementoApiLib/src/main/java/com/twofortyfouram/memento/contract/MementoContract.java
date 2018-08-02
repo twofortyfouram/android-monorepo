@@ -21,8 +21,8 @@ import android.app.SearchManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CancellationSignal;
-import android.support.annotation.IntRange;
-import android.support.annotation.NonNull;
+import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
 
 import net.jcip.annotations.ThreadSafe;
 

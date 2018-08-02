@@ -21,7 +21,7 @@ import android.app.Activity;
 import android.app.Service;
 import android.app.backup.BackupAgent;
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.twofortyfouram.log.Lumberjack;
 

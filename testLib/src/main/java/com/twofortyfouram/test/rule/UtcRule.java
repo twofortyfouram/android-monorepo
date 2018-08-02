@@ -17,7 +17,7 @@
 
 package com.twofortyfouram.test.rule;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import net.jcip.annotations.Immutable;
 

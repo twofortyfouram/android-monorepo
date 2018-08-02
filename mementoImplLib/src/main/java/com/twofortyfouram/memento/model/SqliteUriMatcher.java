@@ -18,7 +18,7 @@
 package com.twofortyfouram.memento.model;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import net.jcip.annotations.ThreadSafe;
 

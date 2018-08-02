@@ -18,9 +18,9 @@
 package com.twofortyfouram.spackle;
 
 import android.os.Build;
-import android.support.test.filters.SdkSuppress;
-import android.support.test.filters.SmallTest;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.filters.SdkSuppress;
+import androidx.test.filters.SmallTest;
+import androidx.test.runner.AndroidJUnit4;
 import android.util.ArrayMap;
 
 import org.junit.Test;

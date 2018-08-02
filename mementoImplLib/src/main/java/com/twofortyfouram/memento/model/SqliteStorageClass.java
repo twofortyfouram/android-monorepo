@@ -17,7 +17,7 @@
 
 package com.twofortyfouram.memento.model;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import net.jcip.annotations.Immutable;
 

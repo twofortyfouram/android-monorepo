@@ -20,8 +20,8 @@ package com.twofortyfouram.locale.sdk.host.util;
 import android.content.res.Resources;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.test.filters.SmallTest;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.filters.SmallTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.spackle.bundle.BundleComparer;
 

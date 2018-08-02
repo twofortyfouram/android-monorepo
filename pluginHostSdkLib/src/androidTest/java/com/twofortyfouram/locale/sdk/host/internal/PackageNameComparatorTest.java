@@ -19,9 +19,9 @@ package com.twofortyfouram.locale.sdk.host.internal;
 
 import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
-import android.support.annotation.NonNull;
-import android.support.test.filters.SmallTest;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.annotation.NonNull;
+import androidx.test.filters.SmallTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;

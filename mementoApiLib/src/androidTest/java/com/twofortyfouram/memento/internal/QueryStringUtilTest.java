@@ -21,8 +21,8 @@ package com.twofortyfouram.memento.internal;
 import android.app.SearchManager;
 import android.content.ContentResolver;
 import android.net.Uri;
-import android.support.test.filters.SmallTest;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.filters.SmallTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.memento.contract.MementoContract;
 

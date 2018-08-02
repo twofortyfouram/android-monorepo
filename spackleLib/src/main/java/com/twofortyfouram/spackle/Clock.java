@@ -17,7 +17,7 @@
 
 package com.twofortyfouram.spackle;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.twofortyfouram.spackle.internal.ClockImpl;
 

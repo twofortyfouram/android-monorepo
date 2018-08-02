@@ -19,8 +19,8 @@ package com.twofortyfouram.memento.internal;
 
 import android.content.UriMatcher;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.RestrictTo;
+import androidx.annotation.NonNull;
+import androidx.annotation.RestrictTo;
 
 import net.jcip.annotations.Immutable;
 

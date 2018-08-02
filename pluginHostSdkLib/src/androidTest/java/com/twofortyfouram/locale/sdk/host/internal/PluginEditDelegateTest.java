@@ -19,11 +19,11 @@ package com.twofortyfouram.locale.sdk.host.internal;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.test.espresso.intent.matcher.ComponentNameMatchers;
-import android.support.test.filters.SmallTest;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.test.espresso.intent.matcher.ComponentNameMatchers;
+import androidx.test.filters.SmallTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.assertion.BundleAssertions;
 import com.twofortyfouram.locale.api.LocalePluginIntent;
@@ -35,7 +35,7 @@ import com.twofortyfouram.locale.sdk.host.test.fixture.PluginFixture;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static android.support.test.espresso.intent.matcher.IntentMatchers.hasAction;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;

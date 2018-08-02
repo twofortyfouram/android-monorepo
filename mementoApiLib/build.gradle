@@ -26,15 +26,15 @@ archivesBaseName = 'android-memento-api'
 version = LIBRARY_VERSION_NAME
 
 dependencies {
-    api group:'android.arch.persistence', name:'db', version:"${ANDROID_ARCHITECTURE_VERSION_MATCHER}"
-    implementation group:'com.android.support', name:'support-annotations', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+    api group:'androidx.sqlite', name:'sqlite', version:"${ANDROID_ARCHITECTURE_VERSION_MATCHER}"
+    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
     implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
     implementation project(':annotationLib')
     implementation project(':assertionLib')
     implementation project(':spackleLib')
 
-    androidTestImplementation group:'android.arch.persistence', name:'db-framework', version:"${ANDROID_ARCHITECTURE_VERSION_MATCHER}"
-    androidTestImplementation group:'com.android.support.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
+    androidTestImplementation group:'androidx.sqlite', name:'sqlite-framework', version:"${ANDROID_ARCHITECTURE_VERSION_MATCHER}"
+    androidTestImplementation group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
     androidTestImplementation project(':testLib')
 
     if (Boolean.parseBoolean("${IS_INSTALL_TEST_BUTLER}")) {
@@ -57,7 +57,7 @@ android {
         targetSdkVersion ANDROID_TARGET_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_TARGET_SDK_VERSION) : ANDROID_TARGET_SDK_VERSION
         versionCode Integer.parseInt(LIBRARY_VERSION_CODE)
         versionName LIBRARY_VERSION_NAME
-        testInstrumentationRunner 'com.twofortyfouram.test.runner.TestButlerRunner'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         consumerProguardFiles 'proguard-consumer.txt'
         if (is_dexguard) {
             // This is additive; it doesn't replace but instead appends the AAR's embedded proguard config

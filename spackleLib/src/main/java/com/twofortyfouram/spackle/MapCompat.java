@@ -19,9 +19,9 @@ package com.twofortyfouram.spackle;
 
 import android.annotation.TargetApi;
 import android.os.Build;
-import android.support.annotation.IntRange;
-import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
+import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import android.util.ArrayMap;
 
 import net.jcip.annotations.ThreadSafe;

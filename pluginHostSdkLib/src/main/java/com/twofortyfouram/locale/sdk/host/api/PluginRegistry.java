@@ -19,10 +19,10 @@ package com.twofortyfouram.locale.sdk.host.api;
 
 
 import android.content.Context;
-import android.support.annotation.AnyThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.Size;
+import androidx.annotation.AnyThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.Size;
 
 import com.twofortyfouram.locale.sdk.host.internal.ThirdPartyPluginRegistry;
 import com.twofortyfouram.locale.sdk.host.model.IPlugin;

@@ -18,7 +18,7 @@
 package com.twofortyfouram.locale.sdk.host.util;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.bundle.BundleKeyComparator;

@@ -17,7 +17,7 @@
 
 package com.twofortyfouram.locale.sdk.host.model;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Common interface for plug-in errors.  An error is a problem that occurs while interacting with

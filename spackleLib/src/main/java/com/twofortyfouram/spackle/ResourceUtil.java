@@ -19,9 +19,9 @@ package com.twofortyfouram.spackle;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.support.annotation.AnyRes;
-import android.support.annotation.ArrayRes;
-import android.support.annotation.NonNull;
+import androidx.annotation.AnyRes;
+import androidx.annotation.ArrayRes;
+import androidx.annotation.NonNull;
 
 import net.jcip.annotations.ThreadSafe;
 

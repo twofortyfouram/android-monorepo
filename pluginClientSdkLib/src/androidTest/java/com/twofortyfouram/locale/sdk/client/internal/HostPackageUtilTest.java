@@ -18,8 +18,8 @@
 package com.twofortyfouram.locale.sdk.client.internal;
 
 import android.content.pm.PackageInfo;
-import android.support.annotation.NonNull;
-import android.support.test.filters.SmallTest;
+import androidx.annotation.NonNull;
+import androidx.test.filters.SmallTest;
 
 import net.jcip.annotations.ThreadSafe;
 

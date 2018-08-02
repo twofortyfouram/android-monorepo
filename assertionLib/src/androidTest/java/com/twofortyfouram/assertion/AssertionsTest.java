@@ -20,8 +20,8 @@ package com.twofortyfouram.assertion;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
-import android.support.test.filters.SmallTest;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.filters.SmallTest;
+import androidx.test.runner.AndroidJUnit4;
 import android.text.format.DateUtils;
 
 import org.junit.Assert;

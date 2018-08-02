@@ -21,10 +21,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
-import android.support.v4.content.AsyncTaskLoader;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
+import androidx.loader.content.AsyncTaskLoader;
 
 import com.twofortyfouram.locale.sdk.host.api.PluginRegistry;
 import com.twofortyfouram.locale.sdk.host.model.IPlugin;

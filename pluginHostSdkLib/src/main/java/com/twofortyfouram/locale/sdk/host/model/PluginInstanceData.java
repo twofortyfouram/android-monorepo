@@ -20,7 +20,7 @@ package com.twofortyfouram.locale.sdk.host.model;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.twofortyfouram.locale.api.LocalePluginIntent;
 import com.twofortyfouram.spackle.bundle.BundleComparer;

@@ -17,8 +17,8 @@
 
 package com.twofortyfouram.locale.sdk.host.ui.fragment;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Size;
+import androidx.annotation.NonNull;
+import androidx.annotation.Size;
 
 import com.twofortyfouram.locale.sdk.host.model.IPlugin;
 import com.twofortyfouram.locale.sdk.host.model.PluginErrorEdit;

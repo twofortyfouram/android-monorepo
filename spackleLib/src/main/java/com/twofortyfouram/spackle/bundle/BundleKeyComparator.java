@@ -18,7 +18,7 @@
 package com.twofortyfouram.spackle.bundle;
 
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import net.jcip.annotations.ThreadSafe;
 

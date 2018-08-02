@@ -22,9 +22,9 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.PowerManager;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresPermission;
-import android.support.annotation.VisibleForTesting;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
+import androidx.annotation.VisibleForTesting;
 
 import com.twofortyfouram.log.Lumberjack;
 

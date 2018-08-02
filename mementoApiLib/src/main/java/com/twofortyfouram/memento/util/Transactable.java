@@ -17,7 +17,7 @@
 
 package com.twofortyfouram.memento.util;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.twofortyfouram.annotation.Incubating;
 

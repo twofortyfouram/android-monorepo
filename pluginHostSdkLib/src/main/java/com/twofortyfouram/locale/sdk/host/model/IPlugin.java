@@ -20,9 +20,9 @@ package com.twofortyfouram.locale.sdk.host.model;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.Size;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.Size;
 
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.locale.api.LocalePluginIntent;

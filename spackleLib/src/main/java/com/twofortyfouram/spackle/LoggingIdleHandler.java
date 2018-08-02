@@ -20,8 +20,8 @@ package com.twofortyfouram.spackle;
 import android.os.Debug;
 import android.os.Looper;
 import android.os.MessageQueue;
-import android.support.annotation.AnyThread;
-import android.support.annotation.NonNull;
+import androidx.annotation.AnyThread;
+import androidx.annotation.NonNull;
 
 import com.twofortyfouram.log.Lumberjack;
 

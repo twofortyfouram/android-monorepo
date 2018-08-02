@@ -22,8 +22,8 @@ import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Size;
+import androidx.annotation.NonNull;
+import androidx.annotation.Size;
 
 import com.twofortyfouram.annotation.Incubating;
 import com.twofortyfouram.annotation.Slow;

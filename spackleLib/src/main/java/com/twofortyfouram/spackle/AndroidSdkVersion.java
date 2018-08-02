@@ -18,7 +18,7 @@
 package com.twofortyfouram.spackle;
 
 import android.os.Build;
-import android.support.annotation.IntRange;
+import androidx.annotation.IntRange;
 
 import net.jcip.annotations.ThreadSafe;
 

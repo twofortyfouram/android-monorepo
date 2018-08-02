@@ -17,10 +17,10 @@
 
 package com.twofortyfouram.memento.test;
 
-import android.arch.persistence.db.SupportSQLiteDatabase;
-import android.arch.persistence.db.SupportSQLiteOpenHelper;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+import androidx.sqlite.db.SupportSQLiteOpenHelper;
 import android.database.Cursor;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.memento.model.SqliteColumnBuilder;

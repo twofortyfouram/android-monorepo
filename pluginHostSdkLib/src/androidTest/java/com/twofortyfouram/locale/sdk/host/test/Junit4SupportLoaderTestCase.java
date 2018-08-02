@@ -22,7 +22,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.support.v4.content.Loader;
+import androidx.loader.content.Loader;
 
 import java.util.concurrent.ArrayBlockingQueue;
 

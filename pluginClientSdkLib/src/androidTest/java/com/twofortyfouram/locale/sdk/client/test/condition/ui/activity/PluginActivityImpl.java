@@ -17,8 +17,8 @@
 
 package com.twofortyfouram.locale.sdk.client.test.condition.ui.activity;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.twofortyfouram.assertion.Assertions;
 import com.twofortyfouram.locale.sdk.client.ui.activity.AbstractPluginActivity;

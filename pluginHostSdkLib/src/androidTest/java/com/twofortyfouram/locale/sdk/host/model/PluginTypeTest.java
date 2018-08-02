@@ -17,8 +17,8 @@
 
 package com.twofortyfouram.locale.sdk.host.model;
 
-import android.support.test.filters.SmallTest;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.filters.SmallTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.locale.api.LocalePluginIntent;
 

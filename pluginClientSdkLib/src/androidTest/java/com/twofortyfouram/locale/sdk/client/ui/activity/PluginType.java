@@ -17,7 +17,7 @@
 
 package com.twofortyfouram.locale.sdk.client.ui.activity;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.twofortyfouram.locale.api.LocalePluginIntent;
 

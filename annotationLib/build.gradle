@@ -28,7 +28,7 @@ version = LIBRARY_VERSION_NAME
 dependencies {
     implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
 
-    androidTestImplementation group:'com.android.support.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
+    androidTestImplementation group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
     androidTestImplementation group:'com.linkedin.testbutler', name:'test-butler-library', version:"${TEST_BUTLER_VERSION_MATCHER}"
     androidTestImplementation project(':testLib')
 
@@ -38,7 +38,6 @@ dependencies {
 
     if (Boolean.parseBoolean("${IS_INSTALL_TEST_ORCHESTRATOR}")) {
         androidTestUtil group:'com.android.support.test', name:'orchestrator', version:"${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}", ext:'apk'
-        androidTestUtil group:'com.android.support.test.services', name:'test-services', version:"${ANDROID_TEST_SERVICES_VERSION_MATCHER}", ext:'apk'
     }
 }
 
@@ -52,7 +51,7 @@ android {
         targetSdkVersion ANDROID_TARGET_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_TARGET_SDK_VERSION) : ANDROID_TARGET_SDK_VERSION
         versionCode Integer.parseInt(LIBRARY_VERSION_CODE)
         versionName LIBRARY_VERSION_NAME
-        testInstrumentationRunner 'com.twofortyfouram.test.runner.TestButlerRunner'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         consumerProguardFiles 'proguard-consumer.txt'
         if (is_dexguard) {
             // This is additive; it doesn't replace but instead appends the AAR's embedded proguard config

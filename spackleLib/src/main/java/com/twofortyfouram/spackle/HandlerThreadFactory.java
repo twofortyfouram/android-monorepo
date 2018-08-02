@@ -18,9 +18,9 @@
 package com.twofortyfouram.spackle;
 
 import android.os.HandlerThread;
-import android.support.annotation.IntDef;
-import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
+import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 
 import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;

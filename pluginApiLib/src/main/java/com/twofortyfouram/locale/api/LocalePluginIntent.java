@@ -19,7 +19,7 @@ package com.twofortyfouram.locale.api;
 
 
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import net.jcip.annotations.ThreadSafe;
 

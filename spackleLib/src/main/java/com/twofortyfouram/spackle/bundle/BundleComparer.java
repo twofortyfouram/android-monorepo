@@ -18,7 +18,7 @@
 package com.twofortyfouram.spackle.bundle;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.internal.Reflector;

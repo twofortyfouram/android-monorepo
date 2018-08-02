@@ -27,14 +27,14 @@ version = LIBRARY_VERSION_NAME
 
 dependencies {
     implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
-    implementation group:'com.android.support', name:'support-annotations', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
     implementation group:'com.linkedin.testbutler', name:'test-butler-library', version:"${TEST_BUTLER_VERSION_MATCHER}"
     implementation project(':annotationLib')
 
     compileOnly project(':assertionLib') // Required at runtime, but provided scope works around some quirks with compiling.  Clients need to include this as a compile dependency.
-    compileOnly group:'com.android.support.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
+    compileOnly group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
 
-    androidTestImplementation group:'com.android.support.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
+    androidTestImplementation group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
     androidTestImplementation project(':assertionLib') // Required at runtime, but provided scope works around some quirks with compiling.  Clients need to include this as a compile dependency.
 
     if (Boolean.parseBoolean("${IS_INSTALL_TEST_BUTLER}")) {
@@ -50,7 +50,7 @@ android {
         targetSdkVersion ANDROID_TARGET_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_TARGET_SDK_VERSION) : ANDROID_TARGET_SDK_VERSION
         versionCode Integer.parseInt(LIBRARY_VERSION_CODE)
         versionName LIBRARY_VERSION_NAME
-        testInstrumentationRunner 'com.twofortyfouram.test.runner.TestButlerRunner'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         consumerProguardFiles 'proguard-consumer.txt'
         if (is_dexguard) {
             // This is additive; it doesn't replace but instead appends the AAR's embedded proguard config

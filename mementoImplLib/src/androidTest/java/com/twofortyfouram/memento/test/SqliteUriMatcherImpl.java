@@ -20,7 +20,7 @@ package com.twofortyfouram.memento.test;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.memento.internal.ImmutableUriMatcher;

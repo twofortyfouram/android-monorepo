@@ -17,7 +17,7 @@
 
 package com.twofortyfouram.locale.annotation;
 
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
 
 import com.twofortyfouram.locale.api.LocalePluginIntent;
 

@@ -19,8 +19,8 @@ package com.twofortyfouram.locale.sdk.client.internal;
 
 
 import android.content.Intent;
-import android.support.test.filters.SmallTest;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.filters.SmallTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.locale.sdk.client.test.condition.ui.activity.PluginActivityFixture;
 import com.twofortyfouram.locale.sdk.client.ui.activity.PluginType;

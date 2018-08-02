@@ -21,7 +21,7 @@ import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.test.mock.MockContentResolver;
 
 import net.jcip.annotations.NotThreadSafe;
