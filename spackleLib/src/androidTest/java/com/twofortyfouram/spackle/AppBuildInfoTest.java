@@ -24,8 +24,8 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
-import android.test.mock.MockContext;
-
+import com.twofortyfouram.test.context.MyMockContext;
+import com.twofortyfouram.test.context.MyMockPackageManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -58,7 +58,7 @@ public final class AppBuildInfoTest {
 
     @Test
     @SmallTest
-    public void getVersionName() throws NameNotFoundException {
+    public void getVersionName() {
         final String expected = ""; //$NON-NLS-1$
         final String actual = AppBuildInfo.getVersionName(getContext());
 
@@ -67,9 +67,9 @@ public final class AppBuildInfoTest {
 
     @Test
     @SmallTest
-    public void getVersionCode() throws NameNotFoundException {
-        final int expected = 0;
-        final int actual = AppBuildInfo.getVersionCode(getContext());
+    public void getVersionCode() {
+        final long expected = 0;
+        final long actual = AppBuildInfo.getVersionCode(getContext());
         assertThat(actual, is(expected));
     }
 
@@ -92,7 +92,7 @@ public final class AppBuildInfoTest {
         assertThat(AppBuildInfo.getInstallWallTimeMillis(context), is(expectedMillis));
     }
 
-    private static final class InstallTimeContext extends MockContext {
+    private static final class InstallTimeContext extends MyMockContext {
 
         private final long mInstallWallTimeMillis;
 
@@ -108,7 +108,7 @@ public final class AppBuildInfoTest {
         @Override
         @SuppressWarnings("deprecation")
         public PackageManager getPackageManager() {
-            return new android.test.mock.MockPackageManager() {
+            return new MyMockPackageManager() {
                 @Override
                 public PackageInfo getPackageInfo(String packageName, int flags)
                         throws NameNotFoundException {
@@ -122,7 +122,7 @@ public final class AppBuildInfoTest {
         }
     }
 
-    private static final class DebugContext extends MockContext {
+    private static final class DebugContext extends MyMockContext {
 
         private final boolean mIsDebuggable;
 
@@ -136,9 +136,8 @@ public final class AppBuildInfoTest {
         }
 
         @Override
-        @SuppressWarnings("deprecation")
         public PackageManager getPackageManager() {
-            return new android.test.mock.MockPackageManager() {
+            return new MyMockPackageManager() {
                 @Override
                 public PackageInfo getPackageInfo(String packageName, int flags)
                         throws NameNotFoundException {

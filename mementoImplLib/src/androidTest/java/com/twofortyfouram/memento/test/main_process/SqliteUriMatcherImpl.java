@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.memento.test;
+package com.twofortyfouram.memento.test.main_process;
 
 import android.content.Context;
 import android.content.UriMatcher;

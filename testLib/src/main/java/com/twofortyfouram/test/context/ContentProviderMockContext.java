@@ -23,12 +23,11 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import androidx.annotation.NonNull;
 import android.test.mock.MockContentResolver;
-
 import net.jcip.annotations.NotThreadSafe;
 
 import java.util.Map;
 
-import static com.twofortyfouram.assertion.Assertions.assertNotNull;
+import static com.twofortyfouram.test.internal.Assertions.assertNotNull;
 
 /**
  * This class itself is thread safe, however safety ultimately depends on the thread safety of
@@ -38,7 +37,7 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 public final class ContentProviderMockContext extends ContextWrapper {
 
     @NonNull
-    private final android.test.mock.MockContentResolver mResolver = new MockContentResolver();
+    private final MockContentResolver mResolver;
 
     /**
      * @param baseContext          Base context for calls besides {@link #getContentResolver()}.
@@ -49,6 +48,8 @@ public final class ContentProviderMockContext extends ContextWrapper {
         super(baseContext);
 
         assertNotNull(authorityProviderMap, "authorityProviderMap"); //$NON-NLS
+
+        mResolver = new MockContentResolver(baseContext);
 
         for (final Map.Entry<String, ContentProvider> entry : authorityProviderMap.entrySet()) {
             mResolver.addProvider(entry.getKey(), entry.getValue());
@@ -67,4 +68,5 @@ public final class ContentProviderMockContext extends ContextWrapper {
     public ContentResolver getContentResolver() {
         return mResolver;
     }
+
 }

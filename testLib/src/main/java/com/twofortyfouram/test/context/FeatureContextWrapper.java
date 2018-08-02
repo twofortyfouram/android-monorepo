@@ -26,8 +26,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.test.mock.MockPackageManager;
-
 import net.jcip.annotations.Immutable;
 
 import java.util.Arrays;
@@ -97,7 +95,7 @@ public final class FeatureContextWrapper extends ContextWrapper {
             requestedPermissionsCopy = null;
         }
 
-        mMockPackageManager = new MyMockPackageManager(baseContext, requestedPermissionsCopy);
+        mMockPackageManager = new MockPackageManagerImpl(baseContext, requestedPermissionsCopy);
     }
 
     @Override
@@ -158,14 +156,14 @@ public final class FeatureContextWrapper extends ContextWrapper {
 
 
     @SuppressWarnings("deprecation")
-    private class MyMockPackageManager extends MockPackageManager {
+    private class MockPackageManagerImpl extends com.twofortyfouram.test.context.MyMockPackageManager {
 
         private final Context mBaseContext;
 
         private final String[] mRequestedPermissionsCopy;
 
-        public MyMockPackageManager(final Context baseContext,
-                final String[] requestedPermissionsCopy) {
+        public MockPackageManagerImpl(final Context baseContext,
+                                      final String[] requestedPermissionsCopy) {
             mBaseContext = baseContext;
             mRequestedPermissionsCopy = requestedPermissionsCopy;
         }

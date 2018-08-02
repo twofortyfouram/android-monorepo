@@ -27,7 +27,7 @@ import net.jcip.annotations.Immutable;
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
 /**
- * Wraps Android's {@link UriMatcher} in an effectively immutable container clas.
+ * Wraps Android's {@link UriMatcher} in an effectively immutable container class.
  */
 @Immutable
 @RestrictTo(RestrictTo.Scope.LIBRARY)

@@ -57,26 +57,6 @@ public final class ContextUtilTest {
         ContextUtil.cleanContext(null);
     }
 
-    @Test
-    @SmallTest
-    @SuppressWarnings("deprecation")
-    public void cleanContext_isolated_context() {
-        final Context isolatedContext = new android.test.IsolatedContext(null, null);
-
-        assertThat(isolatedContext, sameInstance(ContextUtil.cleanContext(isolatedContext)));
-    }
-
-    @Test
-    @SmallTest
-    @SuppressWarnings("deprecation")
-    public void cleanContext_renaming_delegating_context() {
-        final Context renamingDelegatingContext = new android.test.RenamingDelegatingContext(null,
-                null);
-
-        assertThat(renamingDelegatingContext, sameInstance(ContextUtil.cleanContext
-                (renamingDelegatingContext)));
-    }
-
     private static final class CleanableContext extends ContextWrapper {
 
         public CleanableContext(final Context base) {

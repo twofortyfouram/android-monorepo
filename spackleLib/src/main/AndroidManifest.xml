@@ -16,22 +16,17 @@
   -->
 
 <manifest
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.twofortyfouram.spackle">
-
-    <permission
-        android:name="${applicationId}.com.twofortyfouram.spackle.permission.INTERNAL"
-        android:protectionLevel="signature"/>
-
-    <uses-permission android:name="${applicationId}.com.twofortyfouram.spackle.permission.INTERNAL"/>
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        package="com.twofortyfouram.spackle">
 
     <application>
         <provider
-            android:authorities="${applicationId}.com.twofortyfouram.spackle.internal.default"
-            android:name=".internal.DefaultProcessNameContentProvider"
-            android:multiprocess="false"
-            android:exported="false"
-            android:initOrder="2147483647"/>
+                android:authorities="${applicationId}.com.twofortyfouram.spackle.internal.default"
+                android:name=".internal.DefaultProcessNameContentProvider"
+                android:multiprocess="false"
+                android:exported="false"
+                android:initOrder="2147483647"
+                android:enabled="@bool/com_twofortyfouram_spackle_is_android_o_or_earlier"/>
     </application>
 
 </manifest>

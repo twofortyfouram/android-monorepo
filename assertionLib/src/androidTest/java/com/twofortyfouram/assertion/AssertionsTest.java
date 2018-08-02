@@ -296,6 +296,24 @@ public final class AssertionsTest {
 
     @SmallTest
     @Test
+    public void assertNotEmpty_not_empty_object_array() {
+        Assertions.assertNotEmpty(new String[] {"test"}, "test"); //$NON-NLS
+    }
+
+    @SmallTest
+    @Test(expected = AssertionError.class)
+    public void assertNotEmpty_empty_object_array() {
+        Assertions.assertNotEmpty(new String[0], "test"); //$NON-NLS-1$
+    }
+
+    @SmallTest
+    @Test(expected = AssertionError.class)
+    public void assertNotEmpty_null_object_array() {
+        Assertions.assertNotEmpty((String[]) null, "test"); //$NON-NLS-1$
+    }
+
+    @SmallTest
+    @Test
     public void assertNotEmpty_not_empty_collection() {
         Assertions.assertNotEmpty(Collections.singleton("key"), "test"); //$NON-NLS
     }

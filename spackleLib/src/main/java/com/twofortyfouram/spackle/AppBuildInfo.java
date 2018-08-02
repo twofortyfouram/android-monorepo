@@ -17,11 +17,13 @@
 
 package com.twofortyfouram.spackle;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -68,14 +70,35 @@ public final class AppBuildInfo {
      *
      * @param context Application context.
      * @return versionCode of the app.
-     * @see android.content.pm.PackageInfo#versionCode
      */
-    public static int getVersionCode(@NonNull final Context context) {
-        final int versionCode = getMyPackageInfo(context, 0).versionCode;
+    public static long getVersionCode(@NonNull final Context context) {
+        @NonNull final PackageInfo packageInfo = getMyPackageInfo(context, 0);
+
+        final long versionCode;
+        if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.P)) {
+            versionCode = getVersionCodePPlus(packageInfo);
+        }
+        else {
+            versionCode =  getVersionCodeLegacy(packageInfo);
+        }
 
         Lumberjack.v("versionCode=%d", versionCode); //$NON-NLS-1$
 
         return versionCode;
+    }
+
+    @SuppressWarnings("deprecation")
+    private static int getVersionCodeLegacy(@NonNull final PackageInfo packageInfo) {
+        assertNotNull(packageInfo, "packageInfo"); //$NON-NLS
+
+        return packageInfo.versionCode;
+    }
+
+    @TargetApi(Build.VERSION_CODES.P)
+    private static long getVersionCodePPlus(@NonNull final PackageInfo packageInfo) {
+        assertNotNull(packageInfo, "packageInfo"); //$NON-NLS
+
+        return packageInfo.getLongVersionCode();
     }
 
     /**

@@ -22,11 +22,26 @@
     <!-- For code coverage -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
+    <instrumentation
+            android:name="androidx.test.runner.AndroidJUnitRunner"
+            android:targetPackage="${applicationId}"
+            android:targetProcesses="*" />
+    <meta-data
+            android:name="remoteMethod"
+            android:value="android.support.test.espresso.remote.EspressoRemote#remoteInit" />
+
     <application>
         <provider
-            android:name="com.twofortyfouram.memento.test.ContentProviderImpl"
+            android:name="com.twofortyfouram.memento.test.main_process.ContentProviderImpl"
             android:authorities="${applicationId}.provider"
             android:exported="false"/>
+
+        <provider
+                android:name="com.twofortyfouram.memento.test.second_process.SecondProcessContentProviderImpl"
+                android:authorities="${applicationId}.provider2"
+                android:exported="false"
+                android:process=":processtwo"
+                android:multiprocess="false"/>
     </application>
 
 </manifest>

@@ -273,7 +273,7 @@ public final class BundleAssertions {
                     formatMessage("Extra %s is not Parcelable", requiredKey));  //$NON-NLS-1$
         }
 
-        if (p.getClass() != expectedClass) {
+        if (!expectedClass.isAssignableFrom(p.getClass())) {
             throw new AssertionError(formatMessage("Extra %s is not an instance of %s", requiredKey,
                     expectedClass.getName()));
         }

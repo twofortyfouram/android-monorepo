@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.memento.util;
+package com.twofortyfouram.memento.contract;
 
 import android.content.ContentResolver;
 import android.database.MatrixCursor;
@@ -25,6 +25,7 @@ import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.twofortyfouram.memento.contract.BaseColumnsContract;
 import com.twofortyfouram.test.provider.MockableContentProvider;
 
 import org.junit.Test;
@@ -35,19 +36,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(AndroidJUnit4.class)
-public final class MementoProviderUtilTest {
+public final class BaseColumnsContractTest {
 
     @SmallTest
     @Test
     public void nonInstantiable() {
-        assertThat(MementoProviderUtil.class, notInstantiable());
-    }
-
-    @SmallTest
-    @Test
-    public void mockableClassName() {
-        assertThat(MockableContentProvider.class.getName(),
-                is(MementoProviderUtil.MOCKABLE_CONTENT_PROVIDER_CLASS_NAME));
+        assertThat(BaseColumnsContract.class, notInstantiable());
     }
 
     @Test
@@ -63,7 +57,7 @@ public final class MementoProviderUtilTest {
         cursor.addRow(new Object[]{0});
         mockableContentProvider.addQueryResult(cursor);
 
-        assertThat(MementoProviderUtil
+        assertThat(BaseColumnsContract
                         .getCountForUri(mockableContentProvider.getContext().getContentResolver(), uri),
                 is(0));
     }
@@ -82,7 +76,7 @@ public final class MementoProviderUtilTest {
         cursor.addRow(new Object[]{0});
         mockableContentProvider.addQueryResult(cursor);
 
-        MementoProviderUtil
+        BaseColumnsContract
                 .getCountForUri(mockableContentProvider.getContext().getContentResolver(),
                         uri);//throws
     }
@@ -98,7 +92,7 @@ public final class MementoProviderUtilTest {
 
         mockableContentProvider.addQueryResult(null);
 
-        MementoProviderUtil
+        BaseColumnsContract
                 .getCountForUri(mockableContentProvider.getContext().getContentResolver(),
                         uri);//throws
     }
@@ -116,7 +110,7 @@ public final class MementoProviderUtilTest {
             cursor.addRow(new Object[]{0});
             mockableContentProvider.addQueryResult(cursor);
 
-            MementoProviderUtil
+            BaseColumnsContract
                     .getCountForUri(mockableContentProvider.getContext().getContentResolver(),
                             uri); //throws
         }
@@ -135,7 +129,7 @@ public final class MementoProviderUtilTest {
             cursor.addRow(new Object[]{"foo"}); //$NON-NLS
             mockableContentProvider.addQueryResult(cursor);
 
-            MementoProviderUtil
+            BaseColumnsContract
                     .getCountForUri(mockableContentProvider.getContext().getContentResolver(),
                             uri);//throws
         }
@@ -154,7 +148,7 @@ public final class MementoProviderUtilTest {
             cursor.addRow(new Object[]{null});
             mockableContentProvider.addQueryResult(cursor);
 
-            MementoProviderUtil
+            BaseColumnsContract
                     .getCountForUri(mockableContentProvider.getContext().getContentResolver(),
                             uri);//throws
         }

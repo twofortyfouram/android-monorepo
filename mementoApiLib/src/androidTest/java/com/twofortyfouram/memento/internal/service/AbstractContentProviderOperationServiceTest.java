@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.memento.service;
+package com.twofortyfouram.memento.internal.service;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
@@ -26,6 +26,7 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.assertion.BundleAssertions;
 
+import com.twofortyfouram.memento.internal.BatchHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -45,12 +46,12 @@ public final class AbstractContentProviderOperationServiceTest {
                 = new ArrayList<>();
         opsGroups.add(ops);
 
-        final Bundle bundle = AbstractContentProviderOperationService.newExtras(uri, opsGroups);
+        final Bundle bundle = BatchHelper.newExtras(uri, opsGroups);
 
         BundleAssertions.assertHasKey(bundle,
-                AbstractContentProviderOperationService.EXTRA_SERIALIZABLE_ARRAY_LIST_OF_ARRAY_LIST_OF_OPERATIONS);
+                BatchHelper.EXTRA_SERIALIZABLE_ARRAY_LIST_OF_ARRAY_LIST_OF_OPERATIONS);
         BundleAssertions.assertHasKey(bundle,
-                AbstractContentProviderOperationService.EXTRA_PARCELABLE_URI);
+                BatchHelper.EXTRA_PARCELABLE_URI);
         BundleAssertions.assertKeyCount(bundle, 2);
     }
 

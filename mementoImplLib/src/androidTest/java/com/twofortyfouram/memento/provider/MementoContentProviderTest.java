@@ -17,32 +17,27 @@
 
 package com.twofortyfouram.memento.provider;
 
-import android.content.ContentProviderClient;
-import android.content.ContentProviderOperation;
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.OperationApplicationException;
+import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcel;
 import android.os.RemoteException;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.test.filters.MediumTest;
-import androidx.test.filters.SdkSuppress;
-import androidx.test.filters.SmallTest;
+import androidx.test.filters.*;
 import androidx.test.rule.provider.ProviderTestRule;
 import androidx.test.runner.AndroidJUnit4;
-
+import android.text.format.DateUtils;
 import com.twofortyfouram.memento.contract.MementoContract;
 import com.twofortyfouram.memento.internal.ContentProviderClientCompat;
-import com.twofortyfouram.memento.test.ContentProviderImpl;
-import com.twofortyfouram.memento.test.TableOneContract;
-import com.twofortyfouram.memento.test.YouCanHazNoContract;
-import com.twofortyfouram.memento.util.MementoProviderUtil;
-
+import com.twofortyfouram.memento.test.main_process.ContentProviderImpl;
+import com.twofortyfouram.memento.test.main_process.TableOneContract;
+import com.twofortyfouram.memento.test.main_process.YouCanHazNoContract;
+import com.twofortyfouram.memento.contract.BaseColumnsContract;
+import com.twofortyfouram.memento.util.Transactable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -52,18 +47,13 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static androidx.test.InstrumentationRegistry.getContext;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.arrayContaining;
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * Tests the {@link ContentProviderImpl} in isolation as a proxy for testing
@@ -1260,12 +1250,25 @@ public final class MementoContentProviderTest {
             final ContentProviderImpl provider = (ContentProviderImpl) client
                     .getLocalContentProvider();
 
-            provider.runInTransaction(() -> {
+            provider.runInTransaction(new Transactable() {
+                @Nullable
+                @Override
+                public Bundle runInTransaction(@NonNull final Context context, @NonNull final Bundle bundle) {
+                    resolver.delete(TableOneContract.getContentUri(getContext()), null, null);
 
-                resolver.delete(TableOneContract.getContentUri(getContext()), null, null);
+                    return null;
+                }
 
-                return null;
-            });
+                @Override
+                public int describeContents() {
+                    return 0;
+                }
+
+                @Override
+                public void writeToParcel(@NonNull final Parcel parcel, final int i) {
+
+                }
+            }, new Bundle());
         } finally {
             if (null != client) {
                 ContentProviderClientCompat.close(client);
@@ -1288,26 +1291,172 @@ public final class MementoContentProviderTest {
             final ContentProviderImpl provider = (ContentProviderImpl) client
                     .getLocalContentProvider();
 
-            provider.runInTransaction(() -> {
-                final ArrayList<ContentProviderOperation> ops
-                        = new ArrayList<>(
-                        1);
-                ops.add(ContentProviderOperation.newDelete(
-                        TableOneContract.getContentUri(getContext())).build());
+            provider.runInTransaction(new Transactable() {
+                @Nullable
+                @Override
+                public Bundle runInTransaction(@NonNull final Context context, @NonNull final Bundle bundle) {
+                    final ArrayList<ContentProviderOperation> ops
+                            = new ArrayList<>(
+                            1);
+                    ops.add(ContentProviderOperation.newDelete(
+                            TableOneContract.getContentUri(getContext())).build());
 
-                try {
-                    resolver.applyBatch(
-                            ContentProviderImpl.getContentAuthority(getContext()), ops);
-                } catch (final OperationApplicationException | RemoteException e) {
-                    throw new AssertionError(e);
+                    try {
+                        resolver.applyBatch(
+                                ContentProviderImpl.getContentAuthority(getContext()), ops);
+                    } catch (final OperationApplicationException | RemoteException e) {
+                        throw new AssertionError(e);
+                    }
+
+                    return null;
                 }
 
-                return null;
-            });
+                @Override
+                public int describeContents() {
+                    return 0;
+                }
+
+                @Override
+                public void writeToParcel(@NonNull final Parcel parcel, final int i) {
+
+                }
+            }, new Bundle());
         } finally {
             if (null != client) {
                 ContentProviderClientCompat.close(client);
             }
+        }
+    }
+
+    @SmallTest
+    @Test
+    public void runInTransaction_nested_multiple_threads() {
+        /*
+         * This tests that transactions are mutually exclusive. The second transaction should be
+         * blocked from execution until the first transaction completes.
+         *
+         * This test must be run here to bypass checks on the Transactable interface being static, as opposed to in the
+         * Integration test.  This is the easiest way to hack this test in, as local access to the latches is needed.
+         * We could do it with static fields in static classes, but that seems terribly gross and potentially easy to
+         * break due to threading.
+         */
+
+        final ContentResolver resolver = mProviderRule.getResolver();
+
+        final CountDownLatch transactionOneStartLatch = new CountDownLatch(1);
+        final CountDownLatch keepTransactionAliveLatch = new CountDownLatch(1);
+
+        // Don't convert to try with resources.
+        @Nullable ContentProviderClient client = null;
+        try {
+            client = resolver
+                    .acquireContentProviderClient(ContentProviderImpl
+                            .getContentAuthority(getContext()));
+
+            final ContentProviderImpl provider = (ContentProviderImpl) client
+                    .getLocalContentProvider();
+            //noinspection Convert2Lambda
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    provider.runInTransaction(
+                            new Transactable() {
+                                @Nullable
+                                @Override
+                                public Bundle runInTransaction(@NonNull final Context context, @NonNull final Bundle bundle) {
+                                    transactionOneStartLatch.countDown();
+                                    resolver.insert(TableOneContract.getContentUri(getContext()),
+                                            TableOneContract
+                                                    .getContentValues("test_value")); //$NON-NLS-1$
+
+                                    try {
+                                        assertFalse(keepTransactionAliveLatch.await(
+                                                1 * DateUtils.SECOND_IN_MILLIS, TimeUnit.MILLISECONDS));
+                                    } catch (final InterruptedException e) {
+                                        throw new AssertionError(e);
+                                    }
+
+                                    return null;
+                                }
+
+                                @Override
+                                public int describeContents() {
+                                    return 0;
+                                }
+
+                                @Override
+                                public void writeToParcel(@NonNull final Parcel parcel, final int i) {
+
+                                }
+                            }, new Bundle());
+                }
+            }).start();
+
+            final CountDownLatch threadTwoLatch = new CountDownLatch(1);
+            //noinspection Convert2Lambda
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        transactionOneStartLatch.await();
+                    } catch (final InterruptedException e) {
+                        throw new AssertionError(e);
+                    }
+
+                    provider.runInTransaction(
+                            new Transactable() {
+                                @Nullable
+                                @Override
+                                public Bundle runInTransaction(@NonNull final Context context,
+                                                               @NonNull final Bundle bundle) {
+                                    resolver.delete(TableOneContract.getContentUri(getContext()), null,
+                                            null);
+
+                                    keepTransactionAliveLatch.countDown();
+
+                                    return null;
+                                }
+
+                                @Override
+                                public int describeContents() {
+                                    return 0;
+                                }
+
+                                @Override
+                                public void writeToParcel(@NonNull final Parcel parcel, final int i) {
+
+                                }
+                            }, new Bundle());
+
+                    threadTwoLatch.countDown();
+                }
+            }).start();
+
+            try {
+                threadTwoLatch.await();
+            } catch (final InterruptedException e) {
+                throw new AssertionError(e);
+            }
+
+        } finally {
+            if (null != client) {
+                ContentProviderClientCompat.close(client);
+                client = null;
+            }
+        }
+
+        assertCount(0);
+    }
+
+    @LargeTest
+    @FlakyTest
+    @Test
+    public void runInTransaction_stress() {
+        /*
+         * This is a non-deterministic test, in that it relies on multiple iterations to catch a problem.
+         */
+        for (int x = 0; x < 30; x++) {
+            runInTransaction_nested_multiple_threads();
         }
     }
 
@@ -1317,7 +1466,7 @@ public final class MementoContentProviderTest {
      * @param count Number of rows to assert exist in the table.
      */
     private void assertCount(final int count) {
-        assertThat(MementoProviderUtil.getCountForUri(mProviderRule.getResolver(),
+        assertThat(BaseColumnsContract.getCountForUri(mProviderRule.getResolver(),
                 TableOneContract.getContentUri(getContext())), is(count));
     }
 }

@@ -18,9 +18,9 @@
 package com.twofortyfouram.spackle;
 
 
+import android.text.format.DateUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.StringDef;
-
 import net.jcip.annotations.ThreadSafe;
 
 import java.lang.annotation.Retention;
@@ -28,8 +28,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Formatter;
 import java.util.Locale;
 
+import static com.twofortyfouram.assertion.Assertions.assertInRangeInclusive;
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 import static com.twofortyfouram.spackle.TimeFormatter.TimeFormat.ISO_8601;
 
@@ -54,6 +56,43 @@ public final class TimeFormatter {
     }
 
     /**
+     * @param elapsedMilliseconds Elapsed duration in milliseconds.
+     * @return The duration formatted in a more human readable format: H:MM:SS.millis
+     */
+    @NonNull
+    public static String formatMilliseconds(final long elapsedMilliseconds) {
+        assertInRangeInclusive(elapsedMilliseconds, 0, Long.MAX_VALUE,
+                "elapsedMilliseconds"); //$NON-NLS-1$
+
+        final Formatter formatter = new Formatter(
+                Locale.US); // Lock to US, since this is for debugging only.
+
+        long hours = 0;
+        long minutes = 0;
+        long seconds = 0;
+        long millis = 0;
+        long leftoverMilliseconds = elapsedMilliseconds;
+        if (elapsedMilliseconds >= DateUtils.HOUR_IN_MILLIS) {
+            hours = elapsedMilliseconds / DateUtils.HOUR_IN_MILLIS;
+            leftoverMilliseconds -= hours * DateUtils.HOUR_IN_MILLIS;
+        }
+        if (elapsedMilliseconds >= DateUtils.MINUTE_IN_MILLIS) {
+            minutes = leftoverMilliseconds / DateUtils.MINUTE_IN_MILLIS;
+            leftoverMilliseconds -= minutes * DateUtils.MINUTE_IN_MILLIS;
+        }
+        if (elapsedMilliseconds >= DateUtils.SECOND_IN_MILLIS) {
+            seconds = leftoverMilliseconds / DateUtils.SECOND_IN_MILLIS;
+            leftoverMilliseconds -= seconds * DateUtils.SECOND_IN_MILLIS;
+        }
+        millis = leftoverMilliseconds;
+
+        return formatter
+                .format(Locale.US, "%1$d:%2$02d:%3$02d.%4$d", hours, minutes, seconds,
+                        millis) //$NON-NLS-1$
+                .toString();
+    }
+
+    /**
      * Parse the {@code source} in given {@code timeFormat} to its {@link Date} representation.
      *
      * @param timeFormat String representation of time format.
@@ -75,7 +114,6 @@ public final class TimeFormatter {
                             source, timeFormat));
         }
     }
-
 
     /**
      * Supported time formats.

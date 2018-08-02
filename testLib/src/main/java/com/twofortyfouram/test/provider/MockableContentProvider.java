@@ -24,27 +24,35 @@ import android.content.Context;
 import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.test.InstrumentationRegistry;
-
 import com.twofortyfouram.test.context.ContentProviderMockContext;
-
 import net.jcip.annotations.Immutable;
 import net.jcip.annotations.NotThreadSafe;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.twofortyfouram.assertion.Assertions.assertNotNull;
+import static com.twofortyfouram.test.internal.Assertions.assertNotNull;
 
 /**
  * A content provider whose basic methods of query, insert, update, delete, and call are easily
  * mockable. Note that after instantiation, {@link #attachInfo(Context, ProviderInfo)} must be
- * called
- * manually.  To bypass this limitation, consider using the helper method
+ * called manually. To bypass this limitation, consider using the helper method
  * {@link #newMockProvider(Context, String)}.
+ *
+ * This class is conditionally thread-safe for API 21+.  It implements enough thread safety for safe publication of changes but
+ * is not designed for highly concurrent access.  For example, a test could construct a MockableContentProvider, then
+ * start a thread to perform operations (following the thread start rule), then wait for the thread to finish before
+ * attempting to read the changes made.  The thread safety is also in part limited by the safety of the parameters
+ * passed in, such as the Cursor objects passed in as query results.  Don't modify these objects after passing them in.
  */
 // This is a mock object to be used at runtime, so lint warnings about registration should be
 // ignored
@@ -52,56 +60,63 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 @NotThreadSafe
 public final class MockableContentProvider extends ContentProvider {
 
-    private boolean mIsAttachInfoCalled = false;
+    @NonNull
+    private final AtomicBoolean mIsAttachInfoCalled = new AtomicBoolean(false);
 
-    private int mQueryCount = 0;
+    @NonNull
+    private final AtomicInteger mQueryCount = new AtomicInteger(0);
 
-    private int mInsertCount = 0;
+    @NonNull
+    private final AtomicInteger mInsertCount = new AtomicInteger(0);
 
-    private int mUpdateCount = 0;
+    @NonNull
+    private final AtomicInteger mUpdateCount  = new AtomicInteger(0);
 
-    private int mDeleteCount = 0;
+    @NonNull
+    private final AtomicInteger mDeleteCount  = new AtomicInteger(0);
 
-    private int mCallCount = 0;
+    private final AtomicInteger mCallCount  = new AtomicInteger(0);
 
     @Nullable
     private final LinkedList<Cursor> mQueryResults = new LinkedList<>();
 
+    // To improve thread safety, drop allowing null elements and switch to ConcurrentLinkedDeque
     // May contain null elements
     @NonNull
     private final LinkedList<Uri> mInsertResults = new LinkedList<>();
 
     // May not contain null elements.
     @NonNull
-    private final LinkedList<Integer> mUpdateResults = new LinkedList<>();
+    private final Deque<Integer> mUpdateResults = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? new ConcurrentLinkedDeque<>(): new LinkedList<>();
 
     // May not contain null elements
     @NonNull
-    private final LinkedList<Integer> mDeleteResults = new LinkedList<>();
+    private final Deque<Integer> mDeleteResults = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? new ConcurrentLinkedDeque<>(): new LinkedList<>();
 
+    // To improve thread safety, drop allowing null elements and switch to ConcurrentLinkedDeque
     // May contain null elements
     @NonNull
     private final LinkedList<Bundle> mCallResults = new LinkedList<>();
 
     // May not contain null elements
     @NonNull
-    private final LinkedList<QueryParams> mQueryParams = new LinkedList<>();
+    private final Deque<QueryParams> mQueryParams = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? new ConcurrentLinkedDeque<>(): new LinkedList<>();
 
     // May not contain null elements
     @NonNull
-    private final LinkedList<InsertParams> mInsertParams = new LinkedList<>();
+    private final Deque<InsertParams> mInsertParams = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? new ConcurrentLinkedDeque<>(): new LinkedList<>();
 
     // May not contain null elements
     @NonNull
-    private final LinkedList<UpdateParams> mUpdateParams = new LinkedList<>();
+    private final Deque<UpdateParams> mUpdateParams = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? new ConcurrentLinkedDeque<>(): new LinkedList<>();
 
     // May not contain null elements
     @NonNull
-    private final LinkedList<DeleteParams> mDeleteParams = new LinkedList<>();
+    private final Deque<DeleteParams> mDeleteParams = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? new ConcurrentLinkedDeque<>(): new LinkedList<>();
 
     // May not contain null elements
     @NonNull
-    private final LinkedList<CallParams> mCallParams = new LinkedList<>();
+    private final Deque<CallParams> mCallParams = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? new ConcurrentLinkedDeque<>(): new LinkedList<>();
 
     @Override
     public boolean onCreate() {
@@ -112,7 +127,7 @@ public final class MockableContentProvider extends ContentProvider {
     public void attachInfo(final Context context, @NonNull final ProviderInfo info) {
         super.attachInfo(context, info);
 
-        mIsAttachInfoCalled = true;
+        mIsAttachInfoCalled.set(true);
 
         if (null == info.authority) {
             throw new AssertionError("ProviderInfo.authority is null"); //$NON-NLS
@@ -127,7 +142,7 @@ public final class MockableContentProvider extends ContentProvider {
             @Nullable final String sortOrder) {
         assertAttachInfoCalled();
 
-        mQueryCount++;
+        mQueryCount.incrementAndGet();
 
         final QueryParams params = new QueryParams(uri, projection, selection, selectionArgs,
                 sortOrder);
@@ -149,7 +164,7 @@ public final class MockableContentProvider extends ContentProvider {
     public Uri insert(@NonNull final Uri uri, final ContentValues contentValues) {
         assertAttachInfoCalled();
 
-        mInsertCount++;
+        mInsertCount.incrementAndGet();
 
         mInsertParams.addLast(new InsertParams(uri, contentValues));
 
@@ -161,7 +176,7 @@ public final class MockableContentProvider extends ContentProvider {
             @Nullable final String selection, @Nullable final String[] selectionArgs) {
         assertAttachInfoCalled();
 
-        mUpdateCount++;
+        mUpdateCount.incrementAndGet();
 
         mUpdateParams.addLast(new UpdateParams(uri, contentValues, selection, selectionArgs));
 
@@ -179,7 +194,7 @@ public final class MockableContentProvider extends ContentProvider {
             @Nullable final String[] strings) {
         assertAttachInfoCalled();
 
-        mDeleteCount++;
+        mDeleteCount.incrementAndGet();
 
         mDeleteParams.addLast(new DeleteParams(uri, s, strings));
 
@@ -197,7 +212,7 @@ public final class MockableContentProvider extends ContentProvider {
     public Bundle call(@NonNull final String method, @Nullable final String arg,
             @Nullable final Bundle extras) {
         assertAttachInfoCalled();
-        mCallCount++;
+        mCallCount.incrementAndGet();
 
         mCallParams.addLast(new CallParams(method, arg, extras));
 
@@ -298,7 +313,7 @@ public final class MockableContentProvider extends ContentProvider {
      * A common error in testing is to forget to force calling attach info on the content provider.
      */
     private void assertAttachInfoCalled() {
-        if (!mIsAttachInfoCalled) {
+        if (!mIsAttachInfoCalled.get()) {
             throw new AssertionError("Call attachInfo() first"); //$NON-NLS
         }
     }
@@ -308,14 +323,14 @@ public final class MockableContentProvider extends ContentProvider {
      * method was called.
      */
     public int getQueryCount() {
-        return mQueryCount;
+        return mQueryCount.get();
     }
 
     /**
      * @return The number of times the {@link #insert(Uri, ContentValues)} method was called.
      */
     public int getInsertCount() {
-        return mInsertCount;
+        return mInsertCount.get();
     }
 
     /**
@@ -323,21 +338,21 @@ public final class MockableContentProvider extends ContentProvider {
      * method was called.
      */
     public int getUpdateCount() {
-        return mUpdateCount;
+        return mUpdateCount.get();
     }
 
     /**
      * @return The number of times the {@link #delete(Uri, String, String[])} method was called.
      */
     public int getDeleteCount() {
-        return mDeleteCount;
+        return mDeleteCount.get();
     }
 
     /**
      * @return The number of times the {@link #call(String, String, Bundle)} method was called.
      */
     public int getCallCount() {
-        return mCallCount;
+        return mCallCount.get();
     }
 
     @NonNull
@@ -369,7 +384,7 @@ public final class MockableContentProvider extends ContentProvider {
         final MockableContentProvider mockableContentProvider = new MockableContentProvider();
 
         final Context mockContext = new ContentProviderMockContext(
-                InstrumentationRegistry.getContext(),
+                baseContext,
                 Collections.singletonMap(authority,
                         mockableContentProvider));
 
@@ -445,6 +460,17 @@ public final class MockableContentProvider extends ContentProvider {
         public String getOrderBy() {
             return mOrderBy;
         }
+
+        @Override
+        public String toString() {
+            return "QueryParams{" +
+                    "mUri=" + mUri +
+                    ", mProjection=" + Arrays.toString(mProjection) +
+                    ", mSelection='" + mSelection + '\'' +
+                    ", mSelectionArgs=" + Arrays.toString(mSelectionArgs) +
+                    ", mOrderBy='" + mOrderBy + '\'' +
+                    '}';
+        }
     }
 
     /**
@@ -475,6 +501,13 @@ public final class MockableContentProvider extends ContentProvider {
             return new ContentValues(mContentValues);
         }
 
+        @Override
+        public String toString() {
+            return "InsertParams{" +
+                    "mUri=" + mUri +
+                    ", mContentValues=" + mContentValues +
+                    '}';
+        }
     }
 
     /**
@@ -525,6 +558,16 @@ public final class MockableContentProvider extends ContentProvider {
         public String[] getSelectionArgs() {
             return copyArray(mSelectionArgs);
         }
+
+        @Override
+        public String toString() {
+            return "UpdateParams{" +
+                    "mUri=" + mUri +
+                    ", mContentValues=" + mContentValues +
+                    ", mSelection='" + mSelection + '\'' +
+                    ", mSelectionArgs=" + Arrays.toString(mSelectionArgs) +
+                    '}';
+        }
     }
 
 
@@ -563,6 +606,15 @@ public final class MockableContentProvider extends ContentProvider {
         @NonNull
         public String[] getSelectionArgs() {
             return copyArray(mSelectionArgs);
+        }
+
+        @Override
+        public String toString() {
+            return "DeleteParams{" +
+                    "mUri=" + mUri +
+                    ", mSelection='" + mSelection + '\'' +
+                    ", mSelectionArgs=" + Arrays.toString(mSelectionArgs) +
+                    '}';
         }
     }
 
@@ -620,6 +672,15 @@ public final class MockableContentProvider extends ContentProvider {
             } else {
                 return null;
             }
+        }
+
+        @Override
+        public String toString() {
+            return "CallParams{" +
+                    "mMethod='" + mMethod + '\'' +
+                    ", mArg='" + mArg + '\'' +
+                    ", mExtras=" + mExtras +
+                    '}';
         }
     }
 }

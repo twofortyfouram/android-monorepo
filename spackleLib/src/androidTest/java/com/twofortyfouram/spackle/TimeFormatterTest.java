@@ -18,11 +18,10 @@
 package com.twofortyfouram.spackle;
 
 
+import android.text.format.DateUtils;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
-
 import com.twofortyfouram.test.rule.UtcRule;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,5 +64,47 @@ public final class TimeFormatterTest {
 
         assertThat(TimeFormatter.parseTime(ISO_8601, sourceString),
                 is(new Date(sourceInMillis)));
+    }
+
+    @SmallTest
+    @Test
+    public void formatMilliseconds_zero() {
+        assertThat(TimeFormatter
+                .formatMilliseconds(0), is("0:00:00.0")); //$NON-NLS-1$
+    }
+
+    @SmallTest
+    @Test
+    public void formatMilliseconds_millis() {
+        assertThat(TimeFormatter.formatMilliseconds(123), is("0:00:00.123")); //$NON-NLS-1$
+    }
+
+    @SmallTest
+    @Test
+    public void formatMilliseconds_one_second() {
+        assertThat(TimeFormatter.formatMilliseconds(1000), is("0:00:01.0")); //$NON-NLS-1$
+    }
+
+    @SmallTest
+    @Test
+    public void formatMilliseconds_one_second_and_millis() {
+        assertThat(
+                TimeFormatter.formatMilliseconds(1200), is("0:00:01.200")); //$NON-NLS-1$
+    }
+
+    @SmallTest
+    @Test
+    public void formatMilliseconds_minute_seconds_and_millis() {
+        assertThat(TimeFormatter.formatMilliseconds(
+                DateUtils.MINUTE_IN_MILLIS * 3 + 8 * DateUtils.SECOND_IN_MILLIS
+                        + 998), is("0:03:08.998")); //$NON-NLS-1$
+    }
+
+    @SmallTest
+    @Test
+    public void formatMilliseconds_hour_minute_second_millis() {
+        assertThat(TimeFormatter.formatMilliseconds(
+                5 * DateUtils.HOUR_IN_MILLIS + DateUtils.MINUTE_IN_MILLIS * 3
+                        + 8 * DateUtils.SECOND_IN_MILLIS + 998), is("5:03:08.998")); //$NON-NLS-1$
     }
 }

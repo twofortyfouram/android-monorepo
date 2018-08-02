@@ -17,23 +17,19 @@
 
 package com.twofortyfouram.spackle;
 
-import android.content.ContentProvider;
-import android.content.ContentProviderOperation;
-import android.content.ContentProviderResult;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.OperationApplicationException;
+import android.app.Application;
+import android.content.*;
 import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.RestrictTo;
-
 import com.twofortyfouram.log.Lumberjack;
-
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.ArrayList;
@@ -54,6 +50,8 @@ public class AbstractProcessNameContentProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
+        Lumberjack.v("Creating ContentProvider %s at elapsedRealtimeMillis=%d", getClass().getName(), Clock.getInstance().getRealTimeMillis()); //$NON-NLS
+
         return true;
     }
 
@@ -61,14 +59,24 @@ public class AbstractProcessNameContentProvider extends ContentProvider {
     public void attachInfo(final Context context, final ProviderInfo info) {
         super.attachInfo(context, info);
 
-        ProcessUtil.setProcessName(getProcessName(context, info));
+        // Although the default ContentProvider is disabled via a resource boolean, that doesn't prevent
+        // implementors of the ContentProvider from not disabling it.
+        @NonNull final String processName;
+        if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.P)) {
+            processName = getProcessNamePPlus();
+        }
+        else {
+            processName = getProcessNameLegacy(context, info);
+        }
+        ProcessUtil.setProcessName(processName);
+
         Lumberjack.init(context);
     }
 
     @NonNull
     @RestrictTo(RestrictTo.Scope.LIBRARY)
-    /*package*/ static String getProcessName(@NonNull final Context context,
-            @NonNull final ProviderInfo info) {
+    /*package*/ static String getProcessNameLegacy(@NonNull final Context context,
+                                                   @NonNull final ProviderInfo info) {
         assertNotNull(context, "context"); //$NON-NLS
         assertNotNull(info, "info"); //$NON-NLS
 
@@ -84,6 +92,11 @@ public class AbstractProcessNameContentProvider extends ContentProvider {
         }
 
         return providerProcessName;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.P)
+    private static final String getProcessNamePPlus() {
+        return Application.getProcessName();
     }
 
     @Nullable

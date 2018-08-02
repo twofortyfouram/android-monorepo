@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.memento.test;
+package com.twofortyfouram.memento.test.second_process;
 
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory;
@@ -23,22 +23,21 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import androidx.annotation.NonNull;
-
 import com.twofortyfouram.memento.model.SqliteUriMatcher;
 import com.twofortyfouram.memento.provider.MementoContentProvider;
-
 import net.jcip.annotations.ThreadSafe;
 
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
 /**
- * Simple concrete implementation of {@link MementoContentProvider} for testing.
+ * Simple concrete implementation of {@link MementoContentProvider} for testing, configured to run in a second process
+ * to verify correct behavior of the Transactable interface.
  */
 @ThreadSafe
-public final class ContentProviderImpl extends MementoContentProvider {
+public final class SecondProcessContentProviderImpl extends MementoContentProvider {
 
     @NonNull
-    private static final String DB_FILE_NAME = "com.twofortyfouram.memento.debug.sqlite3";
+    private static final String DB_FILE_NAME = "com.twofortyfouram.memento.debug.process2.sqlite3";
     //$NON-NLS-1$
 
     /**
@@ -58,7 +57,7 @@ public final class ContentProviderImpl extends MementoContentProvider {
     public static String getContentAuthority(@NonNull final Context context) {
         assertNotNull(context, "context"); //$NON-NLS-1$
 
-        return "com.twofortyfouram.memento.impl.test.provider"; //$NON-NLS-1$
+        return "com.twofortyfouram.memento.impl.test.provider2"; //$NON-NLS-1$
     }
 
     @NonNull

@@ -24,18 +24,16 @@ import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Size;
-
 import com.twofortyfouram.annotation.Incubating;
+import com.twofortyfouram.annotation.MultiProcessSafe;
 import com.twofortyfouram.annotation.Slow;
+import com.twofortyfouram.memento.internal.BatchHelper;
 import com.twofortyfouram.spackle.ContextUtil;
-
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.ArrayList;
 
-import static com.twofortyfouram.assertion.Assertions.assertNoNullElements;
-import static com.twofortyfouram.assertion.Assertions.assertNotEmpty;
-import static com.twofortyfouram.assertion.Assertions.assertNotNull;
+import static com.twofortyfouram.assertion.Assertions.*;
 
 @ThreadSafe
 @Incubating
@@ -77,6 +75,7 @@ public final class BatchContract {
      *                        and inner lists must not contain null elements.
      */
     @Slow(Slow.Speed.MILLISECONDS)
+    @MultiProcessSafe
     public static void applyBatchWithAlternatives(@NonNull final Context context,
             @NonNull final Uri authority,
             @Size(min = 1) @NonNull final ArrayList<ArrayList<ContentProviderOperation>> operationGroups) {
@@ -94,10 +93,36 @@ public final class BatchContract {
     }
 
     /**
+     * This can only be used for a ContentProvider that are implemented with the Memento library and
+     * this can only be called from within the same package as the ContentProvider.
+     *
+     * Calls groups of operations in order until one group succeeds.  This occurs within a
+     * transaction.  The benefit of this method is that it provides a bit more flexibility for
+     * atomic transactions compared to {@link ContentProvider#applyBatch(ArrayList)}.  For example,
+     * a client wishing to implement an "upsert" operation could do it with this method.
+     *
+     * @param operationGroups An ordered list of operation groups.  The outer
+     *                        and inner lists must not contain null elements.
+     */
+    @MultiProcessSafe
+    public static void applyBatchWithAlternativesAsync(@NonNull final Context context,
+                                                  @NonNull final Uri authority,
+                                                  @Size(min = 1) @NonNull final ArrayList<ArrayList<ContentProviderOperation>> operationGroups) {
+        assertNotNull(context, "context"); //$NON-NLS
+        assertNotNull(authority, "authority"); //$NON-NLS
+        assertNotNull(operationGroups, "operationGroups"); //$NON-NLS
+        assertNotEmpty(operationGroups, "operationGroups"); //$NON-NLS
+        assertNoNullElements(operationGroups, "operationGroups"); //$NON-NLS
+
+        BatchHelper.applyAsync(context, authority, operationGroups);
+    }
+
+    /**
      * @param operationGroups List of operation lists.
      * @return A new bundle appropriate for the {@link BatchContract#METHOD_BATCH_OPERATIONS} call.
      */
     @NonNull
+    @MultiProcessSafe
     /*package*/ static final Bundle newCallBundle(
             @NonNull @Size(min = 1) final ArrayList<ArrayList<ContentProviderOperation>> operationGroups) {
         assertNotNull(operationGroups, "operationGroups"); //$NON-NLS

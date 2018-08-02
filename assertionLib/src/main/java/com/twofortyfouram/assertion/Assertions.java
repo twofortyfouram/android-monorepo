@@ -20,7 +20,6 @@ package com.twofortyfouram.assertion;
 import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.Collection;
@@ -43,7 +42,7 @@ public final class Assertions {
      *                        {@code maxInclusive}].
      */
     public static void assertInRangeInclusive(final int actual, final int minInclusive,
-            final int maxInclusive, @NonNull final String name) {
+                                              final int maxInclusive, @NonNull final String name) {
         if (minInclusive > maxInclusive) {
             throw new IllegalArgumentException("maxInclusive is not >= minInclusive"); //$NON-NLS-1$
         }
@@ -65,7 +64,7 @@ public final class Assertions {
      *                        {@code maxInclusive}].
      */
     public static void assertInRangeInclusive(final long actual, final long minInclusive,
-            final long maxInclusive, @NonNull final String name) {
+                                              final long maxInclusive, @NonNull final String name) {
         if (minInclusive > maxInclusive) {
             throw new IllegalArgumentException("maxInclusive is not >= minInclusive"); //$NON-NLS-1$
         }
@@ -87,7 +86,7 @@ public final class Assertions {
      *                        {@code maxInclusive}].
      */
     public static void assertInRangeInclusive(final float actual, final float minInclusive,
-            final float maxInclusive, @NonNull final String name) {
+                                              final float maxInclusive, @NonNull final String name) {
         if (Float.compare(minInclusive, maxInclusive) > 0) {
             throw new IllegalArgumentException("maxInclusive is not >= minInclusive"); //$NON-NLS-1$
         }
@@ -110,7 +109,7 @@ public final class Assertions {
      *                        {@code maxInclusive}].
      */
     public static void assertInRangeInclusive(final double actual, final double minInclusive,
-            final double maxInclusive, @NonNull final String name) {
+                                              final double maxInclusive, @NonNull final String name) {
         if (Double.compare(minInclusive, maxInclusive) > 0) {
             throw new IllegalArgumentException("maxInclusive is not >= minInclusive"); //$NON-NLS-1$
         }
@@ -128,7 +127,7 @@ public final class Assertions {
      * @throws AssertionError If {@code array} is null or empty.
      */
     public static void assertNoNullElements(@Nullable final Object[] array,
-            @Nullable final String name) {
+                                            @Nullable final String name) {
         assertNotNull(array, name);
 
         for (final Object o : array) {
@@ -145,7 +144,7 @@ public final class Assertions {
      * @throws AssertionError If {@code collection} is null or empty.
      */
     public static void assertNoNullElements(@Nullable final Collection<?> collection,
-            @Nullable final String name) {
+                                            @Nullable final String name) {
         assertNotNull(collection, name);
 
         for (final Object o : collection) {
@@ -162,7 +161,7 @@ public final class Assertions {
      * @throws AssertionError If {@code map} is null or empty.
      */
     public static void assertNoNullElements(@Nullable final Map<?, ?> map,
-            @Nullable final String name) {
+                                            @Nullable final String name) {
         assertNotNull(map, name);
 
         for (final Map.Entry<?, ?> entry : map.entrySet()) {
@@ -234,12 +233,27 @@ public final class Assertions {
     }
 
     /**
+     * @param array Collection to check for being {@code null} or empty.
+     * @param name  Name of the array for human-readable exceptions.
+     * @throws AssertionError If {@code array} is {@code null} or empty.
+     */
+    public static void assertNotEmpty(@Nullable final Object[] array,
+                                      @NonNull final String name) {
+        assertNotNull(array, name);
+
+        if (0 == array.length) {
+            throw new AssertionError(
+                    formatMessage("%s cannot be empty", name)); //$NON-NLS-1$
+        }
+    }
+
+    /**
      * @param collection Collection to check for being {@code null} or empty.
      * @param name       Name of the Collection for human-readable exceptions.
      * @throws AssertionError If {@code collection} is {@code null} or empty.
      */
     public static void assertNotEmpty(@Nullable final Collection<?> collection,
-            @NonNull final String name) {
+                                      @NonNull final String name) {
         assertNotNull(collection, name);
 
         if (collection.isEmpty()) {

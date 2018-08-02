@@ -67,7 +67,6 @@ public interface MementoContract {
      * @return Same object as {@code builder}, mutated with the query string parameter.
      */
     @NonNull
-    @Deprecated
     static Uri.Builder addLimit(@NonNull final Uri.Builder builder,
             @IntRange(from = 1) final int limit) {
         assertInRangeInclusive(limit, 1, Integer.MAX_VALUE, "limit"); //$NON-NLS

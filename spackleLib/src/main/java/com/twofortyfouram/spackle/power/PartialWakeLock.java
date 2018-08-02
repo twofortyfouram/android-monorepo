@@ -23,11 +23,10 @@ import android.content.Context;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
 import androidx.annotation.VisibleForTesting;
-
 import com.twofortyfouram.log.Lumberjack;
-
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.HashMap;
@@ -88,6 +87,9 @@ public final class PartialWakeLock {
      */
     private long mAcquiredRealtimeMillis = 0;
 
+    @NonNull
+    private final AtomicLong mAtomicLong;
+
     /**
      * Dumps cumulative WakeLock usage from this class and {@link com.twofortyfouram.spackle.power.PartialWakeLockForService}.
      * This is useful to debug WakeLock usage.
@@ -139,15 +141,27 @@ public final class PartialWakeLock {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotNull(lockName, "lockName"); //$NON-NLS-1$
 
-        sWakeLockCumulativeUsage.putIfAbsent(lockName, new AtomicLong(0));
+        @NonNull final AtomicLong atomicLong;
+        {
+            @NonNull final AtomicLong newAtomicLong = new AtomicLong(0);
+            @Nullable final AtomicLong oldAtomicLong = sWakeLockCumulativeUsage.putIfAbsent(lockName, newAtomicLong);
 
-        return new PartialWakeLock(context, lockName, isReferenceCounted);
+            if (null == oldAtomicLong) {
+                atomicLong = newAtomicLong;
+            }
+            else {
+                atomicLong = oldAtomicLong;
+            }
+        }
+
+        return new PartialWakeLock(context, lockName, isReferenceCounted, atomicLong);
     }
 
     private PartialWakeLock(@NonNull final Context context, @NonNull final String lockName,
-            final boolean isReferenceCounted) {
+            final boolean isReferenceCounted, @NonNull final AtomicLong cumulativeUsage) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotNull(lockName, "lockName"); //$NON-NLS-1$
+        assertNotNull(cumulativeUsage, "cumulativeUsage"); //$NON-NLS-1$
 
         mLockName = lockName;
         mIsReferenceCounted = isReferenceCounted;
@@ -156,6 +170,8 @@ public final class PartialWakeLock {
 
         mWakeLock = mgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, mLockName);
         mWakeLock.setReferenceCounted(isReferenceCounted);
+
+        mAtomicLong = cumulativeUsage;
     }
 
     /**
@@ -216,7 +232,7 @@ public final class PartialWakeLock {
 
                 if (!isHeld()) {
                     //noinspection AccessToStaticFieldLockedOnInstance
-                    sWakeLockCumulativeUsage.get(mLockName).addAndGet(getHeldDurationMillis());
+                    mAtomicLong.addAndGet(getHeldDurationMillis());
                     mAcquiredRealtimeMillis = 0;
                 }
             } else {

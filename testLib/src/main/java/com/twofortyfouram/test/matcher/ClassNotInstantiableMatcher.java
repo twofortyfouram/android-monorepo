@@ -19,16 +19,14 @@ package com.twofortyfouram.test.matcher;
 
 
 import androidx.annotation.NonNull;
-
 import net.jcip.annotations.ThreadSafe;
-
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import static com.twofortyfouram.assertion.Assertions.assertNotNull;
+import static com.twofortyfouram.test.internal.Assertions.assertNotNull;
 
 /**
  * Matcher to verify that a class is not instantiable.  Typical use case is for utility classes

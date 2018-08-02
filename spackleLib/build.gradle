@@ -27,6 +27,9 @@ archivesBaseName = 'android-spackle'
 version = LIBRARY_VERSION_NAME
 
 dependencies {
+    compileOnly group:'androidx.fragment', name:'fragment', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+    compileOnly group:'androidx.loader', name:'loader', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+
     implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
     implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
     implementation project(':annotationLib')
@@ -95,7 +98,7 @@ android {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: 'https://api.bintray.com/maven/twofortyfouram/maven/android-plugin-client-sdk-for-locale') {
+            repository(url: 'https://api.bintray.com/maven/twofortyfouram/maven/android-spackle') {
                 authentication(userName: TWOFORTYFOURAM_MONOREPO_MAVEN_USERNAME, password: TWOFORTYFOURAM_MONOREPO_MAVEN_PASSWORD)
             }
             pom.project {

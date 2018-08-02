@@ -17,26 +17,34 @@
 
 package com.twofortyfouram.memento.util;
 
+import android.content.Context;
+import android.os.Bundle;
+import android.os.Parcelable;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.twofortyfouram.annotation.Incubating;
 
 /**
  * Represents work to be performed in a transaction.
- *
- * Note: The current implementation does not support multiple processes or packages.  To improve
- * likelihood of being future-proof, subclasses should probably be static classes that implement
- * {@code Parcelable}.
+ * <p>
+ * Transactable objects must be defined as static and must implement {@link Parcelable} (e.g. add
+ * {@code CREATOR}).
  */
 @Incubating
-public interface Transactable<T> {
+public interface Transactable extends Parcelable {
 
     /**
      * Implementations of this method should only be database operations
      * to minimize the amount of time the database is locked.  In other words, don't do network
      * or other slow operations inside this method.
+     *
+     * @context Application context.
+     * @param bundle Bundle of arguments specific to this Transactable object.  These would have
+     *               been passed along with the Transactable object itself to the ContentProvider.
+     * @return An optional Bundle result.
      */
     @Nullable
-    T runInTransaction();
+    Bundle runInTransaction(@NonNull final Context context, @NonNull final Bundle bundle);
 
 }

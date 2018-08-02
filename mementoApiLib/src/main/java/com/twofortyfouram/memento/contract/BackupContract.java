@@ -23,11 +23,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.twofortyfouram.annotation.Incubating;
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.spackle.ContextUtil;
-
 import net.jcip.annotations.ThreadSafe;
 
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
@@ -39,7 +37,11 @@ public final class BackupContract {
     /**
      * Method supported by the {@link ContentProvider#call(String,
      * String, Bundle)} interface for performing backup of database.
-     * This method restricted to being performed within the same package as the content provider.
+     * This method restricted to being performed within the same package as the content provider.  The arg is a
+     * writable, empty directory path where the backup will be placed.  The database and any -wal or -journal files will
+     * be copied.
+     *
+     * Note this method doesn't work if the database is in-memory (null filename).
      *
      * @see #RESULT_EXTRA_BOOLEAN_IS_SUCCESS
      * @see #backup(Context, Uri, String)
@@ -55,26 +57,36 @@ public final class BackupContract {
     public static final String RESULT_EXTRA_BOOLEAN_IS_SUCCESS
             = "com.twofortyfouram.memento.extra.BOOLEAN_IS_SUCCESS"; //$NON-NLS
 
+    @NonNull
+    public static final String FILE_NAME_BACKUP = "backup.sqlite3"; //$NON-NLS
+
+    @NonNull
+    public static final String WAL_SUFFIX = "-wal"; //$NON-NLS
+
+    @NonNull
+    public static final String JOURNAL_SUFFIX = "-journal"; //$NON-NLS
+
     /**
-     * Backups entire database into a file provided by filePath.
+     * Backups entire database into a directory provided by {@code directoryPath}.  Backups are done to a directory so
+     * that -wal and -journal files can also be copied.
      *
      * This method restricted to being performed within the same package as the content provider.
      *
-     * @param filePath A file path where the database file will be copied.
-     *                 File extension should be ".sqlite"
+     * @param directoryPath A writable directory path where the database file will be copied, along with any -wal and
+     *                 -journal files.
      */
     @Slow(Slow.Speed.MILLISECONDS)
     public static boolean backup(@NonNull final Context context,
             @NonNull final Uri authority,
-            @NonNull final String filePath) {
+            @NonNull final String directoryPath) {
         assertNotNull(context, "context"); //$NON-NLS
         assertNotNull(authority, "authority"); //$NON-NLS
-        assertNotNull(filePath, "filePath"); //$NON-NLS
+        assertNotNull(directoryPath, "directoryPath"); //$NON-NLS
 
-        final Context ctx = ContextUtil.cleanContext(context);
+        @NonNull final Context ctx = ContextUtil.cleanContext(context);
 
         @Nullable final Bundle result = ctx.getContentResolver()
-                .call(authority, METHOD_BACKUP, filePath, null);
+                .call(authority, METHOD_BACKUP, directoryPath, null);
 
         return null != result && result.getBoolean(RESULT_EXTRA_BOOLEAN_IS_SUCCESS);
     }

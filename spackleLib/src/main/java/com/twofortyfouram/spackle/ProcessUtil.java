@@ -19,14 +19,11 @@ package com.twofortyfouram.spackle;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
+import android.app.Application;
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
-import androidx.annotation.VisibleForTesting;
-
+import android.os.Build;
+import androidx.annotation.*;
 import com.twofortyfouram.annotation.Slow;
-
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
@@ -100,9 +97,31 @@ public final class ProcessUtil {
     /*package*/ static String searchForProcessName(@NonNull final Context context) {
         assertNotNull(context, "context"); //$NON-NLS-1$
 
-        final Context applicationContext = ContextUtil.cleanContext(context);
+        @NonNull final Context ctx = ContextUtil.cleanContext(context);
 
-        final ActivityManager activityManager = (ActivityManager) applicationContext
+        if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.P)) {
+            return getProcessNamePPlus();
+        }
+        else {
+            return searchForProcessNameLegacy(ctx);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.P)
+    private static final String getProcessNamePPlus() {
+        return Application.getProcessName();
+    }
+
+    /**
+     * @param context Application context.
+     * @return Name of the current process.  May return null if a failure occurs, which is possible
+     * due to some race conditions in Android.
+     */
+    @Nullable
+    @Slow(Slow.Speed.MILLISECONDS)
+    @VisibleForTesting
+    private static String searchForProcessNameLegacy(@NonNull final Context context) {
+        final ActivityManager activityManager = (ActivityManager) context
                 .getSystemService(Context.ACTIVITY_SERVICE);
 
         String temp = null;

@@ -17,39 +17,27 @@
 
 package com.twofortyfouram.memento.provider;
 
-import android.content.ContentProviderOperation;
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.content.OperationApplicationException;
+import android.content.*;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.RemoteException;
-import android.os.SystemClock;
+import android.os.*;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.test.filters.LargeTest;
 import androidx.test.filters.MediumTest;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 import android.text.format.DateUtils;
-
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.annotation.Slow.Speed;
-import com.twofortyfouram.memento.contract.BackupContract;
-import com.twofortyfouram.memento.contract.BatchContract;
-import com.twofortyfouram.memento.contract.BatchContractProxy;
-import com.twofortyfouram.memento.contract.MementoContract;
-import com.twofortyfouram.memento.test.ContentProviderImpl;
-import com.twofortyfouram.memento.test.TableOneContract;
-import com.twofortyfouram.memento.util.MementoProviderUtil;
+import com.twofortyfouram.memento.contract.*;
+import com.twofortyfouram.memento.test.main_process.ContentProviderImpl;
+import com.twofortyfouram.memento.test.main_process.TableOneContract;
 import com.twofortyfouram.memento.util.Transactable;
+import com.twofortyfouram.spackle.FileUtil;
 import com.twofortyfouram.spackle.HandlerThreadFactory;
 import com.twofortyfouram.spackle.HandlerThreadFactory.ThreadPriority;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -64,9 +52,7 @@ import static androidx.test.InstrumentationRegistry.getContext;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Tests the {@link ContentProviderImpl}, a minimal implementation of the abstract class, to
@@ -442,96 +428,6 @@ public final class MementoContentProviderIntegrationTest {
 
     @SmallTest
     @Test
-    public void runInTransaction_nested_multiple_threads() {
-        /*
-         * This tests that transactions are mutually exclusive. The second transaction should be
-         * blocked from execution until the first transaction completes.
-         */
-
-        final ContentResolver resolver = getContext().getContentResolver();
-
-        final CountDownLatch transactionOneStartLatch = new CountDownLatch(1);
-        final CountDownLatch keepTransactionAliveLatch = new CountDownLatch(1);
-
-        //noinspection Convert2Lambda
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                //noinspection Convert2Lambda
-                MementoProviderUtil.runInTransaction(getContext(),
-                        ContentProviderImpl.getContentAuthority(getContext()),
-                        new Transactable<Void>() {
-
-                            @Override
-                            public Void runInTransaction() {
-                                transactionOneStartLatch.countDown();
-                                resolver.insert(TableOneContract.getContentUri(getContext()),
-                                        TableOneContract
-                                                .getContentValues("test_value")); //$NON-NLS-1$
-
-                                try {
-                                    assertFalse(keepTransactionAliveLatch.await(
-                                            1 * DateUtils.SECOND_IN_MILLIS, TimeUnit.MILLISECONDS));
-                                } catch (final InterruptedException e) {
-                                    throw new AssertionError(e);
-                                }
-
-                                return null;
-                            }
-                        });
-            }
-        }).start();
-
-        final CountDownLatch threadTwoLatch = new CountDownLatch(1);
-        //noinspection Convert2Lambda
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    transactionOneStartLatch.await();
-                } catch (final InterruptedException e) {
-                    throw new AssertionError(e);
-                }
-                //noinspection Convert2Lambda
-                MementoProviderUtil.runInTransaction(getContext(),
-                        ContentProviderImpl.getContentAuthority(getContext()),
-                        new Transactable<Void>() {
-
-                            @Override
-                            public Void runInTransaction() {
-                                resolver.delete(TableOneContract.getContentUri(getContext()), null,
-                                        null);
-
-                                keepTransactionAliveLatch.countDown();
-
-                                return null;
-                            }
-
-                        });
-
-                threadTwoLatch.countDown();
-            }
-        }).start();
-
-        try {
-            threadTwoLatch.await();
-        } catch (final InterruptedException e) {
-            throw new AssertionError(e);
-        }
-
-        assertCount(resolver, 0);
-    }
-
-    @LargeTest
-    @Test
-    public void runInTransaction_stress() {
-        for (int x = 0; x < 30; x++) {
-            runInTransaction_nested_multiple_threads();
-        }
-    }
-
-    @SmallTest
-    @Test
     public void runInTransaction_content_notification_success() {
         final ContentResolver resolver = getContext().getContentResolver();
 
@@ -544,21 +440,49 @@ public final class MementoContentProviderIntegrationTest {
                 TableOneContract.getContentUri(getContext()), 1);
 
         try {
-            MementoProviderUtil.runInTransaction(getContext(),
-                    ContentProviderImpl.getContentAuthority(getContext()), () -> {
-
-                        resolver.insert(TableOneContract.getContentUri(getContext()),
-                                TableOneContract
-                                        .getContentValues("test_value_one")); //$NON-NLS-1$
-
-                        return null;
-                    });
+            TransactionContract.runInTransaction(getContext(),
+                    ContentProviderImpl.getContentAuthorityUri(getContext()), new Transactable_runInTransaction_content_notification_success(), new Bundle());
 
             assertCount(resolver, 1);
 
             observer.assertExpectedHits();
         } finally {
             observer.destroy();
+        }
+    }
+
+    public static class Transactable_runInTransaction_content_notification_success implements Transactable {
+
+        public static final Creator<Transactable_runInTransaction_content_notification_success> CREATOR = new Creator<Transactable_runInTransaction_content_notification_success>() {
+            @Override
+            public Transactable_runInTransaction_content_notification_success createFromParcel(Parcel parcel) {
+                return new Transactable_runInTransaction_content_notification_success();
+            }
+
+            @Override
+            public Transactable_runInTransaction_content_notification_success[] newArray(int i) {
+                return new Transactable_runInTransaction_content_notification_success[0];
+            }
+        };
+
+        @Nullable
+        @Override
+        public Bundle runInTransaction(@NonNull final Context context, @NonNull final Bundle bundle) {
+            context.getContentResolver().insert(TableOneContract.getContentUri(getContext()),
+                    TableOneContract
+                            .getContentValues("test_value_one")); //$NON-NLS-1$
+
+            return null;
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel parcel, int i) {
+
         }
     }
 
@@ -575,17 +499,10 @@ public final class MementoContentProviderIntegrationTest {
 
         try {
             try {
-                MementoProviderUtil.runInTransaction(getContext(),
-                        ContentProviderImpl.getContentAuthority(getContext()),
-                        () -> {
-                            resolver.insert(TableOneContract.getContentUri(getContext()),
-                                    TableOneContract
-                                            .getContentValues("test_value_one")); //$NON-NLS-1$
+                TransactionContract.runInTransaction(getContext(),
+                        ContentProviderImpl.getContentAuthorityUri(getContext()),
+                        new Transactable_runInTransaction_content_notification_abort(), new Bundle());
 
-                            // This exception should abort the
-                            // transaction
-                            throw new RuntimeException();
-                        });
                 fail();
             } catch (final RuntimeException e) {
                 // Expected exception
@@ -597,6 +514,45 @@ public final class MementoContentProviderIntegrationTest {
         } finally {
             observer.destroy();
         }
+    }
+
+    private static final class Transactable_runInTransaction_content_notification_abort implements Transactable {
+
+        public static final Creator<Transactable_runInTransaction_content_notification_abort> CREATOR = new Creator<Transactable_runInTransaction_content_notification_abort>() {
+            @Override
+            public Transactable_runInTransaction_content_notification_abort createFromParcel(Parcel parcel) {
+                return new Transactable_runInTransaction_content_notification_abort();
+            }
+
+            @Override
+            public Transactable_runInTransaction_content_notification_abort[] newArray(int i) {
+                return new Transactable_runInTransaction_content_notification_abort[0];
+            }
+        };
+
+        @Nullable
+        @Override
+        public Bundle runInTransaction(@NonNull final Context context,
+                                       @NonNull final Bundle bundle) {
+            context.getContentResolver().insert(TableOneContract.getContentUri(getContext()),
+                    TableOneContract
+                            .getContentValues("test_value_one")); //$NON-NLS-1$
+
+            // This exception should abort the
+            // transaction
+            throw new RuntimeException();
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(@NonNull final Parcel parcel, final int i) {
+
+        }
+
     }
 
     @SmallTest
@@ -690,22 +646,30 @@ public final class MementoContentProviderIntegrationTest {
     @SmallTest
     @Test
     public void call_backup_valid_path() {
-        final File destFile = new File(getContext().getExternalFilesDir(null),
+        final File destDir = new File(getContext().getExternalFilesDir(null),
                 "output_test_file"); //NON-NLS
+        destDir.mkdirs();
+
         try {
             final ContentResolver resolver = getContext().getContentResolver();
 
             final Bundle result = resolver
                     .call(ContentProviderImpl.getContentAuthorityUri(getContext()),
-                            BackupContract.METHOD_BACKUP, destFile.getAbsolutePath(),
+                            BackupContract.METHOD_BACKUP, destDir.getAbsolutePath(),
                             null); //NON-NLS
 
             assertThat(result, notNullValue());
             assertTrue(result.getBoolean(BackupContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, false));
+
+            @NonNull final File backupFile = new File(destDir, BackupContract.FILE_NAME_BACKUP);
+            assertThat(backupFile.exists(), is(true));
+            assertThat(backupFile.isFile(), is(true));
+
+            // Not testing for -wal or -journal, as those aren't guaranteed to exist
         } finally {
             //Cleanup
-            if (destFile.exists()) {
-                assertTrue(destFile.delete());
+            if (destDir.exists()) {
+                FileUtil.deleteRecursively(destDir);
             }
         }
     }
@@ -745,7 +709,7 @@ public final class MementoContentProviderIntegrationTest {
      */
     @NonNull
     public TestContentObserver getNewRegisteredContentObserver(@NonNull final Uri uriToMonitor,
-            final int expectedHitCount) {
+                                                               final int expectedHitCount) {
         final Handler handler = new Handler(HandlerThreadFactory.newHandlerThread(
                 TestContentObserver.class.getName(), ThreadPriority.DEFAULT).getLooper());
 
@@ -806,7 +770,7 @@ public final class MementoContentProviderIntegrationTest {
         private final int mExpectedHitCount;
 
         public TestContentObserver(@NonNull final Handler handler,
-                @NonNull final ContentResolver resolver, final int expectedHitCount) {
+                                   @NonNull final ContentResolver resolver, final int expectedHitCount) {
             super(handler);
 
             mHandler = handler;

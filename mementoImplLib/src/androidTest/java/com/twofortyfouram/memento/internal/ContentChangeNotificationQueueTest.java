@@ -31,7 +31,7 @@ import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 import android.text.format.DateUtils;
 
-import com.twofortyfouram.memento.test.TableOneContract;
+import com.twofortyfouram.memento.test.main_process.TableOneContract;
 import com.twofortyfouram.spackle.HandlerThreadFactory;
 import com.twofortyfouram.spackle.HandlerThreadFactory.ThreadPriority;
 import com.twofortyfouram.test.context.ReceiverContextWrapper;

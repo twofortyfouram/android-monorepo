@@ -18,8 +18,6 @@
 package com.twofortyfouram.log;
 
 import android.annotation.TargetApi;
-import android.app.FragmentManager;
-import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -29,6 +27,8 @@ import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentManager;
+import androidx.loader.app.LoaderManager;
 import android.util.Log;
 
 import com.twofortyfouram.spackle.AndroidSdkVersion;
@@ -167,32 +167,19 @@ public final class Lumberjack {
     }
 
     private static void enableFragmentAndLoaderLoggingSupport() {
-        /*
-         * In debug builds, the support library should not be obfuscated so this reflection call
-         * will succeed if the support library is present.  Reflection is used so that this
-         * library doesn't directly depend on the support library.
-         */
         try {
-            final Class<?>[] types = new Class<?>[]{
-                    Boolean.TYPE
-            };
-            final Boolean[] params = {
-                    Boolean.TRUE
-            };
-
-            Reflector.tryInvokeStatic("android.support.v4.app.FragmentManager", //$NON-NLS-1$
-                    "enableDebugLogging", types, params); //$NON-NLS-1$
-            Reflector.tryInvokeStatic("android.support.v4.app.LoaderManager", //$NON-NLS-1$
-                    "enableDebugLogging", types, params); //$NON-NLS-1$
-        } catch (final RuntimeException e) {
+            FragmentManager.enableDebugLogging(true);
+            LoaderManager.enableDebugLogging(true);
+        } catch (final Exception e) {
             // Do nothing
         }
     }
 
+    @SuppressWarnings("deprecation")
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private static void enableFragmentAndLoaderLoggingHoneycomb() {
-        FragmentManager.enableDebugLogging(true);
-        LoaderManager.enableDebugLogging(true);
+        android.app.FragmentManager.enableDebugLogging(true);
+        android.app.LoaderManager.enableDebugLogging(true);
     }
 
     /**

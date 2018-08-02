@@ -32,7 +32,6 @@ dependencies {
     implementation group:'com.linkedin.testbutler', name:'test-butler-library', version:"${TEST_BUTLER_VERSION_MATCHER}"
     implementation project(':annotationLib')
 
-    compileOnly project(':assertionLib') // Required at runtime, but provided scope works around some quirks with compiling.  Clients need to include this as a compile dependency.
     compileOnly group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
 
     androidTestImplementation group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
@@ -45,6 +44,9 @@ dependencies {
 
 android {
     compileSdkVersion ANDROID_COMPILE_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_COMPILE_SDK_VERSION) : ANDROID_COMPILE_SDK_VERSION
+
+    // Need MockContentResolver
+    useLibrary 'android.test.mock'
 
     defaultConfig {
         minSdkVersion ANDROID_MIN_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_MIN_SDK_VERSION) : ANDROID_MIN_SDK_VERSION
@@ -95,7 +97,7 @@ android {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: 'https://api.bintray.com/maven/twofortyfouram/maven/android-plugin-client-sdk-for-locale') {
+            repository(url: 'https://api.bintray.com/maven/twofortyfouram/maven/android-test') {
                 authentication(userName: TWOFORTYFOURAM_MONOREPO_MAVEN_USERNAME, password: TWOFORTYFOURAM_MONOREPO_MAVEN_PASSWORD)
             }
             pom.project {

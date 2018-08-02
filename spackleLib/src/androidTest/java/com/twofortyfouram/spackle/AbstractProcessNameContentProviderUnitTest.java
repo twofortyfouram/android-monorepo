@@ -49,7 +49,7 @@ public final class AbstractProcessNameContentProviderUnitTest {
             }
         };
 
-        final String actualProcessName = AbstractProcessNameContentProvider.getProcessName(
+        final String actualProcessName = AbstractProcessNameContentProvider.getProcessNameLegacy(
                 ctx, new ProviderInfo());
 
         assertThat(actualProcessName, is(expectedApplicationProcessName));
@@ -63,7 +63,7 @@ public final class AbstractProcessNameContentProviderUnitTest {
         final ProviderInfo info = new ProviderInfo();
         info.processName = expectedProviderProcessName;
 
-        final String actualProcessName = AbstractProcessNameContentProvider.getProcessName(
+        final String actualProcessName = AbstractProcessNameContentProvider.getProcessNameLegacy(
                 InstrumentationRegistry.getContext(), info);
 
         assertThat(actualProcessName, is(expectedProviderProcessName));
@@ -87,7 +87,7 @@ public final class AbstractProcessNameContentProviderUnitTest {
             }
         };
 
-        final String actualProcessName = AbstractProcessNameContentProvider.getProcessName(
+        final String actualProcessName = AbstractProcessNameContentProvider.getProcessNameLegacy(
                 ctx, new ProviderInfo());
 
         assertThat(actualProcessName, is(packageName));

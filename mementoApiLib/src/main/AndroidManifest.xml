@@ -21,8 +21,11 @@
 
     <application>
         <service
-            android:name="com.twofortyfouram.memento.service.DefaultProcessContentProviderOperationService"
-            android:exported="false"/>
+                android:name="com.twofortyfouram.memento.internal.service.DefaultProcessContentProviderOperationService"
+                android:exported="false"/>
+        <receiver
+                android:name="com.twofortyfouram.memento.internal.receiver.DefaultProcessContentProviderOperationReceiver"
+                android:exported="false"/>
     </application>
 
 </manifest>

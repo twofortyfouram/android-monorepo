@@ -20,10 +20,9 @@ package com.twofortyfouram.test.util;
 import android.content.Context;
 import android.provider.Settings;
 import androidx.annotation.NonNull;
-
 import net.jcip.annotations.ThreadSafe;
 
-import static com.twofortyfouram.assertion.Assertions.assertNotNull;
+import static com.twofortyfouram.test.internal.Assertions.assertNotNull;
 
 
 /**

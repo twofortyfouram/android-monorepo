@@ -29,6 +29,7 @@ version = LIBRARY_VERSION_NAME
 dependencies {
     api group:'androidx.sqlite', name:'sqlite', version:"${ANDROID_ARCHITECTURE_VERSION_MATCHER}"
     implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+    implementation group:'androidx.lifecycle', name:'lifecycle-livedata-core', version:"${ANDROID_ARCHITECTURE_VERSION_MATCHER}"
     implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
     implementation project(':annotationLib')
     implementation project(':assertionLib')

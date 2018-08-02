@@ -19,9 +19,7 @@ package com.twofortyfouram.test.matcher;
 
 
 import androidx.annotation.NonNull;
-
 import net.jcip.annotations.ThreadSafe;
-
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 
@@ -32,7 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-import static com.twofortyfouram.assertion.Assertions.assertNotNull;
+import static com.twofortyfouram.test.internal.Assertions.assertNotNull;
 
 /**
  * Matcher to verify that a class is probably immutable.  Typical use case is for model objects

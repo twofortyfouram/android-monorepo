@@ -15,46 +15,57 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.memento.test;
+package com.twofortyfouram.memento.test.second_process;
 
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
+import com.twofortyfouram.memento.test.main_process.ContentProviderImpl;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
 /**
- * Contract whose uri matches forbid all access.  #YouCanHazNo
+ * Contract for a simple ContentProvider table.
  */
 @ThreadSafe
-public final class YouCanHazNoContract implements BaseColumns {
+public final class TableOneContractSecondProcess implements BaseColumns {
 
     /**
      * Name of the table.
      */
     @NonNull
-    /* package */ static final String TABLE_NAME = "haz_no"; //$NON-NLS-1$
+    /* package */ static final String TABLE_NAME = "table_one"; //$NON-NLS-1$
 
     /**
      * Mimetype for the entire directory.
      */
     @NonNull
     public static final String MIMETYPE_DIR = ContentResolver.CURSOR_DIR_BASE_TYPE
-            + "/vnd.com.twofortyfouram.memento.test.blablatwo"; //$NON-NLS-1$
+            + "/vnd.com.twofortyfouram.memento.test.blabla"; //$NON-NLS-1$
 
     /**
      * Mimetype for a single item.
      */
     @NonNull
     public static final String MIMETYPE_ITEM = ContentResolver.CURSOR_ITEM_BASE_TYPE
-            + "/vnd.com.twofortyfouram.memento.test.blablatwo"; //$NON-NLS-1$
+            + "/vnd.com.twofortyfouram.memento.test.blabla"; //$NON-NLS-1$
+
+    /**
+     * Type: {@code String}.
+     * <p>
+     * First column in the table.
+     * <p>
+     * Constraints: This column cannot be null.
+     */
+    @NonNull
+    public static final String COLUMN_STRING_COLUMN_ONE = "column_one"; //$NON-NLS-1$
 
     /**
      * Intrinsic lock for guarding {@link #sContentUri}.
@@ -63,7 +74,7 @@ public final class YouCanHazNoContract implements BaseColumns {
     private static final Object INTRINSIC_LOCK = new Object();
 
     /**
-     * Content URI for {@link YouCanHazNoContract}.
+     * Content URI for {@link TableOneContractSecondProcess}.
      *
      * @see #getContentUri(Context)
      */
@@ -74,7 +85,7 @@ public final class YouCanHazNoContract implements BaseColumns {
 
     /**
      * @param context Application context.
-     * @return The content URI for {@link YouCanHazNoContract}.
+     * @return The content URI for {@link TableOneContractSecondProcess}.
      */
     @NonNull
     public static Uri getContentUri(@NonNull final Context context) {
@@ -101,11 +112,27 @@ public final class YouCanHazNoContract implements BaseColumns {
     }
 
     /**
+     * Creates ContentValues for the table.
+     *
+     * @param columnOne String to associate with {@link #COLUMN_STRING_COLUMN_ONE}.
+     * @return Initialized ContentValues.
+     */
+    @NonNull
+    public static ContentValues getContentValues(@NonNull final String columnOne) {
+        assertNotNull(columnOne, "columnOne"); //$NON-NLS-1$
+
+        final ContentValues values = new ContentValues(1);
+        values.put(COLUMN_STRING_COLUMN_ONE, columnOne);
+
+        return values;
+    }
+
+    /**
      * Private constructor prevents instantiation.
      *
      * @throws UnsupportedOperationException because this class cannot be instantiated.
      */
-    private YouCanHazNoContract() {
+    private TableOneContractSecondProcess() {
         throw new UnsupportedOperationException("This class is non-instantiable"); //$NON-NLS-1$
     }
 }

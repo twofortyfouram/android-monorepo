@@ -24,7 +24,7 @@ import androidx.test.filters.SdkSuppress;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.twofortyfouram.memento.test.ContentProviderImpl;
+import com.twofortyfouram.memento.test.main_process.ContentProviderImpl;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

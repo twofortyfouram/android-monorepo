@@ -15,54 +15,35 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.memento.util;
+package com.twofortyfouram.memento.contract;
 
 import android.content.ContentProvider;
-import android.content.ContentProviderClient;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
-import androidx.annotation.VisibleForTesting;
 
-import com.twofortyfouram.annotation.Incubating;
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.annotation.Slow.Speed;
 import com.twofortyfouram.log.Lumberjack;
-import com.twofortyfouram.memento.internal.ContentProviderClientCompat;
-import com.twofortyfouram.memento.internal.TransactionAware;
 
 import net.jcip.annotations.ThreadSafe;
 
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
-import static com.twofortyfouram.log.Lumberjack.formatMessage;
 
 /**
  * Utility class for working with {@link ContentProvider}.
  */
 @ThreadSafe
-public final class MementoProviderUtil {
-
-    /*
-     * Hard coded class name from the test package to enable unit testing of runInTransaction()
-     */
-    @NonNull
-    @VisibleForTesting
-    @RestrictTo(RestrictTo.Scope.LIBRARY)
-    public static final String MOCKABLE_CONTENT_PROVIDER_CLASS_NAME
-            = "com.twofortyfouram.test.provider.MockableContentProvider"; //$NON-NLS
+public final class BaseColumnsContract {
 
     /**
      * Projection for {@link BaseColumns#_COUNT}.
      */
     @NonNull
-    private static final String[] PROJECTION_COUNT = {
-            BaseColumns._COUNT
-    };
+    private static final String[] PROJECTION_COUNT = {BaseColumns._COUNT};
 
     /**
      * This method should work for any content provider that correctly supports {@link
@@ -80,7 +61,7 @@ public final class MementoProviderUtil {
      */
     @Slow(Speed.MILLISECONDS)
     public static int getCountForUri(@NonNull final ContentResolver resolver,
-            @NonNull final Uri uri) {
+                                     @NonNull final Uri uri) {
         assertNotNull(resolver, "resolver"); //$NON-NLS-1$
         assertNotNull(uri, "uri"); //$NON-NLS-1$
 
@@ -103,8 +84,8 @@ public final class MementoProviderUtil {
      */
     @Slow(Speed.MILLISECONDS)
     public static int getCountForUri(@NonNull final ContentResolver resolver,
-            @NonNull final Uri uri, @Nullable final String selection,
-            @Nullable String[] selectionArgs) {
+                                     @NonNull final Uri uri, @Nullable final String selection,
+                                     @Nullable String[] selectionArgs) {
         assertNotNull(resolver, "resolver"); //$NON-NLS-1$
         assertNotNull(uri, "uri"); //$NON-NLS-1$
 
@@ -148,83 +129,11 @@ public final class MementoProviderUtil {
     }
 
     /**
-     * This can only be used for a ContentProvider that subclasses {@link TransactionAware}.
-     *
-     * Note: This method is not safe for multi-process use.  This method can only be called from
-     * the same process and package as the ContentProvider is running in.
-     *
-     * @param context          Application context.
-     * @param contentAuthority Authority of the Content Provider.
-     * @param transactable     Transactable to execute.
-     * @return The result of {@code transactable}.
-     * @throws IllegalArgumentException      If provider for {@code contentAuthority} is not found.
-     * @throws UnsupportedOperationException If provider for {@code contentAuthority} is not an
-     *                                       instance of {@link TransactionAware}.
-     */
-    /*
-     * TODO: It might be possible to make this work across process boundaries within the same
-     * package by using the call API and restricting the transactable to being a static, parcelable object.
-     */
-    @Nullable
-    @Incubating
-    public static <V> V runInTransaction(@NonNull final Context context,
-            @NonNull final String contentAuthority,
-            @NonNull final Transactable<V> transactable) {
-        assertNotNull(context, "context"); //$NON-NLS-1$
-        assertNotNull(contentAuthority, "contentAuthority"); //$NON-NLS-1$
-        assertNotNull(transactable, "transactable"); //$NON-NLS-1$
-
-        @Nullable V result = null;
-
-        // Don't use try with resources until minSdk = N or greater, because it didn't become
-        // autoclosable until recently.
-        @Nullable ContentProviderClient client = null;
-        try {
-            client = context.getContentResolver().acquireContentProviderClient(contentAuthority);
-            @Nullable final ContentProvider provider = client.getLocalContentProvider();
-
-            if (null == provider) {
-                throw new IllegalArgumentException(
-                        formatMessage("No provider found for authority %s", //$NON-NLS-1$
-                                contentAuthority)
-                );
-            }
-
-            if (provider instanceof TransactionAware) {
-                //noinspection CastToConcreteClass
-                final TransactionAware mementoContentProvider
-                        = (TransactionAware) provider;
-                result = mementoContentProvider.runInTransaction(transactable);
-            } else {
-                if (MOCKABLE_CONTENT_PROVIDER_CLASS_NAME
-                        .equals(provider.getClass().getName())) {
-                    // Special case for automated tests
-                    result = transactable.runInTransaction();
-                } else {
-                    throw new UnsupportedOperationException(
-                            formatMessage(
-                                    "Provider with authority %s is not an instance of %s",//NON-NLS
-                                    contentAuthority,
-                                    TransactionAware.class.getName()));
-                }
-            }
-        } finally {
-            if (null != client) {
-                ContentProviderClientCompat.close(client);
-                //noinspection UnusedAssignment
-                client = null;
-            }
-        }
-
-        return result;
-    }
-
-    /**
      * Private constructor prevents instantiation.
      *
      * @throws UnsupportedOperationException because this class cannot be instantiated.
      */
-    private MementoProviderUtil() {
+    private BaseColumnsContract() {
         throw new UnsupportedOperationException("This class is non-instantiable"); //$NON-NLS-1$
     }
 }
