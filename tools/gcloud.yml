@@ -48,7 +48,7 @@ testLib:
   include: [test-butler-apk,coverage-environment-variables]
 
 test-butler-apk:
-  app: tools/test-butler-app-1.4.0.apk
+  app: tools/test-butler-app-2.0.0.apk
 
 coverage-environment-variables:
   environment-variables:
