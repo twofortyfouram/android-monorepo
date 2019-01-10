@@ -125,3 +125,10 @@ task installArchives(type: Upload) {
 android.libraryVariants.all { variant ->
     createJavaDocTaskForVariant(variant, "com/twofortyfouram/test", "com_twofortyfouram_test")
 }
+
+apply plugin: 'com.twofortyfouram.warp'
+
+ftlOptions {
+    bucket = "${TWOFORTYFOURAM_MONOREPO_FIREBASE_TEST_LAB_BUCKET}"
+    args = "${TWOFORTYFOURAM_MONOREPO_FIREBASE_TEST_LAB_ARGS}"
+}

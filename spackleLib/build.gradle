@@ -127,3 +127,10 @@ android.libraryVariants.all { variant ->
     Javadoc javadoc = createJavaDocTaskForVariant(variant, "com/twofortyfouram/spackle", "com_twofortyfouram_spackle")
     javadoc.exclude('com/twofortyfouram/spackle/internal/**')
 }
+
+apply plugin: 'com.twofortyfouram.warp'
+
+ftlOptions {
+    bucket = "${TWOFORTYFOURAM_MONOREPO_FIREBASE_TEST_LAB_BUCKET}"
+    args = "${TWOFORTYFOURAM_MONOREPO_FIREBASE_TEST_LAB_ARGS}"
+}
