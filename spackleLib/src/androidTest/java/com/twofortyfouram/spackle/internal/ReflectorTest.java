@@ -18,7 +18,6 @@
 package com.twofortyfouram.spackle.internal;
 
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +26,7 @@ import static com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher.notIns
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class ReflectorTest {
 
     @SmallTest

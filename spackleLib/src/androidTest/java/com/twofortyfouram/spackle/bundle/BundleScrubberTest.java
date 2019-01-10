@@ -23,7 +23,6 @@ import android.os.Bundle;
 import android.os.PersistableBundle;
 import androidx.test.filters.SdkSuppress;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.assertion.BundleAssertions;
 
@@ -36,7 +35,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertFalse;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class BundleScrubberTest {
 
     @SmallTest

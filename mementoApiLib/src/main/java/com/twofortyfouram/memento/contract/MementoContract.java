@@ -19,11 +19,8 @@ package com.twofortyfouram.memento.contract;
 
 import android.app.SearchManager;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.CancellationSignal;
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
-
 import net.jcip.annotations.ThreadSafe;
 
 import static com.twofortyfouram.assertion.Assertions.assertInRangeInclusive;
@@ -57,8 +54,8 @@ public interface MementoContract {
 
     /**
      * Mutates the query string to include {@link SearchManager#SUGGEST_PARAMETER_LIMIT} set to
-     * {@code limit}. For Android O and greater, consider using {@link
-     * android.content.ContentResolver#query(Uri, String[], Bundle, CancellationSignal)} with a
+     * {@code limit}. This method is deprecated by design. For Android O and greater, consider using
+     * {@link android.content.ContentResolver#query(Uri, String[], Bundle, CancellationSignal)} with a
      * limit in the Bundle.
      *
      * Calling this method multiple times on the same builder has undefined behavior.

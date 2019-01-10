@@ -61,7 +61,7 @@ public final class ProcessUtil {
     public static String getProcessName(@NonNull final Context context) {
         assertNotNull(context, "context"); //$NON-NLS-1$
 
-        final Context applicationContext = ContextUtil.cleanContext(context);
+        @NonNull final Context applicationContext = ContextUtil.cleanContext(context);
 
         /*
          * Double-checked idiom for lazy initialization, Effective Java 2nd
@@ -121,10 +121,10 @@ public final class ProcessUtil {
     @Slow(Slow.Speed.MILLISECONDS)
     @VisibleForTesting
     private static String searchForProcessNameLegacy(@NonNull final Context context) {
-        final ActivityManager activityManager = (ActivityManager) context
+        @NonNull final ActivityManager activityManager = (ActivityManager) context
                 .getSystemService(Context.ACTIVITY_SERVICE);
 
-        String temp = null;
+        @Nullable String temp = null;
 
         // Search through running apps
         {
@@ -132,7 +132,7 @@ public final class ProcessUtil {
              * List of running processes shouldn't be null, but crash reports have shown
              * this can happen.
              */
-            final List<RunningAppProcessInfo> runningApps = activityManager
+            @Nullable final List<RunningAppProcessInfo> runningApps = activityManager
                     .getRunningAppProcesses();
             if (null != runningApps) {
                 for (final RunningAppProcessInfo processInfo : runningApps) {

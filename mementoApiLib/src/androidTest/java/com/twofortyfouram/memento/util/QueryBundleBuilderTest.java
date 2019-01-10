@@ -21,7 +21,6 @@ import android.content.ContentResolver;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
 import com.twofortyfouram.assertion.BundleAssertions;
 import com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher;
 import org.junit.Test;
@@ -31,7 +30,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.sameInstance;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class QueryBundleBuilderTest {
 
     @SmallTest

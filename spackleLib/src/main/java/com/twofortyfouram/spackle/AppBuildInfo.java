@@ -24,10 +24,12 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.twofortyfouram.log.Lumberjack;
+import com.twofortyfouram.spackle.internal.Constants;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -66,6 +68,16 @@ public final class AppBuildInfo {
     }
 
     /**
+     *
+     * @param context
+     * @return True if the package name ends with a debug suffix.  Useful if it is a debug variant but
+     * the debuggagle
+     */
+    public static boolean isDebugPackageNameSuffix(@NonNull final Context context) {
+        return context.getPackageName().endsWith(".debug"); //$NON-NLS
+    }
+
+    /**
      * Gets the "versionCode" in the AndroidManifest.
      *
      * @param context Application context.
@@ -77,12 +89,9 @@ public final class AppBuildInfo {
         final long versionCode;
         if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.P)) {
             versionCode = getVersionCodePPlus(packageInfo);
+        } else {
+            versionCode = getVersionCodeLegacy(packageInfo);
         }
-        else {
-            versionCode =  getVersionCodeLegacy(packageInfo);
-        }
-
-        Lumberjack.v("versionCode=%d", versionCode); //$NON-NLS-1$
 
         return versionCode;
     }
@@ -116,8 +125,6 @@ public final class AppBuildInfo {
             versionName = "";  //$NON-NLS-1$
         }
 
-        Lumberjack.v("versionName=%s", versionName); //$NON-NLS-1$
-
         return versionName;
     }
 
@@ -146,6 +153,16 @@ public final class AppBuildInfo {
     }
 
     /**
+     * @param context Application context.
+     * @return targetSdkVersion of the app.
+     */
+    public static int getTargetSdkVersion(@NonNull final Context context) {
+        final int targetSdkVersion = context.getApplicationInfo().targetSdkVersion;
+
+        return targetSdkVersion;
+    }
+
+    /**
      * Note: this method is known to throw RuntimeException on some Android devices when the
      * Android Package Manager dies.  There's nothing we can do about that error.
      *
@@ -155,7 +172,7 @@ public final class AppBuildInfo {
      */
     @NonNull
     /*package*/ static PackageInfo getMyPackageInfo(@NonNull final Context context,
-            final int flags) {
+                                                    final int flags) {
         final PackageManager packageManager = context.getPackageManager();
         final String packageName = context.getPackageName();
 
@@ -177,8 +194,6 @@ public final class AppBuildInfo {
     public static long getLastUpdateWallTimeMillis(@NonNull final Context context) {
         final long lastUpdateTimeMillis = getMyPackageInfo(context, 0).lastUpdateTime;
 
-        Lumberjack.v("Last update time was %d [milliseconds]", lastUpdateTimeMillis); //$NON-NLS-1$
-
         return lastUpdateTimeMillis;
     }
 
@@ -191,8 +206,6 @@ public final class AppBuildInfo {
      */
     public static long getInstallWallTimeMillis(@NonNull final Context context) {
         final long installTimeMillis = getMyPackageInfo(context, 0).firstInstallTime;
-
-        Lumberjack.v("Install time was %d [milliseconds]", installTimeMillis); //$NON-NLS-1$
 
         return installTimeMillis;
     }

@@ -25,7 +25,9 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.twofortyfouram.memento.test.main_process.ContentProviderImpl;
+
+import com.twofortyfouram.memento.test.main_process.provider.ContentProviderUtil;
+
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
@@ -100,7 +102,7 @@ public final class TableOneContractSecondProcess implements BaseColumns {
             synchronized (INTRINSIC_LOCK) {
                 contentUri = sContentUri;
                 if (null == contentUri) {
-                    final String authority = ContentProviderImpl.getContentAuthority(context);
+                    final String authority = ContentProviderUtil.getContentAuthorityString(context);
                     sContentUri = contentUri = new Uri.Builder()
                             .scheme(ContentResolver.SCHEME_CONTENT).authority(authority)
                             .appendPath(TABLE_NAME).build();

@@ -19,6 +19,7 @@ boolean is_dexguard = Boolean.parseBoolean(IS_DEXGUARD_ENABLED)
 boolean is_test_orchestrator = Boolean.parseBoolean(IS_USE_TEST_ORCHESTRATOR)
 
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 apply plugin: 'findbugs'
 
 apply plugin: 'maven'
@@ -27,10 +28,9 @@ archivesBaseName = 'android-plugin-host-sdk-for-locale'
 version = LIBRARY_VERSION_NAME
 
 dependencies {
-    // support-v4 is optional for backwards compatibility
-    compileOnly group:'androidx.legacy', name:'legacy-support-v4', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+    implementation group:'androidx.fragment', name:'fragment', version:"${ANDROID_FRAGMENT_VERSION_MATCHER}"
     
-    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_ANNOTATION_VERSION_MATCHER}"
     implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
     implementation project(':annotationLib')
     implementation project(':assertionLib')

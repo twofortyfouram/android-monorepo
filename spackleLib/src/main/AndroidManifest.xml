@@ -25,8 +25,7 @@
                 android:name=".internal.DefaultProcessNameContentProvider"
                 android:multiprocess="false"
                 android:exported="false"
-                android:initOrder="2147483647"
-                android:enabled="@bool/com_twofortyfouram_spackle_is_android_o_or_earlier"/>
+                android:initOrder="2147483647"/>
     </application>
 
 </manifest>

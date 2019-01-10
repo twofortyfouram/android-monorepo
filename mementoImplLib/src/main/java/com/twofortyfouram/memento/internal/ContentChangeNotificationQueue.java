@@ -25,6 +25,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
+import com.twofortyfouram.annotation.NonNullElt;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.spackle.ContextUtil;
 
@@ -76,7 +77,7 @@ public final class ContentChangeNotificationQueue {
      * Uris that have changed.
      */
     @NonNull
-    private final Set<Uri> mUris = new LinkedHashSet<>();
+    private final Set<@NonNullElt Uri> mUris = new LinkedHashSet<>();
 
     /**
      * Flag indicating whether a batch transaction is active.
@@ -119,7 +120,9 @@ public final class ContentChangeNotificationQueue {
     public void onContentChanged(@NonNull final Uri uri) {
         assertNotNull(uri, "uri"); //$NON-NLS-1$
 
-        Lumberjack.v("Content change at %s", uri); //$NON-NLS-1$
+        if (Constants.IS_LOGGING_ENABLED) {
+            Lumberjack.v("Content change at %s", uri); //$NON-NLS-1$
+        }
 
         if (mIsBatch) {
             mUris.add(uri);
@@ -131,7 +134,7 @@ public final class ContentChangeNotificationQueue {
     /**
      * @param uris Collection of Uris whose content changed.
      */
-    public void onContentChanged(@NonNull final List<Uri> uris) {
+    public void onContentChanged(@NonNull final List<@NonNullElt Uri> uris) {
         assertNotNull(uris, "uris"); //$NON-NLS-1$
 
         for (int x = 0; x < uris.size(); x++) {
@@ -167,8 +170,10 @@ public final class ContentChangeNotificationQueue {
         }
 
         if (shouldNotify) {
-            for (final Uri uri : mUris) {
-                Lumberjack.v("Sending content change notification %s", uri); //$NON-NLS-1$
+            for (@NonNull final Uri uri : mUris) {
+                if (Constants.IS_LOGGING_ENABLED) {
+                    Lumberjack.v("Sending content change notification %s", uri); //$NON-NLS-1$
+                }
                 notifyChange(uri);
             }
         }
@@ -208,7 +213,7 @@ public final class ContentChangeNotificationQueue {
             @NonNull final Uri uri) {
         assertNotNull(uri, "uri"); //$NON-NLS-1$
 
-        final Intent intent = new Intent(Intent.ACTION_PROVIDER_CHANGED);
+        @NonNull final Intent intent = new Intent(Intent.ACTION_PROVIDER_CHANGED);
         intent.setDataAndType(uri, mContext.getContentResolver().getType(uri));
 
         // Disable including the COUNT; it just adds disk IO and clients probably don't care

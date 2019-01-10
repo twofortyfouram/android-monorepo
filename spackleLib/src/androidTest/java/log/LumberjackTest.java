@@ -21,7 +21,6 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
 
 import com.twofortyfouram.log.Lumberjack;
 
@@ -32,7 +31,7 @@ import static com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher.notIns
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class LumberjackTest {
 
     /*

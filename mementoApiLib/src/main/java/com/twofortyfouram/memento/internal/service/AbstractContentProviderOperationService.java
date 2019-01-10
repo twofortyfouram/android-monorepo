@@ -45,8 +45,6 @@ import net.jcip.annotations.ThreadSafe;
 @ThreadSafe
 public abstract class AbstractContentProviderOperationService extends IntentService {
 
-    //$NON-NLS-1$
-
     /**
      * Construct a new ContentProviderService.
      */

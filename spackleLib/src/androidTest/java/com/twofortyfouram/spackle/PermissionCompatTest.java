@@ -21,18 +21,15 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
-import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SdkSuppress;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.twofortyfouram.test.context.FeatureContextWrapper;
-import com.twofortyfouram.test.util.FirebaseTestLabUtil;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static androidx.test.InstrumentationRegistry.getContext;
 import static com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher.notInstantiable;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -50,15 +47,13 @@ public final class PermissionCompatTest {
     @Test
     public void getPermissionStatus_granted() {
         if (!AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.M)) {
-            final String[] permissionArray = new String[]{
-                    android.Manifest.permission.ACCESS_FINE_LOCATION
-            };
+            final String[] permissionArray = {Manifest.permission.ACCESS_FINE_LOCATION};
 
-            final Context testContext = new FeatureContextWrapper(getContext(), permissionArray,
+            final Context testContext = new FeatureContextWrapper(ApplicationProvider.getApplicationContext(), permissionArray,
                     permissionArray, null);
 
             assertThat(PermissionCompat.getPermissionStatus(testContext,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION),
+                    Manifest.permission.ACCESS_FINE_LOCATION),
                     is(PermissionCompat.PermissionStatus.GRANTED));
         }
     }
@@ -67,11 +62,11 @@ public final class PermissionCompatTest {
     @Test
     public void getPermissionStatus_not_granted_via_manifest() {
         if (!AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.M)) {
-            final Context testContext = new FeatureContextWrapper(getContext(), null, null, null);
+            final Context testContext = new FeatureContextWrapper(ApplicationProvider.getApplicationContext(), null, null, null);
 
             assertThat(
                     PermissionCompat.getPermissionStatus(testContext,
-                            android.Manifest.permission.ACCESS_FINE_LOCATION),
+                            Manifest.permission.ACCESS_FINE_LOCATION),
                     is(PermissionCompat.PermissionStatus.NOT_GRANTED_BY_MANIFEST));
         }
     }
@@ -88,8 +83,8 @@ public final class PermissionCompatTest {
          */
 
         // Fails on test lab, probably because all permissions are granted during install time
-        if (!FirebaseTestLabUtil.isFirebaseTestLab(InstrumentationRegistry.getContext())) {
-            assertThat(PermissionCompat.getPermissionStatus(getContext(),
+        if (!FirebaseTestLabUtil.isFirebaseTestLab(ApplicationProvider.getApplicationContext())) {
+            assertThat(PermissionCompat.getPermissionStatus(ApplicationProvider.getApplicationContext(),
                     Manifest.permission.CALL_PHONE),
                     is(PermissionCompat.PermissionStatus.NOT_GRANTED_BY_USER));
         }
@@ -99,11 +94,11 @@ public final class PermissionCompatTest {
     @SdkSuppress(minSdkVersion = Build.VERSION_CODES.M)
     @Test
     public void getPermissionStatus_write_settings_granted_with_feature_context_wrapper() {
-        final String[] permissionArray = new String[]{
+        final String[] permissionArray = {
                 Manifest.permission.WRITE_SETTINGS
         };
 
-        final Context testContext = new FeatureContextWrapper(getContext(), permissionArray,
+        final Context testContext = new FeatureContextWrapper(ApplicationProvider.getApplicationContext(), permissionArray,
                 permissionArray, null);
 
         assertThat(PermissionCompat.getPermissionStatus(testContext,
@@ -115,11 +110,11 @@ public final class PermissionCompatTest {
     @SdkSuppress(minSdkVersion = Build.VERSION_CODES.M)
     @Test
     public void getPermissionStatus_request_ignore_battery_optimizations_granted_with_feature_context_wrapper() {
-        final String[] permissionArray = new String[]{
+        final String[] permissionArray = {
                 Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
         };
 
-        final Context testContext = new FeatureContextWrapper(getContext(), permissionArray,
+        final Context testContext = new FeatureContextWrapper(ApplicationProvider.getApplicationContext(), permissionArray,
                 permissionArray, null);
 
         assertThat(PermissionCompat.getPermissionStatus(testContext,
@@ -132,11 +127,9 @@ public final class PermissionCompatTest {
     @SdkSuppress(minSdkVersion = Build.VERSION_CODES.M)
     @Test
     public void getPermissionStatus_notification_access_granted_with_feature_context_wrapper() {
-        final String[] permissionArray = new String[]{
-                Manifest.permission.ACCESS_NOTIFICATION_POLICY
-        };
+        final String[] permissionArray = {Manifest.permission.ACCESS_NOTIFICATION_POLICY};
 
-        final Context testContext = new FeatureContextWrapper(getContext(), permissionArray,
+        final Context testContext = new FeatureContextWrapper(ApplicationProvider.getApplicationContext(), permissionArray,
                 permissionArray, null);
 
         assertThat(PermissionCompat.getPermissionStatus(testContext,
@@ -155,7 +148,7 @@ public final class PermissionCompatTest {
          * Note: this test is dependent on the Manifest NOT having the permission.
          */
 
-        assertThat(PermissionCompat.getPermissionStatus(getContext(),
+        assertThat(PermissionCompat.getPermissionStatus(ApplicationProvider.getApplicationContext(),
                 Manifest.permission.WRITE_SETTINGS),
                 is(PermissionCompat.PermissionStatus.NOT_GRANTED_BY_MANIFEST));
     }
@@ -173,7 +166,7 @@ public final class PermissionCompatTest {
          */
 
         assertThat(
-                PermissionCompat.getPermissionStatus(getContext(),
+                PermissionCompat.getPermissionStatus(ApplicationProvider.getApplicationContext(),
                         Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS),
                 is(PermissionCompat.PermissionStatus.NOT_GRANTED_BY_MANIFEST));
     }
@@ -188,7 +181,7 @@ public final class PermissionCompatTest {
          */
 
         assertThat(
-                PermissionCompat.getPermissionStatus(getContext(),
+                PermissionCompat.getPermissionStatus(ApplicationProvider.getApplicationContext(),
                         Manifest.permission.ACCESS_NOTIFICATION_POLICY),
                 is(PermissionCompat.PermissionStatus.NOT_GRANTED_BY_MANIFEST));
     }
@@ -203,9 +196,93 @@ public final class PermissionCompatTest {
          */
 
         assertThat(
-                PermissionCompat.getPermissionStatus(getContext(),
+                PermissionCompat.getPermissionStatus(ApplicationProvider.getApplicationContext(),
                         Manifest.permission.ACCESS_COARSE_LOCATION),
                 is(PermissionCompat.PermissionStatus.NOT_GRANTED_BY_MANIFEST));
+    }
+
+    @SmallTest
+    @Test
+    public void getPermissionStatus_pre_q_background_location_not_granted_by_manifest() {
+        final Context testContext = new FeatureContextWrapper(new AppBuildInfoTest.TargetSdkVersionContext(Build.VERSION_CODES.P), null,
+                null, null);
+
+        assertThat(PermissionCompat.getPermissionStatus(testContext,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                is(PermissionCompat.PermissionStatus.NOT_GRANTED_BY_MANIFEST));
+    }
+
+    @SmallTest
+    @Test
+    public void getPermissionStatus_pre_q_background_location_always_granted_byUser() {
+        final String[] permissionArray = {
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        };
+
+        final Context testContext = new FeatureContextWrapper(new AppBuildInfoTest.TargetSdkVersionContext(Build.VERSION_CODES.P), permissionArray,
+                null, null);
+
+        assertThat(PermissionCompat.getPermissionStatus(testContext,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                is(PermissionCompat.PermissionStatus.GRANTED));
+    }
+
+    @SmallTest
+    @Test
+    public void getPermissionStatus_pre_q_activity_not_granted_by_manifest() {
+        final Context testContext = new FeatureContextWrapper(new AppBuildInfoTest.TargetSdkVersionContext(Build.VERSION_CODES.P), null,
+                null, null);
+
+        assertThat(PermissionCompat.getPermissionStatus(testContext,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                is(PermissionCompat.PermissionStatus.NOT_GRANTED_BY_MANIFEST));
+    }
+
+    @SmallTest
+    @Test
+    public void getPermissionStatus_pre_q_activity_always_granted_byUser() {
+        final String[] permissionArray = {
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        };
+
+        final Context testContext = new FeatureContextWrapper(new AppBuildInfoTest.TargetSdkVersionContext(Build.VERSION_CODES.P), permissionArray,
+                null, null);
+
+        assertThat(PermissionCompat.getPermissionStatus(testContext,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                is(PermissionCompat.PermissionStatus.GRANTED));
+    }
+
+    @SmallTest
+    @Test
+    public void getPermissionStatus_q_background_location_not_granted_by_user() {
+        final String[] permissionArray = {
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        };
+
+        final Context testContext = new FeatureContextWrapper(new AppBuildInfoTest.TargetSdkVersionContext(Build.VERSION_CODES.CUR_DEVELOPMENT), permissionArray,
+                permissionArray, null);
+
+        assertThat(PermissionCompat.getPermissionStatus(testContext,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                is(PermissionCompat.PermissionStatus.GRANTED));
+    }
+
+    @SmallTest
+    @Test
+    public void getPermissionStatus_q_background_location_granted() {
+        if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.P + 1)) {
+            final String[] permissionArray = {
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            };
+
+            final Context testContext = new FeatureContextWrapper(new AppBuildInfoTest.TargetSdkVersionContext(Build.VERSION_CODES.CUR_DEVELOPMENT), permissionArray,
+                    null, null);
+
+            assertThat(PermissionCompat.getPermissionStatus(testContext,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                    is(PermissionCompat.PermissionStatus.NOT_GRANTED_BY_USER));
+        }
     }
 
 }

@@ -34,7 +34,7 @@ import net.jcip.annotations.ThreadSafe;
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
 /**
- * Utility class for working with {@link ContentProvider}.
+ * Utility class for working with {@link ContentProvider} contracts implementing {@link BaseColumns}.
  */
 @ThreadSafe
 public final class BaseColumnsContract {
@@ -44,6 +44,12 @@ public final class BaseColumnsContract {
      */
     @NonNull
     private static final String[] PROJECTION_COUNT = {BaseColumns._COUNT};
+
+    @NonNull
+    public static final String SORT_ORDER_ASCENDING_BY_ID = BaseColumns._ID + " ASC"; //$NON-NLS
+
+    @NonNull
+    public static final String SORT_ORDER_DESCENDING_BY_ID = BaseColumns._ID + " DESC"; //$NON-NLS
 
     /**
      * This method should work for any content provider that correctly supports {@link

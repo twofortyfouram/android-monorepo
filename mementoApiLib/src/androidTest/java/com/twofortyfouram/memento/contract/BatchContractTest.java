@@ -23,24 +23,19 @@ import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
 import com.twofortyfouram.assertion.BundleAssertions;
 import com.twofortyfouram.test.provider.MockableContentProvider;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 
-import static androidx.test.InstrumentationRegistry.getContext;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class BatchContractTest {
 
     private static final String MOCK_CONTENT_PROVIDER_AUTHORITY =
@@ -114,7 +109,7 @@ public final class BatchContractTest {
 
     @NonNull
     private MockableContentProvider getMockableContentProvider() {
-        return MockableContentProvider.newMockProvider(getContext(),
+        return MockableContentProvider.newMockProvider(ApplicationProvider.getApplicationContext(),
                 MOCK_CONTENT_PROVIDER_AUTHORITY);
     }
 

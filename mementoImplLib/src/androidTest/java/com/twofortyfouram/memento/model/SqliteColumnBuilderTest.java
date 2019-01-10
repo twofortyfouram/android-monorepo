@@ -18,11 +18,6 @@
 package com.twofortyfouram.memento.model;
 
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
-import com.twofortyfouram.memento.model.SqliteColumnBuilder;
-import com.twofortyfouram.memento.model.SqliteStorageClass;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -30,7 +25,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class SqliteColumnBuilderTest {
 
     @SmallTest
@@ -63,6 +58,14 @@ public final class SqliteColumnBuilderTest {
         final SqliteColumnBuilder builder = new SqliteColumnBuilder();
 
         assertThat(builder.setConstraintNotNull(), sameInstance(builder));
+    }
+
+    @SmallTest
+    @Test
+    public void setNotEmpty_recycle() {
+        final SqliteColumnBuilder builder = new SqliteColumnBuilder();
+
+        assertThat(builder.setConstraintNotEmpty(), sameInstance(builder));
     }
 
     @SmallTest
@@ -162,6 +165,18 @@ public final class SqliteColumnBuilderTest {
         builder.setConstraintNotNull();
 
         assertThat(builder.build(), is("test_column INTEGER NOT NULL")); //$NON-NLS-1$
+    }
+
+    @SmallTest
+    @Test
+    public void buildBasic_not_empty() {
+        final SqliteColumnBuilder builder = new SqliteColumnBuilder();
+
+        builder.setName("test_column"); //$NON-NLS-1$
+        builder.setType(SqliteStorageClass.TEXT);
+        builder.setConstraintNotEmpty();
+
+        assertThat(builder.build(), is("test_column TEXT CHECK(test_column != '')")); //$NON-NLS-1$
     }
 
     @SmallTest

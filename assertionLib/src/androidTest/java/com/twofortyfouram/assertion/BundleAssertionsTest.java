@@ -26,7 +26,7 @@ import android.os.Bundle;
 import android.os.PersistableBundle;
 import androidx.test.filters.SdkSuppress;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.twofortyfouram.assertion.test.SomeSerializable;
 
@@ -439,7 +439,16 @@ public final class BundleAssertionsTest {
     @Test(expected = AssertionError.class)
     public void hasSerializable_null() {
         final Bundle bundle = new Bundle();
-        bundle.putParcelable("test_key", null); //$NON-NLS-1$
+        bundle.putSerializable("test_key", null); //$NON-NLS-1$
+
+        BundleAssertions.assertHasSerializable(bundle, "test_key", Integer.class); //$NON-NLS-1$
+    }
+
+    @SmallTest
+    @Test
+    public void hasSerializable_valid() {
+        final Bundle bundle = new Bundle();
+        bundle.putSerializable("test_key", 1); //$NON-NLS-1$
 
         BundleAssertions.assertHasSerializable(bundle, "test_key", Integer.class); //$NON-NLS-1$
     }

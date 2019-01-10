@@ -18,11 +18,6 @@
 package com.twofortyfouram.memento.model;
 
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
-import com.twofortyfouram.memento.model.SqliteColumnBuilder;
-import com.twofortyfouram.memento.model.SqliteStorageClass;
-import com.twofortyfouram.memento.model.SqliteTableBuilder;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +26,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class SqliteTableBuilderTest {
 
     @SmallTest

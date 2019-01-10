@@ -15,57 +15,48 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.memento.test.main_process;
-
+package com.twofortyfouram.memento.test.main_process.contract;
 
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
-import android.provider.BaseColumns;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+
+import com.twofortyfouram.annotation.MultiProcessSafe;
+import com.twofortyfouram.memento.test.main_process.provider.ContentProviderUtil;
 
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
-/**
- * Contract for a simple ContentProvider table.
- */
 @ThreadSafe
-public final class TableOneContract implements BaseColumns {
+@MultiProcessSafe
+public final class LatestKeyValueContractView implements TestKeyValueColumns {
 
     /**
-     * Name of the table.
+     * Name of the view.
      */
     @NonNull
-    /* package */ static final String TABLE_NAME = "table_one"; //$NON-NLS-1$
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    public static final String VIEW_NAME = "latest_string_value_view"; //$NON-NLS-1$
 
     /**
      * Mimetype for the entire directory.
      */
     @NonNull
     public static final String MIMETYPE_DIR = ContentResolver.CURSOR_DIR_BASE_TYPE
-            + "/vnd.com.twofortyfouram.memento.test.blabla"; //$NON-NLS-1$
+            + ContentProviderUtil.MIME_PROVIDER_NAME_PART + ".keyvalue"; //$NON-NLS
 
     /**
      * Mimetype for a single item.
      */
     @NonNull
     public static final String MIMETYPE_ITEM = ContentResolver.CURSOR_ITEM_BASE_TYPE
-            + "/vnd.com.twofortyfouram.memento.test.blabla"; //$NON-NLS-1$
-
-    /**
-     * Type: {@code String}.
-     * <p>
-     * First column in the table.
-     * <p>
-     * Constraints: This column cannot be null.
-     */
-    @NonNull
-    public static final String COLUMN_STRING_COLUMN_ONE = "column_one"; //$NON-NLS-1$
+            + ContentProviderUtil.MIME_PROVIDER_NAME_PART+ ".keyvalue"; //$NON-NLS
 
     /**
      * Intrinsic lock for guarding {@link #sContentUri}.
@@ -74,7 +65,7 @@ public final class TableOneContract implements BaseColumns {
     private static final Object INTRINSIC_LOCK = new Object();
 
     /**
-     * Content URI for {@link TableOneContract}.
+     * Content URI for {@link LatestKeyValueContractView}.
      *
      * @see #getContentUri(Context)
      */
@@ -85,7 +76,7 @@ public final class TableOneContract implements BaseColumns {
 
     /**
      * @param context Application context.
-     * @return The content URI for {@link TableOneContract}.
+     * @return The content URI for {@link KeyValueContract}.
      */
     @NonNull
     public static Uri getContentUri(@NonNull final Context context) {
@@ -94,16 +85,17 @@ public final class TableOneContract implements BaseColumns {
          * Double-checked idiom for lazy initialization, Effective Java 2nd edition page 283.
          */
         @SuppressWarnings("FieldAccessNotGuarded")
-        Uri contentUri = sContentUri;
+        @Nullable Uri contentUri = sContentUri;
         if (null == contentUri) {
             //noinspection SynchronizationOnStaticField
             synchronized (INTRINSIC_LOCK) {
                 contentUri = sContentUri;
                 if (null == contentUri) {
-                    final String authority = ContentProviderImpl.getContentAuthority(context);
+                    @NonNull final String authority = ContentProviderUtil.getContentAuthorityString(
+                            context);
                     sContentUri = contentUri = new Uri.Builder()
                             .scheme(ContentResolver.SCHEME_CONTENT).authority(authority)
-                            .appendPath(TABLE_NAME).build();
+                            .appendPath(VIEW_NAME).build();
                 }
             }
         }
@@ -111,28 +103,8 @@ public final class TableOneContract implements BaseColumns {
         return contentUri;
     }
 
-    /**
-     * Creates ContentValues for the table.
-     *
-     * @param columnOne String to associate with {@link #COLUMN_STRING_COLUMN_ONE}.
-     * @return Initialized ContentValues.
-     */
-    @NonNull
-    public static ContentValues getContentValues(@NonNull final String columnOne) {
-        assertNotNull(columnOne, "columnOne"); //$NON-NLS-1$
-
-        final ContentValues values = new ContentValues(1);
-        values.put(COLUMN_STRING_COLUMN_ONE, columnOne);
-
-        return values;
-    }
-
-    /**
-     * Private constructor prevents instantiation.
-     *
-     * @throws UnsupportedOperationException because this class cannot be instantiated.
-     */
-    private TableOneContract() {
+    private LatestKeyValueContractView() {
         throw new UnsupportedOperationException("This class is non-instantiable"); //$NON-NLS-1$
     }
+
 }

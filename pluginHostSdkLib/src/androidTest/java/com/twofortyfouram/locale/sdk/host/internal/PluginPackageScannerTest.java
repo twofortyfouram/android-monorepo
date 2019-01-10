@@ -143,9 +143,9 @@ public final class PluginPackageScannerTest {
     @SmallTest
     @Test
     public void getVersionCode_known() {
-        final int expectedVersionCode = AppBuildInfo
+        final long expectedVersionCode = AppBuildInfo
                 .getVersionCode(InstrumentationRegistry.getContext());
-        final int actualVersionCode = PluginPackageScanner
+        final long actualVersionCode = PluginPackageScanner
                 .getVersionCode(InstrumentationRegistry.getContext()
                                 .getPackageManager(),
                         InstrumentationRegistry.getContext().getPackageName());

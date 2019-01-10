@@ -20,7 +20,6 @@ package com.twofortyfouram.spackle;
 
 import android.text.format.DateUtils;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
 import com.twofortyfouram.test.rule.UtcRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,7 +32,7 @@ import static com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher.notIns
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class TimeFormatterTest {
 
     @Rule

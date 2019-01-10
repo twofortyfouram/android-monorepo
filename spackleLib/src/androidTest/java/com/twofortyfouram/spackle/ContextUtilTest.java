@@ -19,17 +19,15 @@ package com.twofortyfouram.spackle;
 
 import android.content.Context;
 import android.content.ContextWrapper;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static androidx.test.InstrumentationRegistry.getContext;
 import static com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher.notInstantiable;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.*;
 
 @RunWith(AndroidJUnit4.class)
 public final class ContextUtilTest {
@@ -43,7 +41,7 @@ public final class ContextUtilTest {
     @Test
     @SmallTest
     public void cleanContext() {
-        final Context cleanableContext = new CleanableContext(getContext());
+        final Context cleanableContext = new CleanableContext(ApplicationProvider.getApplicationContext());
 
         assertThat(cleanableContext, not(sameInstance(ContextUtil.cleanContext
                 (cleanableContext))));
@@ -55,6 +53,12 @@ public final class ContextUtilTest {
     @SmallTest
     public void cleanContext_null() {
         ContextUtil.cleanContext(null);
+    }
+
+    @Test
+    @SmallTest
+    public void isTestContext_false() {
+        assertThat(ContextUtil.isTestContext(ApplicationProvider.getApplicationContext()), is(false));
     }
 
     private static final class CleanableContext extends ContextWrapper {

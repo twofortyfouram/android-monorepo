@@ -27,26 +27,35 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
-import android.os.*;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.CancellationSignal;
+import android.os.SystemClock;
 import android.provider.BaseColumns;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
-import androidx.annotation.*;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+import androidx.annotation.VisibleForTesting;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 import androidx.sqlite.db.SupportSQLiteQuery;
 import androidx.sqlite.db.SupportSQLiteQueryBuilder;
+
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.annotation.Slow.Speed;
 import com.twofortyfouram.assertion.BundleAssertions;
 import com.twofortyfouram.log.Lumberjack;
-import com.twofortyfouram.memento.contract.BackupContract;
+import com.twofortyfouram.memento.contract.ExportContract;
 import com.twofortyfouram.memento.contract.BatchContract;
 import com.twofortyfouram.memento.contract.MementoContract;
 import com.twofortyfouram.memento.contract.TransactionContract;
 import com.twofortyfouram.memento.impl.BuildConfig;
+import com.twofortyfouram.memento.internal.Constants;
+import com.twofortyfouram.memento.internal.ExportTransactable;
 import com.twofortyfouram.memento.internal.ContentChangeNotificationQueue;
-import com.twofortyfouram.memento.internal.FileUtil;
 import com.twofortyfouram.memento.internal.QueryStringUtil;
 import com.twofortyfouram.memento.model.Operation;
 import com.twofortyfouram.memento.model.SqliteUriMatch;
@@ -54,11 +63,11 @@ import com.twofortyfouram.memento.model.SqliteUriMatcher;
 import com.twofortyfouram.memento.util.Transactable;
 import com.twofortyfouram.spackle.AndroidSdkVersion;
 import com.twofortyfouram.spackle.Clock;
+import com.twofortyfouram.spackle.ContextUtil;
 import com.twofortyfouram.spackle.bundle.BundleScrubber;
+
 import net.jcip.annotations.ThreadSafe;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Locale;
@@ -98,15 +107,10 @@ import static java.util.Objects.requireNonNull;
  * <li>Support for the query parameter {@link SearchManager#SUGGEST_PARAMETER_LIMIT}</li>
  * <li>Support for {@link BaseColumns#_COUNT} queries</li>
  * </ul>
- * <p>An example implementation can be found in the debug build target of the library.</p>
+ * <p>An example implementation can be found in the tests of the library.</p>
  */
 @ThreadSafe
 public abstract class MementoContentProvider extends ContentProvider {
-
-    // Note this could break with future updates to the Espresso test rules library
-    // This did break with the Android X refactor.
-    @NonNull
-    private static final String DELEGATING_CONTEXT_CLASS_NAME = "androidx.test.rule.provider.DelegatingContext"; //$NON-NLS
 
     /**
      * Debug flag to slow down ContentProvider methods. The primary purpose is to make it easier to
@@ -219,13 +223,15 @@ public abstract class MementoContentProvider extends ContentProvider {
 
         // Releasing memory isn't supported by non-platform implementations.
         final int bytesReleased = SQLiteDatabase.releaseMemory();
-        Lumberjack.v("Released %d bytes of memory", bytesReleased); //$NON-NLS-1$
+        if (Constants.IS_LOGGING_ENABLED) {
+            Lumberjack.v("Released %d bytes of memory", bytesReleased); //$NON-NLS-1$
+        }
     }
 
     @Override
     public String getType(@NonNull final Uri uri) {
         try {
-            final SqliteUriMatch match = mSqliteUriMatcher.match(uri);
+            @NonNull final SqliteUriMatch match = mSqliteUriMatcher.match(uri);
 
             return match.getMimeType();
         } catch (final IllegalArgumentException e) {
@@ -240,14 +246,16 @@ public abstract class MementoContentProvider extends ContentProvider {
         assertNotNull(uri, "uri"); //$NON-NLS-1$
         slowAccessForDebugging();
 
-        Lumberjack.v("uri: %s, selection: %s, selectionArgs: %s", uri, selection, //$NON-NLS-1$
-                selectionArgs);
+        if (Constants.IS_LOGGING_ENABLED) {
+            Lumberjack.v("uri: %s, selection: %s, selectionArgs: %s", uri, selection, //$NON-NLS-1$
+                    selectionArgs);
+        }
 
-        final SupportSQLiteDatabase database = mSqliteOpenHelper.getWritableDatabase();
+        @NonNull final SupportSQLiteDatabase database = mSqliteOpenHelper.getWritableDatabase();
 
         int count = 0;
 
-        final SqliteUriMatch match = mSqliteUriMatcher.match(uri);
+        @NonNull final SqliteUriMatch match = mSqliteUriMatcher.match(uri);
 
         if (!match.isOperationAllowed(Operation.DELETE)) {
             throw new IllegalArgumentException(
@@ -256,21 +264,24 @@ public abstract class MementoContentProvider extends ContentProvider {
         }
 
         if (match.isIdUri()) {
-            final String tableName = match.getTableName();
-            final String segment = uri.getLastPathSegment();
-            final String idSelectionArg = newAndIdSelection(selection);
-            final String[] idSelectionArgs = newAndIdSelectionArgs(segment, selectionArgs);
+            @NonNull final String tableName = match.getTableName();
+            @NonNull final String segment = uri.getLastPathSegment();
+            @NonNull final String idSelectionArg = newAndIdSelection(selection);
+            @NonNull final String[] idSelectionArgs = newAndIdSelectionArgs(segment, selectionArgs);
 
             count = database.delete(tableName, idSelectionArg, idSelectionArgs);
         } else {
             if (null == selection) {
+                // Per the docs, pass "1" to get a count returned.  It looks weird but is correct.
                 count = database.delete(match.getTableName(), "1", null); //$NON-NLS-1$
             } else {
                 count = database.delete(match.getTableName(), selection, selectionArgs);
             }
         }
 
-        Lumberjack.v("%s rows actually deleted", count); //$NON-NLS-1$
+        if (Constants.IS_LOGGING_ENABLED) {
+            Lumberjack.v("%s rows actually deleted", count); //$NON-NLS-1$
+        }
 
         if (0 < count) {
             if (!QueryStringUtil.isSuppressNotification(uri)) {
@@ -288,11 +299,13 @@ public abstract class MementoContentProvider extends ContentProvider {
         assertNotNull(values, "values"); //$NON-NLS-1$
         slowAccessForDebugging();
 
-        Lumberjack.v("uri: %s, values: %s", uri, values); //$NON-NLS-1$
+        if (Constants.IS_LOGGING_ENABLED) {
+            Lumberjack.v("uri: %s, values: %s", uri, values); //$NON-NLS-1$
+        }
 
-        final SupportSQLiteDatabase database = mSqliteOpenHelper.getWritableDatabase();
+        @NonNull final SupportSQLiteDatabase database = mSqliteOpenHelper.getWritableDatabase();
 
-        final SqliteUriMatch match = mSqliteUriMatcher.match(uri);
+        @NonNull final SqliteUriMatch match = mSqliteUriMatcher.match(uri);
 
         if (!match.isOperationAllowed(Operation.INSERT)) {
             throw new IllegalArgumentException(
@@ -300,7 +313,7 @@ public abstract class MementoContentProvider extends ContentProvider {
                             uri, Operation.INSERT));
         }
 
-        final ContentValues valuesToInsert;
+        @NonNull final ContentValues valuesToInsert;
         if (match.isIdUri()) {
             // Make a copy to avoid mutating the input parameter
             valuesToInsert = new ContentValues(values.size() + 1);
@@ -310,7 +323,7 @@ public abstract class MementoContentProvider extends ContentProvider {
             valuesToInsert = values;
         }
 
-        Uri resultUri = null;
+        @Nullable Uri resultUri = null;
 
         final long rowID = database
                 .insert(match.getTableName(), SQLiteDatabase.CONFLICT_ABORT, valuesToInsert);
@@ -341,10 +354,12 @@ public abstract class MementoContentProvider extends ContentProvider {
         assertNotNull(uri, "uri"); //$NON-NLS-1$
         assertNotNull(values, "values"); //$NON-NLS-1$
 
-        Lumberjack.v("uri: %s, values: %s", uri, values); //$NON-NLS-1$
+        if (Constants.IS_LOGGING_ENABLED) {
+            Lumberjack.v("uri: %s, values: %s", uri, values); //$NON-NLS-1$
+        }
 
-        final SupportSQLiteDatabase database = mSqliteOpenHelper.getWritableDatabase();
-        final ContentChangeNotificationQueue contentChangeNotificationQueue
+        @NonNull final SupportSQLiteDatabase database = mSqliteOpenHelper.getWritableDatabase();
+        @NonNull final ContentChangeNotificationQueue contentChangeNotificationQueue
                 = getContentChangeNotificationQueue();
 
         int count = 0;
@@ -389,10 +404,12 @@ public abstract class MementoContentProvider extends ContentProvider {
         assertNotNull(uri, "uri"); //$NON-NLS-1$
         slowAccessForDebugging();
 
-        Lumberjack
-                .v("uri: %s, projection: %s, selection: %s, selectionArgs: %s, sortOrder: %s",
-                        //NON-NLS
-                        uri, projection, selection, selectionArgs, sortOrder);
+        if (Constants.IS_LOGGING_ENABLED) {
+            Lumberjack
+                    .v("uri: %s, projection: %s, selection: %s, selectionArgs: %s, sortOrder: %s",
+                            //NON-NLS
+                            uri, projection, selection, selectionArgs, sortOrder);
+        }
 
         @Nullable final String limit = uri.getQueryParameter(SearchManager.SUGGEST_PARAMETER_LIMIT);
 
@@ -409,11 +426,11 @@ public abstract class MementoContentProvider extends ContentProvider {
             throw new AssertionError("Limit must be set when using offset parameter."); //$NON-NLS
         }
 
-        final SupportSQLiteDatabase database = mSqliteOpenHelper.getWritableDatabase();
+        @NonNull final SupportSQLiteDatabase database = mSqliteOpenHelper.getWritableDatabase();
 
-        Cursor result = null;
+        @Nullable Cursor result = null;
 
-        final SqliteUriMatch match = mSqliteUriMatcher.match(uri);
+        @NonNull final SqliteUriMatch match = mSqliteUriMatcher.match(uri);
 
         if (!match.isOperationAllowed(Operation.QUERY)) {
             throw new IllegalArgumentException(
@@ -421,7 +438,7 @@ public abstract class MementoContentProvider extends ContentProvider {
                             uri, Operation.QUERY));
         }
 
-        final SupportSQLiteQueryBuilder qb = SupportSQLiteQueryBuilder
+        @NonNull final SupportSQLiteQueryBuilder qb = SupportSQLiteQueryBuilder
                 .builder(match.getTableName());
 
         if (null != projection && 1 == projection.length
@@ -431,8 +448,8 @@ public abstract class MementoContentProvider extends ContentProvider {
             qb.columns(projection);
         }
 
-        final String idSelectionArg;
-        final String[] idSelectionArgs;
+        @Nullable final String idSelectionArg;
+        @Nullable final String[] idSelectionArgs;
         if (match.isIdUri()) {
             final String segment = uri.getLastPathSegment();
             idSelectionArg = newAndIdSelection(selection);
@@ -454,11 +471,16 @@ public abstract class MementoContentProvider extends ContentProvider {
             qb.limit(String.format(Locale.US, "%s,%s", offset, limit)); //NON-NLS
         }
 
-        final SupportSQLiteQuery query = qb.create();
+        @NonNull final SupportSQLiteQuery query = qb.create();
 
         result = database.query(query);
 
         result.setNotificationUri(getContext().getContentResolver(), match.getBaseUri());
+        // If implemented properly (which it is by memento) where the inserts, deletes, and updates
+        // cause multiple notifications to be sent, then this isn't necessary.
+//        if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.Q)) {
+//            result.setNotificationUris(getContext().getContentResolver(), match.getNotifyUris());
+//        }
 
         return result;
     }
@@ -470,7 +492,7 @@ public abstract class MementoContentProvider extends ContentProvider {
                         @Nullable final String[] selectionArgs, @Nullable final String sortOrder,
                         @Nullable final CancellationSignal cancellationSignal) {
 
-        final String limit = uri.getQueryParameter(SearchManager.SUGGEST_PARAMETER_LIMIT);
+        @Nullable final String limit = uri.getQueryParameter(SearchManager.SUGGEST_PARAMETER_LIMIT);
 
         return queryHelper(uri, projection, selection, selectionArgs, sortOrder, limit, null);
     }
@@ -514,9 +536,11 @@ public abstract class MementoContentProvider extends ContentProvider {
                     "queryArgs contains Serializable/Parcelable from a different class loader; all arguments are being ignored"); //$NON-NLS
         }
 
-        Lumberjack
-                .v("uri: %s, projection: %s, queryArgs: %s, cancellationSignal: %s", //NON-NLS
-                        uri, projection, queryArgs, cancellationSignal);
+        if (Constants.IS_LOGGING_ENABLED) {
+            Lumberjack
+                    .v("uri: %s, projection: %s, queryArgs: %s, cancellationSignal: %s", //NON-NLS
+                            uri, projection, queryArgs, cancellationSignal);
+        }
 
         Uri uriToPass = uri;
         String selection = null;
@@ -657,13 +681,15 @@ public abstract class MementoContentProvider extends ContentProvider {
         assertNotNull(uri, "uri"); //$NON-NLS-1$
         slowAccessForDebugging();
 
-        Lumberjack
-                .v("uri: %s, values: %s, selection: %s, selectionArgs: %s",     //NON-NLS
-                        uri, values, selection, selectionArgs);
+        if (Constants.IS_LOGGING_ENABLED) {
+            Lumberjack
+                    .v("uri: %s, values: %s, selection: %s, selectionArgs: %s",     //NON-NLS
+                            uri, values, selection, selectionArgs);
+        }
 
-        final SupportSQLiteDatabase database = mSqliteOpenHelper.getWritableDatabase();
+        @NonNull final SupportSQLiteDatabase database = mSqliteOpenHelper.getWritableDatabase();
 
-        final SqliteUriMatch match = mSqliteUriMatcher.match(uri);
+        @NonNull final SqliteUriMatch match = mSqliteUriMatcher.match(uri);
 
         if (!match.isOperationAllowed(Operation.UPDATE)) {
             throw new IllegalArgumentException(
@@ -687,7 +713,9 @@ public abstract class MementoContentProvider extends ContentProvider {
                 .update(match.getTableName(), SQLiteDatabase.CONFLICT_ABORT, values, idSelectionArg,
                         idSelectionArgs);
 
-        Lumberjack.v("%s rows updated", count); //$NON-NLS-1$
+        if (Constants.IS_LOGGING_ENABLED) {
+            Lumberjack.v("%s rows updated", count); //$NON-NLS-1$
+        }
 
         if (0 < count) {
             if (!QueryStringUtil.isSuppressNotification(uri)) {
@@ -709,12 +737,12 @@ public abstract class MementoContentProvider extends ContentProvider {
     public ContentProviderResult[] applyBatch(
             @NonNull final ArrayList<ContentProviderOperation> operations)
             throws OperationApplicationException {
-        final SupportSQLiteDatabase database = mSqliteOpenHelper.getWritableDatabase();
+        @NonNull final SupportSQLiteDatabase database = mSqliteOpenHelper.getWritableDatabase();
 
-        final ContentChangeNotificationQueue contentChangeNotificationQueue
+        @NonNull final ContentChangeNotificationQueue contentChangeNotificationQueue
                 = getContentChangeNotificationQueue();
 
-        ContentProviderResult[] result = null;
+        @Nullable ContentProviderResult[] result = null;
 
         if (contentChangeNotificationQueue.isBatch()) {
             result = super.applyBatch(operations);
@@ -764,7 +792,9 @@ public abstract class MementoContentProvider extends ContentProvider {
             return null;
         }
 
-        Lumberjack.v("method: %s, arg: %s, extras: %s", method, arg, extras); //$NON-NLS
+        if (Constants.IS_LOGGING_ENABLED) {
+            Lumberjack.v("method: %s, arg: %s, extras: %s", method, arg, extras); //$NON-NLS
+        }
 
         switch (method) {
             case BatchContract.METHOD_BATCH_OPERATIONS:
@@ -792,7 +822,7 @@ public abstract class MementoContentProvider extends ContentProvider {
                 applyBatchWithAlternatives(operations);
 
                 return Bundle.EMPTY;
-            case BackupContract.METHOD_BACKUP:
+            case ExportContract.METHOD_EXPORT:
                 if (!isSelfPackage) {
                     throw new SecurityException("This method must be performed within the same package as the content provider."); //$NON-NLS
                 }
@@ -802,33 +832,34 @@ public abstract class MementoContentProvider extends ContentProvider {
                     Lumberjack.e("Arg (file path) is null or empty."); //NON-NLS
 
                     @NonNull final Bundle result = new Bundle();
-                    result.putBoolean(BackupContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, false);
+                    result.putBoolean(ExportContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, false);
                     return result;
                 }
 
-                @Nullable final String databaseFileName = mSqliteOpenHelper.getDatabaseName();
+                @Nullable final String databasePath = mSqliteOpenHelper.getWritableDatabase().getPath();
 
-                if (null == databaseFileName) {
+                if (null == databasePath) {
                     Lumberjack.e("Database filename is null, indicating an in-memory database"); //NON-NLS
 
                     @NonNull final Bundle result = new Bundle();
-                    result.putBoolean(BackupContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, false);
+                    result.putBoolean(ExportContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, false);
                     return result;
                 }
 
-                @NonNull final Bundle backupData = BackupTransactable.newDataBundle(
-                        mSqliteOpenHelper.getDatabaseName(), arg);
-                @NonNull final Transactable backupTransactable = new BackupTransactable();
-                @NonNull final Bundle resultBundle = runInTransaction(backupTransactable, backupData);
-                final boolean operationValid = BackupTransactable.getResultFromBundle(resultBundle);
+                @NonNull final Bundle transactableArgs = ExportTransactable.newDataBundle(
+                        databasePath, arg);
+                @NonNull final Transactable exportTransactable = new ExportTransactable();
+                @NonNull final Bundle resultBundle = runInTransaction(exportTransactable, transactableArgs);
+                final boolean operationValid = ExportTransactable.getResultFromBundle(resultBundle);
 
                 if (operationValid) {
+                    // TODO: it would be better to skip the media scanner if the file is not on external storage
                     MediaScannerConnection.scanFile(getContext(), new String[]{arg}, null,
                             (path, uri) -> Lumberjack.d("MediaScanner update - %s", path)); //NON-NLS
                 }
 
                 @NonNull final Bundle result = new Bundle();
-                result.putBoolean(BackupContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, operationValid);
+                result.putBoolean(ExportContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, operationValid);
 
                 return result;
             case TransactionContract.METHOD_RUN_IN_TRANSACTION:
@@ -846,10 +877,10 @@ public abstract class MementoContentProvider extends ContentProvider {
 
                 @NonNull final Transactable transactable
                         = requireNonNull(extras.getParcelable(TransactionContract.EXTRA_BUNDLE_PARCELABLE_TRANSACTABLE));
-                @NonNull final Bundle transectableData
+                @NonNull final Bundle transactableData
                         = requireNonNull(extras.getBundle(TransactionContract.EXTRA_BUNDLE_TRANSACTABLE_DATA));
 
-                return runInTransaction(transactable, transectableData);
+                return runInTransaction(transactable, transactableData);
         }
 
         return super.call(method, arg, extras);
@@ -860,11 +891,10 @@ public abstract class MementoContentProvider extends ContentProvider {
      */
     protected boolean isSelfPackage() {
         final boolean isSelfPackage;
-        if (BuildConfig.DEBUG && DELEGATING_CONTEXT_CLASS_NAME.equals(getContext().getClass().getName())) {
+        if (BuildConfig.DEBUG && ContextUtil.isTestContext(getContext())) {
             isSelfPackage = true;
-        }
-        else {
-            isSelfPackage=getContext().getPackageName().equals(getCallingPackage());
+        } else {
+            isSelfPackage = getContext().getPackageName().equals(getCallingPackage());
         }
 
         return isSelfPackage;
@@ -891,13 +921,12 @@ public abstract class MementoContentProvider extends ContentProvider {
             throw new IllegalStateException("Transaction is already in progress"); //$NON-NLS
         }
 
+        boolean isSuccessful = false;
         try {
             database.beginTransaction();
             database.execSQL("SAVEPOINT outersavepoint"); //$NON-NLS
 
-            for (final ArrayList<ContentProviderOperation> ops : operations) {
-
-                boolean isSuccessful = false;
+            for (@NonNull final ArrayList<ContentProviderOperation> ops : operations) {
 
                 contentChangeNotificationQueue.startBatch();
                 try {
@@ -911,8 +940,7 @@ public abstract class MementoContentProvider extends ContentProvider {
                     // Note: Semicolon works around a bug in Android
                     // https://code.google.com/p/android/issues/detail?id=38706
                     database.execSQL("; ROLLBACK TO innersavepoint"); //$NON-NLS
-                } finally {
-                    contentChangeNotificationQueue.endBatch(isSuccessful);
+                    contentChangeNotificationQueue.endBatch(false);
                 }
             }
 
@@ -920,6 +948,7 @@ public abstract class MementoContentProvider extends ContentProvider {
             database.setTransactionSuccessful();
         } finally {
             database.endTransaction();
+            contentChangeNotificationQueue.endBatch(isSuccessful);
         }
     }
 
@@ -969,7 +998,7 @@ public abstract class MementoContentProvider extends ContentProvider {
             return new String[]{id};
         }
 
-        final String[] result = new String[args.length + 1];
+        @NonNull final String[] result = new String[args.length + 1];
         result[0] = id;
 
         System.arraycopy(args, 0, result, 1, args.length);
@@ -1056,127 +1085,4 @@ public abstract class MementoContentProvider extends ContentProvider {
     @NonNull
     protected abstract SupportSQLiteOpenHelper newSqliteOpenHelper();
 
-    @ThreadSafe
-    private static final class BackupTransactable implements Transactable {
-
-        @NonNull
-        public static final Creator<BackupTransactable> CREATOR = new Creator<BackupTransactable>() {
-            @Override
-            public BackupTransactable createFromParcel(@NonNull final Parcel parcel) {
-                return new BackupTransactable();
-            }
-
-            @Override
-            public BackupTransactable[] newArray(final int i) {
-                return new BackupTransactable[i];
-            }
-        };
-
-        @NonNull
-        private static final String EXTRA_BOOLEAN_RESULT =
-                BackupTransactable.class.getName() + ".extra.BOOLEAN_RESULT"; //$NON-NLS-1$
-
-        @NonNull
-        private static final String EXTRA_STRING_DATABASE_NAME =
-                BackupTransactable.class.getName() + ".extra.STRING_DATABASE_NAME"; //$NON-NLS-1$
-
-        @NonNull
-        private static final String EXTRA_STRING_DIRECTORY_DESTINATION =
-                BackupTransactable.class.getName() + ".extra.STRING_DIRECTORY_DESTINATION"; //$NON-NLS-1$
-
-        @NonNull
-        /*package*/ static Bundle newDataBundle(@NonNull final String databaseName,
-                                                @NonNull final String destination) {
-            assertNotNull(databaseName, "databaseName"); //$NON-NLS-1$
-            assertNotNull(destination, "destination"); //$NON-NLS-1$
-
-            @NonNull final Bundle bundle = new Bundle();
-            bundle.putString(EXTRA_STRING_DATABASE_NAME, databaseName);
-            bundle.putString(EXTRA_STRING_DIRECTORY_DESTINATION, destination);
-
-
-            return bundle;
-        }
-
-        @CheckResult
-        static boolean getResultFromBundle(@Nullable final Bundle bundle) {
-            return null != bundle && bundle.getBoolean(EXTRA_BOOLEAN_RESULT);
-        }
-
-        @NonNull
-        private static Bundle newResultBundle(final boolean result) {
-            @NonNull final Bundle bundle = new Bundle();
-            bundle.putBoolean(EXTRA_BOOLEAN_RESULT, result);
-
-            return bundle;
-        }
-
-        @Nullable
-        @Override
-        public Bundle runInTransaction(@NonNull final Context context, @NonNull final Bundle bundle) {
-            assertNotNull(bundle, "bundle"); //$NON-NLS
-            assertNotNull(context, "context"); //$NON-NLS
-
-            BundleAssertions.assertHasString(bundle, EXTRA_STRING_DATABASE_NAME);
-            BundleAssertions.assertHasString(bundle, EXTRA_STRING_DIRECTORY_DESTINATION);
-
-            @NonNull final String originDatabaseName = bundle.getString(EXTRA_STRING_DATABASE_NAME);
-            @NonNull final String destinationDirectoryPath = bundle.getString(EXTRA_STRING_DIRECTORY_DESTINATION);
-
-            @NonNull final File originDatabasePath = context.getDatabasePath(originDatabaseName);
-            @NonNull final File originWalPath = new File(context.getDatabasePath(originDatabaseName).getPath() + BackupContract.WAL_SUFFIX); //$NON-NLS
-            @NonNull final File originJournalPath = new File(context.getDatabasePath(originDatabaseName).getPath() + BackupContract.JOURNAL_SUFFIX); //$NON-NLS
-
-            boolean success;
-            try {
-                success = FileUtil.copyFile(originDatabasePath, new File(destinationDirectoryPath, BackupContract.FILE_NAME_BACKUP));
-            } catch (final IOException e) {
-                success = false;
-                Lumberjack.e("Could not copy database file (source: %s, destinationDirectoryPath: %s)", //NON-NLS
-                        originDatabasePath, destinationDirectoryPath);
-                Lumberjack.e(e.getMessage());
-            }
-
-            if (success) {
-                if (originWalPath.exists()) {
-                    // Only exists if WAL is enabled
-                    try {
-                        success = FileUtil.copyFile(originWalPath, new File(destinationDirectoryPath, BackupContract.FILE_NAME_BACKUP + BackupContract.WAL_SUFFIX));
-                    } catch (final IOException e) {
-                        success = false;
-                        Lumberjack.e("Could not copy database wal file (source: %s, destinationDirectoryPath: %s)", //NON-NLS
-                                originWalPath, destinationDirectoryPath);
-                        Lumberjack.e(e.getMessage());
-                    }
-                }
-
-                if (success) {
-                    if (originJournalPath.exists()) {
-                        // Only exists if WAL is enabled
-                        try {
-                            success = FileUtil.copyFile(originJournalPath, new File(destinationDirectoryPath, BackupContract.FILE_NAME_BACKUP + BackupContract.JOURNAL_SUFFIX));
-                        } catch (final IOException e) {
-                            success = false;
-                            Lumberjack.e("Could not copy database file (source: %s, destinationDirectoryPath: %s)", //NON-NLS
-                                    originJournalPath, destinationDirectoryPath);
-                            Lumberjack.e(e.getMessage());
-                        }
-                    }
-                }
-            }
-
-            return newResultBundle(success);
-        }
-
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(@NonNull final Parcel parcel, final int i) {
-
-        }
-    }
 }

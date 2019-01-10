@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.memento.util;
+package com.twofortyfouram.memento.livedata;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
@@ -23,9 +23,9 @@ import android.database.MatrixCursor;
 import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.Observer;
-import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.twofortyfouram.test.provider.MockableContentProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class CursorLiveDataUnitTest {
 
     @Test
@@ -45,19 +45,24 @@ public final class CursorLiveDataUnitTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
             @NonNull final String authority = "foo"; //$NON-NLS
 
-            @NonNull final MockableContentProvider provider = MockableContentProvider.newMockProvider(InstrumentationRegistry.getContext(), authority);
+            @NonNull final MockableContentProvider provider = MockableContentProvider.newMockProvider(ApplicationProvider.getApplicationContext(), authority);
 
             @NonNull final CursorLiveData cursorLiveData = new CursorLiveData(provider.getContext(), false, new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(authority).build(), null, null, null, null);
+
+            assertThat(cursorLiveData.isLoadedYet(), is(false));
 
             @NonNull final AtomicInteger observerCount = new AtomicInteger(0);
             final Observer<Cursor> observer = o -> {
                 observerCount.incrementAndGet();
+                assertThat(cursorLiveData.isLoadedYet(), is(true));
             };
             cursorLiveData.observeForever(observer);
 
             assertThat(cursorLiveData.getValue(), nullValue());
 
             cursorLiveData.removeObserver(observer);
+
+            assertThat(cursorLiveData.isLoadedYet(), is(false));
         });
     }
 
@@ -67,20 +72,24 @@ public final class CursorLiveDataUnitTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
             @NonNull final String authority = "foo"; //$NON-NLS
 
-            @NonNull final MockableContentProvider provider = MockableContentProvider.newMockProvider(InstrumentationRegistry.getContext(), authority);
+            @NonNull final MockableContentProvider provider = MockableContentProvider.newMockProvider(ApplicationProvider.getApplicationContext(), authority);
             provider.addQueryResult(new MatrixCursor(new String[0]));
 
             @NonNull final CursorLiveData cursorLiveData = new CursorLiveData(provider.getContext(), false, new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(authority).build(), null, null, null, null);
+            assertThat(cursorLiveData.isLoadedYet(), is(false));
 
             @NonNull final AtomicInteger observerCount = new AtomicInteger(0);
             final Observer<Cursor> observer = o -> {
                 observerCount.incrementAndGet();
+                assertThat(cursorLiveData.isLoadedYet(), is(true));
             };
             cursorLiveData.observeForever(observer);
 
             assertThat(cursorLiveData.getValue(), notNullValue());
 
             cursorLiveData.removeObserver(observer);
+
+            assertThat(cursorLiveData.isLoadedYet(), is(false));
         });
     }
 
@@ -90,7 +99,7 @@ public final class CursorLiveDataUnitTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
             @NonNull final String authority = "foo"; //$NON-NLS
 
-            @NonNull final MockableContentProvider provider = MockableContentProvider.newMockProvider(InstrumentationRegistry.getContext(), authority);
+            @NonNull final MockableContentProvider provider = MockableContentProvider.newMockProvider(ApplicationProvider.getApplicationContext(), authority);
             @NonNull final MatrixCursor cursor = new MatrixCursor(new String[0]);
             provider.addQueryResult(cursor);
 

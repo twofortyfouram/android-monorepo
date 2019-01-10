@@ -19,17 +19,14 @@ package com.twofortyfouram.spackle.power;
 
 import android.Manifest;
 import androidx.annotation.RequiresPermission;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static androidx.test.InstrumentationRegistry.getContext;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.*;
 
 @RunWith(AndroidJUnit4.class)
 public final class PartialWakeLockForServiceTest {
@@ -39,7 +36,7 @@ public final class PartialWakeLockForServiceTest {
     public void testConstructor_good() {
         final PartialWakeLockForService helper = new PartialWakeLockForService("test_lock");
 
-        assertThat(helper.getWakeLock(getContext()).isHeld(), is(false));
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).isHeld(), is(false));
     }
 
     @SmallTest
@@ -47,10 +44,10 @@ public final class PartialWakeLockForServiceTest {
     public void testGetWakeLock() {
         final PartialWakeLockForService helper = new PartialWakeLockForService("test_lock");
 
-        final PartialWakeLock wakeLock = helper.getWakeLock(getContext());
+        final PartialWakeLock wakeLock = helper.getWakeLock(ApplicationProvider.getApplicationContext());
         assertThat(wakeLock, notNullValue());
 
-        assertThat(wakeLock, sameInstance(helper.getWakeLock(getContext())));
+        assertThat(wakeLock, sameInstance(helper.getWakeLock(ApplicationProvider.getApplicationContext())));
     }
 
     @SmallTest
@@ -59,13 +56,13 @@ public final class PartialWakeLockForServiceTest {
     public void testBeforeStartingService() {
         final PartialWakeLockForService helper = new PartialWakeLockForService("test_lock");
 
-        helper.beforeStartingService(getContext());
-        assertThat(helper.getWakeLock(getContext()).isHeld(), is(true));
-        assertThat(helper.getWakeLock(getContext()).getReferenceCount(), is(1));
+        helper.beforeStartingService(ApplicationProvider.getApplicationContext());
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).isHeld(), is(true));
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).getReferenceCount(), is(1));
 
-        helper.beforeStartingService(getContext());
-        assertThat(helper.getWakeLock(getContext()).getReferenceCount(), is(2));
-        assertThat(helper.getWakeLock(getContext()).isHeld(), is(true));
+        helper.beforeStartingService(ApplicationProvider.getApplicationContext());
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).getReferenceCount(), is(2));
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).isHeld(), is(true));
     }
 
     @SmallTest
@@ -74,13 +71,13 @@ public final class PartialWakeLockForServiceTest {
     public void testOnStartCommand() {
         final PartialWakeLockForService helper = new PartialWakeLockForService("test_lock");
 
-        helper.beforeDoingWork(getContext());
-        assertThat(helper.getWakeLock(getContext()).isHeld(), is(true));
-        assertThat(helper.getWakeLock(getContext()).getReferenceCount(), is(1));
+        helper.beforeDoingWork(ApplicationProvider.getApplicationContext());
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).isHeld(), is(true));
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).getReferenceCount(), is(1));
 
-        helper.beforeDoingWork(getContext());
-        assertThat(helper.getWakeLock(getContext()).getReferenceCount(), is(1));
-        assertThat(helper.getWakeLock(getContext()).isHeld(), is(true));
+        helper.beforeDoingWork(ApplicationProvider.getApplicationContext());
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).getReferenceCount(), is(1));
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).isHeld(), is(true));
     }
 
     @SmallTest
@@ -89,8 +86,8 @@ public final class PartialWakeLockForServiceTest {
     public void afterDoingWork_no_start() {
         final PartialWakeLockForService helper = new PartialWakeLockForService("test_lock");
 
-        helper.afterDoingWork(getContext());
-        assertThat(helper.getWakeLock(getContext()).isHeld(), is(false));
+        helper.afterDoingWork(ApplicationProvider.getApplicationContext());
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).isHeld(), is(false));
     }
 
     @SmallTest
@@ -99,10 +96,10 @@ public final class PartialWakeLockForServiceTest {
     public void afterDoingWork_with_onStartCommand() {
         final PartialWakeLockForService helper = new PartialWakeLockForService("test_lock");
 
-        helper.beforeDoingWork(getContext());
-        assertThat(helper.getWakeLock(getContext()).isHeld(), is(true));
+        helper.beforeDoingWork(ApplicationProvider.getApplicationContext());
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).isHeld(), is(true));
 
-        helper.afterDoingWork(getContext());
+        helper.afterDoingWork(ApplicationProvider.getApplicationContext());
     }
 
     @SmallTest
@@ -111,19 +108,19 @@ public final class PartialWakeLockForServiceTest {
     public void afterDoingWork_full() {
         final PartialWakeLockForService helper = new PartialWakeLockForService("test_lock");
 
-        assertThat(helper.getWakeLock(getContext()).isHeld(), is(false));
-        assertThat(helper.getWakeLock(getContext()).getReferenceCount(), is(0));
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).isHeld(), is(false));
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).getReferenceCount(), is(0));
 
-        helper.beforeStartingService(getContext());
-        assertThat(helper.getWakeLock(getContext()).isHeld(), is(true));
-        assertThat(helper.getWakeLock(getContext()).getReferenceCount(), is(1));
+        helper.beforeStartingService(ApplicationProvider.getApplicationContext());
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).isHeld(), is(true));
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).getReferenceCount(), is(1));
 
-        helper.beforeDoingWork(getContext());
-        assertThat(helper.getWakeLock(getContext()).isHeld(), is(true));
-        assertThat(helper.getWakeLock(getContext()).getReferenceCount(), is(1));
+        helper.beforeDoingWork(ApplicationProvider.getApplicationContext());
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).isHeld(), is(true));
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).getReferenceCount(), is(1));
 
-        helper.afterDoingWork(getContext());
-        assertThat(helper.getWakeLock(getContext()).isHeld(), is(false));
-        assertThat(helper.getWakeLock(getContext()).getReferenceCount(), is(0));
+        helper.afterDoingWork(ApplicationProvider.getApplicationContext());
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).isHeld(), is(false));
+        assertThat(helper.getWakeLock(ApplicationProvider.getApplicationContext()).getReferenceCount(), is(0));
     }
 }

@@ -26,10 +26,11 @@ import android.net.Uri;
 import android.os.*;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SdkSuppress;
 import androidx.test.filters.SmallTest;
 import androidx.test.filters.Suppress;
-import androidx.test.runner.AndroidJUnit4;
 import com.twofortyfouram.annotation.Slow;
 import com.twofortyfouram.annotation.Slow.Speed;
 import com.twofortyfouram.memento.contract.*;
@@ -47,7 +48,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static androidx.test.InstrumentationRegistry.getContext;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -62,6 +62,7 @@ import static org.junit.Assert.assertTrue;
  * requires Android O and associated entries in the manifest to enable it.
  */
 /*
+ * https://issuetracker.google.com/issues/112150852
  * TODO [Case 17271]
  * These tests are flaky, probably due to a bug in the beta version of Espresso multiprocess that was available when
  * this test was first written.  Suppressed for now but should be re-evaluated in the future.
@@ -80,19 +81,19 @@ public final class MementoContentProviderSecondProcessIntegrationTest {
     @Test
     @SdkSuppress(minSdkVersion = Build.VERSION_CODES.O)
     public void runInTransaction_content_notification_success() {
-        final ContentResolver resolver = getContext().getContentResolver();
+        final ContentResolver resolver = ApplicationProvider.getApplicationContext().getContentResolver();
 
         // Clean up from other tests
         resolver.delete(MementoContract
-                .addSuppressNotification(TableOneContractSecondProcess.getContentUri(getContext()).buildUpon())
+                .addSuppressNotification(TableOneContractSecondProcess.getContentUri(ApplicationProvider.getApplicationContext()).buildUpon())
                 .build(), null, null);
 
         final TestContentObserver observer = getNewRegisteredContentObserver(
-                TableOneContractSecondProcess.getContentUri(getContext()), 1);
+                TableOneContractSecondProcess.getContentUri(ApplicationProvider.getApplicationContext()), 1);
 
         try {
-            TransactionContract.runInTransaction(getContext(),
-                    SecondProcessContentProviderImpl.getContentAuthorityUri(getContext()), new Transactable_runInTransaction_content_notification_success(), new Bundle());
+            TransactionContract.runInTransaction(ApplicationProvider.getApplicationContext(),
+                    SecondProcessContentProviderImpl.getContentAuthorityUri(ApplicationProvider.getApplicationContext()), new Transactable_runInTransaction_content_notification_success(), new Bundle());
 
             assertCount(resolver, 1);
 
@@ -119,7 +120,7 @@ public final class MementoContentProviderSecondProcessIntegrationTest {
         @Nullable
         @Override
         public Bundle runInTransaction(@NonNull final Context context, @NonNull final Bundle bundle) {
-            context.getContentResolver().insert(TableOneContractSecondProcess.getContentUri(getContext()),
+            context.getContentResolver().insert(TableOneContractSecondProcess.getContentUri(ApplicationProvider.getApplicationContext()),
                     TableOneContractSecondProcess
                             .getContentValues("test_value_one")); //$NON-NLS-1$
 
@@ -141,19 +142,19 @@ public final class MementoContentProviderSecondProcessIntegrationTest {
     @Test
     @SdkSuppress(minSdkVersion = Build.VERSION_CODES.O)
     public void call_batch_one() {
-        final ContentResolver resolver = getContext().getContentResolver();
+        final ContentResolver resolver = ApplicationProvider.getApplicationContext().getContentResolver();
 
         // Clear the database from prior tests
-        resolver.delete(TableOneContractSecondProcess.getContentUri(getContext()), null, null);
+        resolver.delete(TableOneContractSecondProcess.getContentUri(ApplicationProvider.getApplicationContext()), null, null);
 
         final ArrayList<ContentProviderOperation> ops = new ArrayList<>();
-        ops.add(ContentProviderOperation.newInsert(TableOneContractSecondProcess.getContentUri(getContext()))
+        ops.add(ContentProviderOperation.newInsert(TableOneContractSecondProcess.getContentUri(ApplicationProvider.getApplicationContext()))
                 .withValues(TableOneContractSecondProcess.getContentValues("table_name")).build()); //$NON-NLS-1$
-        ops.add(ContentProviderOperation.newInsert(TableOneContractSecondProcess.getContentUri(getContext()))
+        ops.add(ContentProviderOperation.newInsert(TableOneContractSecondProcess.getContentUri(ApplicationProvider.getApplicationContext()))
                 .withValues(TableOneContractSecondProcess.getContentValues("table_name")).build()); //$NON-NLS-1$
-        ops.add(ContentProviderOperation.newInsert(TableOneContractSecondProcess.getContentUri(getContext()))
+        ops.add(ContentProviderOperation.newInsert(TableOneContractSecondProcess.getContentUri(ApplicationProvider.getApplicationContext()))
                 .withValues(TableOneContractSecondProcess.getContentValues("table_name")).build()); //$NON-NLS-1$
-        ops.add(ContentProviderOperation.newUpdate(TableOneContractSecondProcess.getContentUri(getContext()))
+        ops.add(ContentProviderOperation.newUpdate(TableOneContractSecondProcess.getContentUri(ApplicationProvider.getApplicationContext()))
                 .withValues(TableOneContractSecondProcess.getContentValues("table_name_updated"))
                 .build()); //$NON-NLS-1$
 
@@ -161,12 +162,12 @@ public final class MementoContentProviderSecondProcessIntegrationTest {
                 = new ArrayList<>();
         opsGroup.add(ops);
 
-        resolver.call(TableOneContractSecondProcess.getContentUri(getContext()),
+        resolver.call(TableOneContractSecondProcess.getContentUri(ApplicationProvider.getApplicationContext()),
                 BatchContract.METHOD_BATCH_OPERATIONS, null,
                 BatchContractProxy.newCallBundle(opsGroup));
 
         try (final Cursor cursor = resolver
-                .query(TableOneContractSecondProcess.getContentUri(getContext()), null, null, null,
+                .query(TableOneContractSecondProcess.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null,
                         null)) {
             assertThat(cursor.getCount(), is(3));
         }
@@ -177,18 +178,18 @@ public final class MementoContentProviderSecondProcessIntegrationTest {
     @Test
     @SdkSuppress(minSdkVersion = Build.VERSION_CODES.O)
     public void call_backup_valid_path() {
-        final File destFile = new File(getContext().getExternalFilesDir(null),
+        final File destFile = new File(ApplicationProvider.getApplicationContext().getExternalFilesDir(null),
                 "output_test_file"); //NON-NLS
         try {
-            final ContentResolver resolver = getContext().getContentResolver();
+            final ContentResolver resolver = ApplicationProvider.getApplicationContext().getContentResolver();
 
             final Bundle result = resolver
-                    .call(SecondProcessContentProviderImpl.getContentAuthorityUri(getContext()),
-                            BackupContract.METHOD_BACKUP, destFile.getAbsolutePath(),
+                    .call(SecondProcessContentProviderImpl.getContentAuthorityUri(ApplicationProvider.getApplicationContext()),
+                            ExportContract.METHOD_EXPORT, destFile.getAbsolutePath(),
                             null); //NON-NLS
 
             assertThat(result, notNullValue());
-            assertTrue(result.getBoolean(BackupContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, false));
+            assertTrue(result.getBoolean(ExportContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, false));
         } finally {
             //Cleanup
             if (destFile.exists()) {
@@ -205,7 +206,7 @@ public final class MementoContentProviderSecondProcessIntegrationTest {
      */
     private void assertCount(@NonNull final ContentResolver resolver, final int count) {
         try (@Nullable final Cursor cursor = resolver
-                .query(TableOneContractSecondProcess.getContentUri(getContext()), null, null, null,
+                .query(TableOneContractSecondProcess.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null,
                         null)) {
             assertThat(cursor.getCount(), is(count));
         }
@@ -228,7 +229,7 @@ public final class MementoContentProviderSecondProcessIntegrationTest {
          * The MockContentResolver won't deliver content change notifications, so a real
          * ContentResolver is required for this test.
          */
-        final ContentResolver resolver = getContext().getContentResolver();
+        final ContentResolver resolver = ApplicationProvider.getApplicationContext().getContentResolver();
 
         final TestContentObserver observer = new TestContentObserver(handler, resolver,
                 expectedHitCount);

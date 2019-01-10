@@ -49,6 +49,7 @@ public final class BatchHelper {
     /*package*/ public static final String EXTRA_PARCELABLE_URI =
             AbstractContentProviderOperationService.class
                     .getName() + ".extra.PARCELABLE_URI"; //$NON-NLS-1$
+
     /**
      * Type: {@code <ArrayList<ArrayList<ContentProviderOperation>>}.
      * <p>
@@ -58,7 +59,14 @@ public final class BatchHelper {
     @VisibleForTesting
     /*package*/ public static final String EXTRA_SERIALIZABLE_ARRAY_LIST_OF_ARRAY_LIST_OF_OPERATIONS =
             AbstractContentProviderOperationService.class
-                    .getName() + ".extra.SERIALIZABLE_ARRAY_LIST_OF_ARRAY_LIST_OF_OPERATIONS";
+                    .getName() + ".extra.SERIALIZABLE_ARRAY_LIST_OF_ARRAY_LIST_OF_OPERATIONS"; //$NON-NLS
+
+    /**
+     * Exception to extract a prior stacktrace from.  Used for debugging.
+     */
+    @NonNull
+    /*package*/ public static final String EXTRA_SERIALIZABLE_EXCEPTION = AbstractContentProviderOperationService.class
+            .getName() + ".extra.SERIALIZABLE_EXCEPTION"; //$NON-NLS
 
     @Slow(Slow.Speed.MILLISECONDS)
     @SuppressWarnings("unchecked")
@@ -73,15 +81,43 @@ public final class BatchHelper {
         // Note this implementation isn’t safe as a true public API, because these extras are not
         // checked to make sure they are correct.  An incorrect class would cause a
         // ClassCastException
-        final Uri authority = intent.getParcelableExtra(EXTRA_PARCELABLE_URI);
-        final ArrayList<ArrayList<ContentProviderOperation>> operations
+        @NonNull final Uri authority = intent.getParcelableExtra(EXTRA_PARCELABLE_URI);
+        @NonNull final ArrayList<ArrayList<ContentProviderOperation>> operations
                 = (ArrayList<ArrayList<ContentProviderOperation>>) intent
                 .getSerializableExtra(
                         EXTRA_SERIALIZABLE_ARRAY_LIST_OF_ARRAY_LIST_OF_OPERATIONS);
 
-        BatchContract
-                .applyBatchWithAlternatives(context, authority,
-                        operations);
+        try {
+            BatchContract
+                    .applyBatchWithAlternatives(context, authority,
+                            operations);
+        } catch (@NonNull final Exception e) {
+            @NonNull final Exception priorStacktrace = (Exception) intent.getSerializableExtra(EXTRA_SERIALIZABLE_EXCEPTION);
+            e.addSuppressed(priorStacktrace);
+            e.setStackTrace(mergeStacktraces(e, priorStacktrace));
+            throw e;
+        }
+    }
+
+    /**
+     * @param exception1 Exception to extract stacktrace elements from.
+     * @param exception2 Exception to extract stacktrace elements from.
+     * @return Merged stacktrace elements.
+     */
+    @NonNull
+    @VisibleForTesting
+    /*package*/ static StackTraceElement[] mergeStacktraces(@NonNull final Throwable exception1, @NonNull final Throwable exception2) {
+        assertNotNull(exception1, "exception1"); //$NON-NLS
+        assertNotNull(exception2, "exception2"); //$NON-NLS
+
+        @NonNull final StackTraceElement[] stackTraceElements1 = exception1.getStackTrace();
+        @NonNull final StackTraceElement[] stackTraceElements2 = exception2.getStackTrace();
+
+        @NonNull final StackTraceElement[] mergedStacktraces = new StackTraceElement[stackTraceElements1.length + stackTraceElements2.length];
+        System.arraycopy(stackTraceElements1, 0, mergedStacktraces, 0, stackTraceElements1.length);
+        System.arraycopy(stackTraceElements2, 0, mergedStacktraces, stackTraceElements1.length, stackTraceElements2.length);
+
+        return mergedStacktraces;
     }
 
     /**
@@ -97,10 +133,11 @@ public final class BatchHelper {
         assertNotEmpty(operations, "operations"); //$NON-NLS
         assertNoNullElements(operations, "operations"); //$NON-NLS
 
-        final Bundle bundle = new Bundle();
+        @NonNull final Bundle bundle = new Bundle();
         bundle.putParcelable(EXTRA_PARCELABLE_URI, authority);
         bundle.putSerializable(EXTRA_SERIALIZABLE_ARRAY_LIST_OF_ARRAY_LIST_OF_OPERATIONS,
                 operations);
+        bundle.putSerializable(EXTRA_SERIALIZABLE_EXCEPTION, new Exception());
 
         return bundle;
     }

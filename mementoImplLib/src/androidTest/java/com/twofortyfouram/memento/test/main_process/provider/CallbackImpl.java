@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.memento.test.main_process;
+package com.twofortyfouram.memento.test.main_process.provider;
 
 import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
@@ -24,8 +24,13 @@ import androidx.annotation.NonNull;
 
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.memento.model.SqliteColumnBuilder;
+import com.twofortyfouram.memento.model.SqliteLatestViewBuilder;
 import com.twofortyfouram.memento.model.SqliteStorageClass;
 import com.twofortyfouram.memento.model.SqliteTableBuilder;
+import com.twofortyfouram.memento.test.main_process.contract.TestKeyValueColumns;
+import com.twofortyfouram.memento.test.main_process.contract.KeyValueContract;
+import com.twofortyfouram.memento.test.main_process.contract.LatestKeyValueContractView;
+import com.twofortyfouram.memento.test.main_process.contract.TestTableOneContract;
 
 
 public final class CallbackImpl extends SupportSQLiteOpenHelper.Callback {
@@ -43,6 +48,8 @@ public final class CallbackImpl extends SupportSQLiteOpenHelper.Callback {
         }
 
         createTableOne(db);
+        createKeyValueTable(db);
+        createLatestKeyValueView(db);
     }
 
     @Override
@@ -57,15 +64,41 @@ public final class CallbackImpl extends SupportSQLiteOpenHelper.Callback {
     }
 
     private static void createTableOne(@NonNull final SupportSQLiteDatabase db) {
-        final SqliteTableBuilder tableBuilder = new SqliteTableBuilder()
-                .setName(TableOneContract.TABLE_NAME);
-        tableBuilder.addColumn(new SqliteColumnBuilder().setName(TableOneContract._ID)
+        @NonNull final SqliteTableBuilder tableBuilder = new SqliteTableBuilder()
+                .setName(TestTableOneContract.TABLE_NAME);
+        tableBuilder.addColumn(new SqliteColumnBuilder().setName(TestTableOneContract._ID)
                 .setType(SqliteStorageClass.INTEGER)
                 .setAutoincrementPrimaryKey());
         tableBuilder.addColumn(new SqliteColumnBuilder()
-                .setName(TableOneContract.COLUMN_STRING_COLUMN_ONE)
+                .setName(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)
                 .setType(SqliteStorageClass.TEXT).setConstraintNotNull());
 
         db.execSQL(tableBuilder.build());
+    }
+
+    private static void createKeyValueTable(@NonNull final SupportSQLiteDatabase db) {
+        @NonNull final SqliteTableBuilder tableBuilder = new SqliteTableBuilder()
+                .setName(KeyValueContract.TABLE_NAME);
+        tableBuilder.addColumn(new SqliteColumnBuilder().setName(KeyValueContract._ID)
+                .setType(SqliteStorageClass.INTEGER)
+                .setAutoincrementPrimaryKey());
+        tableBuilder.addColumn(new SqliteColumnBuilder()
+                .setName(KeyValueContract.COLUMN_STRING_KEY)
+                .setType(SqliteStorageClass.TEXT).setConstraintNotNull());
+        tableBuilder.addColumn(new SqliteColumnBuilder()
+                .setName(KeyValueContract.COLUMN_STRING_VALUE)
+                .setType(SqliteStorageClass.TEXT));
+
+        db.execSQL(tableBuilder.build());
+    }
+
+    private static void createLatestKeyValueView(@NonNull final SupportSQLiteDatabase db) {
+        @NonNull final SqliteLatestViewBuilder viewBuilder = new SqliteLatestViewBuilder()
+                .setViewName(LatestKeyValueContractView.VIEW_NAME);
+        viewBuilder.setFromTableName(KeyValueContract.TABLE_NAME);
+        viewBuilder.setVersionColumnName(TestKeyValueColumns._ID);
+        viewBuilder.setKeyColumnName(TestKeyValueColumns.COLUMN_STRING_KEY);
+
+        db.execSQL(viewBuilder.build());
     }
 }

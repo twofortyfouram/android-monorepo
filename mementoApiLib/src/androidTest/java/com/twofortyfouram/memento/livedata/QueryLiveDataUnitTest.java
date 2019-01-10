@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.memento.util;
+package com.twofortyfouram.memento.livedata;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
@@ -23,9 +23,10 @@ import android.database.MatrixCursor;
 import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.Observer;
-import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import com.twofortyfouram.memento.util.CursorParser;
 import com.twofortyfouram.test.provider.MockableContentProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +41,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class QueryLiveDataUnitTest {
 
     @Test
@@ -49,9 +50,9 @@ public final class QueryLiveDataUnitTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
             @NonNull final String authority = "foo"; //$NON-NLS
 
-            @NonNull final MockableContentProvider provider = MockableContentProvider.newMockProvider(InstrumentationRegistry.getContext(), authority);
+            @NonNull final MockableContentProvider provider = MockableContentProvider.newMockProvider(ApplicationProvider.getApplicationContext(), authority);
 
-            @NonNull final QueryLiveData<String> queryLiveData = new QueryLiveData<>(provider.getContext(), false, new TestCursorParser(), new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(authority).build(), null, null, null, null);
+            @NonNull final QueryLiveData<String> queryLiveData = new QueryLiveData<>(provider.getContext(), false, new TestCursorParser(), new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(authority).build(), null, null, null, null, null);
 
             @NonNull final AtomicInteger observerCount = new AtomicInteger(0);
             final Observer<Collection<String>> observer = o -> {
@@ -71,13 +72,13 @@ public final class QueryLiveDataUnitTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
             @NonNull final String authority = "foo"; //$NON-NLS
 
-            @NonNull final MockableContentProvider provider = MockableContentProvider.newMockProvider(InstrumentationRegistry.getContext(), authority);
+            @NonNull final MockableContentProvider provider = MockableContentProvider.newMockProvider(ApplicationProvider.getApplicationContext(), authority);
             @NonNull final MatrixCursor cursor = new MatrixCursor(new String[]{"foo"});
             cursor.addRow(new String[] {"bar"});
             cursor.addRow(new String[] {"baz"});
             provider.addQueryResult(cursor);
 
-            @NonNull final QueryLiveData<String> queryLiveData = new QueryLiveData<>(provider.getContext(), false, new TestCursorParser(), new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(authority).build(), null, null, null, null);
+            @NonNull final QueryLiveData<String> queryLiveData = new QueryLiveData<>(provider.getContext(), false, new TestCursorParser(), new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(authority).build(), null, null, null, null, null);
 
             @NonNull final AtomicInteger observerCount = new AtomicInteger(0);
             final Observer<Collection<String>> observer = o -> {
@@ -85,17 +86,16 @@ public final class QueryLiveDataUnitTest {
             };
             queryLiveData.observeForever(observer);
 
+            assertThat(observerCount.get(), is(1));
             assertThat(queryLiveData.getValue(), notNullValue());
             assertThat(queryLiveData.getValue(), hasSize(2));
-
 
             queryLiveData.removeObserver(observer);
         });
     }
 
-    private static final class TestCursorParser implements QueryLiveData.CursorParser<String> {
+    private static final class TestCursorParser implements CursorParser<String> {
 
-        @Override
         public String newObject(@NonNull final Cursor cursor) {
             assertNotNull(cursor, "cursor"); //$NON-NLS
             assertCursorOpen(cursor);

@@ -22,22 +22,18 @@ import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
 import com.twofortyfouram.test.provider.MockableContentProvider;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static androidx.test.InstrumentationRegistry.getContext;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 @RunWith(AndroidJUnit4.class)
-public final class BackupContractTest {
+public final class ExportContractTest {
 
     private static final String MOCK_CONTENT_PROVIDER_AUTHORITY =
             "com.twofortyfouram.memento.test.provider"; //NON-NLS
@@ -50,12 +46,12 @@ public final class BackupContractTest {
 
         {
             final Bundle result = new Bundle();
-            result.putBoolean(BackupContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, true);
+            result.putBoolean(ExportContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, true);
             mockableContentProvider.addCallResult(result);
         }
 
-        assertThat(BackupContract
-                        .backup(mockableContentProvider.getContext(), getContentAuthorityUri(), filePath),
+        assertThat(ExportContract
+                        .callExport(mockableContentProvider.getContext(), getContentAuthorityUri(), filePath),
                 is(true));
 
         assertThat(mockableContentProvider.getCallCount(), is(1));
@@ -67,7 +63,7 @@ public final class BackupContractTest {
         @Nullable final MockableContentProvider.CallParams callParams = mockableContentProvider
                 .getCallParams();
         assertThat(callParams, notNullValue());
-        assertThat(callParams.getMethod(), is(BackupContract.METHOD_BACKUP));
+        assertThat(callParams.getMethod(), is(ExportContract.METHOD_EXPORT));
         assertThat(callParams.getArg(), is(filePath));
         assertThat(callParams.getExtras(), nullValue());
     }
@@ -80,12 +76,12 @@ public final class BackupContractTest {
 
         {
             final Bundle result = new Bundle();
-            result.putBoolean(BackupContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, false);
+            result.putBoolean(ExportContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, false);
             mockableContentProvider.addCallResult(result);
         }
 
-        assertThat(BackupContract
-                        .backup(mockableContentProvider.getContext(), getContentAuthorityUri(), filePath),
+        assertThat(ExportContract
+                        .callExport(mockableContentProvider.getContext(), getContentAuthorityUri(), filePath),
                 is(false));
 
         assertThat(mockableContentProvider.getCallCount(), is(1));
@@ -97,7 +93,7 @@ public final class BackupContractTest {
         @Nullable final MockableContentProvider.CallParams callParams = mockableContentProvider
                 .getCallParams();
         assertThat(callParams, notNullValue());
-        assertThat(callParams.getMethod(), is(BackupContract.METHOD_BACKUP));
+        assertThat(callParams.getMethod(), is(ExportContract.METHOD_EXPORT));
         assertThat(callParams.getArg(), is(filePath));
         assertThat(callParams.getExtras(), nullValue());
     }
@@ -108,8 +104,8 @@ public final class BackupContractTest {
         @NonNull final String filePath = "foo"; //NON-NLS
         @NonNull final MockableContentProvider mockableContentProvider = getMockableContentProvider();
 
-        assertThat(BackupContract
-                        .backup(mockableContentProvider.getContext(), getContentAuthorityUri(), filePath),
+        assertThat(ExportContract
+                        .callExport(mockableContentProvider.getContext(), getContentAuthorityUri(), filePath),
                 is(false));
 
         assertThat(mockableContentProvider.getCallCount(), is(1));
@@ -121,7 +117,7 @@ public final class BackupContractTest {
         @Nullable final MockableContentProvider.CallParams callParams = mockableContentProvider
                 .getCallParams();
         assertThat(callParams, notNullValue());
-        assertThat(callParams.getMethod(), is(BackupContract.METHOD_BACKUP));
+        assertThat(callParams.getMethod(), is(ExportContract.METHOD_EXPORT));
         assertThat(callParams.getArg(), is(filePath));
         assertThat(callParams.getExtras(), nullValue());
     }
@@ -137,8 +133,8 @@ public final class BackupContractTest {
             mockableContentProvider.addCallResult(result);
         }
 
-        assertThat(BackupContract
-                        .backup(mockableContentProvider.getContext(), getContentAuthorityUri(), filePath),
+        assertThat(ExportContract
+                        .callExport(mockableContentProvider.getContext(), getContentAuthorityUri(), filePath),
                 is(false));
 
         assertThat(mockableContentProvider.getCallCount(), is(1));
@@ -150,7 +146,7 @@ public final class BackupContractTest {
         @Nullable final MockableContentProvider.CallParams callParams = mockableContentProvider
                 .getCallParams();
         assertThat(callParams, notNullValue());
-        assertThat(callParams.getMethod(), is(BackupContract.METHOD_BACKUP));
+        assertThat(callParams.getMethod(), is(ExportContract.METHOD_EXPORT));
         assertThat(callParams.getArg(), is(filePath));
         assertThat(callParams.getExtras(), nullValue());
     }
@@ -163,12 +159,12 @@ public final class BackupContractTest {
 
         {
             final Bundle result = new Bundle();
-            result.putString(BackupContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, "foo"); //$NON-NLS
+            result.putString(ExportContract.RESULT_EXTRA_BOOLEAN_IS_SUCCESS, "foo"); //$NON-NLS
             mockableContentProvider.addCallResult(result);
         }
 
-        assertThat(BackupContract
-                        .backup(mockableContentProvider.getContext(), getContentAuthorityUri(), filePath),
+        assertThat(ExportContract
+                        .callExport(mockableContentProvider.getContext(), getContentAuthorityUri(), filePath),
                 is(false));
 
         assertThat(mockableContentProvider.getCallCount(), is(1));
@@ -180,14 +176,14 @@ public final class BackupContractTest {
         @Nullable final MockableContentProvider.CallParams callParams = mockableContentProvider
                 .getCallParams();
         assertThat(callParams, notNullValue());
-        assertThat(callParams.getMethod(), is(BackupContract.METHOD_BACKUP));
+        assertThat(callParams.getMethod(), is(ExportContract.METHOD_EXPORT));
         assertThat(callParams.getArg(), is(filePath));
         assertThat(callParams.getExtras(), nullValue());
     }
 
     @NonNull
     private MockableContentProvider getMockableContentProvider() {
-        return MockableContentProvider.newMockProvider(getContext(),
+        return MockableContentProvider.newMockProvider(ApplicationProvider.getApplicationContext(),
                 MOCK_CONTENT_PROVIDER_AUTHORITY);
     }
 

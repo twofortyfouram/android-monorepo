@@ -17,21 +17,17 @@
 
 package com.twofortyfouram.spackle.internal;
 
-import androidx.annotation.Keep;
-import androidx.annotation.RestrictTo;
-
 import com.twofortyfouram.spackle.AbstractProcessNameContentProvider;
 
 import net.jcip.annotations.ThreadSafe;
 
+import androidx.annotation.RestrictTo;
+
 
 /*
- * Keep the class name to prevent a race condition in Android's Content Resolver when the
- * class name changes during an update to the app.  This crash is difficult to reproduce locally
- * but Crashlytics indicates it can happen fairly frequently during updates.  The crash is that
- * the content provider cannot be found, because Android still looks for the old class name.
+ * Note: Class name is preserved with an obfuscation map. If you rename this class, update
+ * the obfuscation map.
  */
-@Keep
 @ThreadSafe
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public final class DefaultProcessNameContentProvider extends

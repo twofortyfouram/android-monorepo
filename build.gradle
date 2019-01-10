@@ -11,6 +11,7 @@ buildscript {
 
     dependencies {
         classpath group:'com.android.tools.build', name:'gradle', version:"${ANDROID_GRADLE_PLUGIN_VERSION_MATCHER}"
+        classpath group:'org.jetbrains.kotlin', name:'kotlin-gradle-plugin', version:"${KOTLIN_VERSION_MATCHER}"
         classpath group:'com.github.ben-manes', name:'gradle-versions-plugin', version:"${GRADLE_VERSIONS_PLUGIN_VERSION_MATCHER}"
         classpath group:'gradle.plugin.com.github.spotbugs', name:'spotbugs-gradle-plugin', version:"${SPOTBUGS_GRADLE_PLUGIN_VERSION_MATCHER}"
         if (is_dexcount) {

@@ -19,9 +19,7 @@ package com.twofortyfouram.spackle;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import androidx.annotation.AnyRes;
-import androidx.annotation.ArrayRes;
-import androidx.annotation.NonNull;
+import androidx.annotation.*;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -114,10 +112,30 @@ public final class ResourceUtil {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotEmpty(resourceName, "resourceName"); //$NON-NLS-1$
 
-        final int id = context.getResources().getIdentifier(resourceName,
+        @BoolRes final int id = context.getResources().getIdentifier(resourceName,
                 "bool", context.getPackageName()); //$NON-NLS-1$
 
         return context.getResources().getBoolean(id);
+    }
+
+    /**
+     * Returns a resource from a string name, rather than an integer ID.
+     *
+     * @param context      Application context.
+     * @param resourceName Name of the resource to retrieve.
+     * @return The value mapping to {@code resourceName}.
+     * @throws android.content.res.Resources.NotFoundException if the resource doesn't exist.
+     */
+    @NonNull
+    public static String getString(@NonNull final Context context,
+                                     @NonNull final String resourceName) {
+        assertNotNull(context, "context"); //$NON-NLS-1$
+        assertNotEmpty(resourceName, "resourceName"); //$NON-NLS-1$
+
+        @StringRes final int id = context.getResources().getIdentifier(resourceName,
+                "string", context.getPackageName()); //$NON-NLS-1$
+
+        return context.getResources().getString(id);
     }
 
     /**

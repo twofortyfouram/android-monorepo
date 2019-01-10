@@ -20,9 +20,9 @@ package com.twofortyfouram.spackle;
 import android.content.ContextWrapper;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ProviderInfo;
-import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +39,7 @@ public final class AbstractProcessNameContentProviderUnitTest {
     public void getProcessName_from_application() {
         final String expectedApplicationProcessName = "beep"; //$NON-NLS
 
-        final ContextWrapper ctx = new ContextWrapper(InstrumentationRegistry.getContext()) {
+        final ContextWrapper ctx = new ContextWrapper(ApplicationProvider.getApplicationContext()) {
             @Override
             public ApplicationInfo getApplicationInfo() {
                 final ApplicationInfo info = new ApplicationInfo();
@@ -64,7 +64,7 @@ public final class AbstractProcessNameContentProviderUnitTest {
         info.processName = expectedProviderProcessName;
 
         final String actualProcessName = AbstractProcessNameContentProvider.getProcessNameLegacy(
-                InstrumentationRegistry.getContext(), info);
+                ApplicationProvider.getApplicationContext(), info);
 
         assertThat(actualProcessName, is(expectedProviderProcessName));
     }
@@ -75,7 +75,7 @@ public final class AbstractProcessNameContentProviderUnitTest {
 
         final String packageName = "beep"; //$NON-NLS
 
-        final ContextWrapper ctx = new ContextWrapper(InstrumentationRegistry.getContext()) {
+        final ContextWrapper ctx = new ContextWrapper(ApplicationProvider.getApplicationContext()) {
             @Override
             public ApplicationInfo getApplicationInfo() {
                 return new ApplicationInfo();

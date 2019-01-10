@@ -33,7 +33,7 @@ import java.lang.reflect.InvocationTargetException;
  * designed for calling methods that must exist in newer versions of Android.
  */
 @ThreadSafe
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 public final class Reflector {
 
     /**

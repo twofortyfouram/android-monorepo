@@ -17,12 +17,11 @@
 
 package com.twofortyfouram.spackle.bundle;
 
+import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.twofortyfouram.spackle.internal.Reflector;
-
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.Arrays;
@@ -69,21 +68,28 @@ public final class BundlePrinter {
          * although this sorting does make it easier to perform regression
          * tests.
          */
-        final Set<String> keys = new TreeSet<>(new BundleKeyComparator());
+        @NonNull final Set<String> keys = new TreeSet<>(new BundleKeyComparator());
         keys.addAll(bundle.keySet());
 
         final StringBuilder result = new StringBuilder();
-        for (final String key : keys) {
+        for (@Nullable final String key : keys) {
             if (0 < result.length()) {
                 result.append(", "); //$NON-NLS-1$
             }
 
-            final String keyString = null == key ? "null" : key; //$NON-NLS-1$
-            String valueString = null;
+            @NonNull final String keyString = null == key ? "null" : key; //$NON-NLS-1$
+            @Nullable String valueString = null;
 
-            final Object value = bundle.get(key);
+            @Nullable final Object value = bundle.get(key);
             if (null != value) {
-                if (value instanceof Bundle) {
+                if (value instanceof Intent) {
+                    @NonNull final Intent intent = ((Intent) value);
+                    @Nullable final Bundle extras = intent.getExtras();
+                    valueString = String.format(Locale.US,
+                            "%s with extras %s", intent, //$NON-NLS
+                            toString(extras));
+                }
+                else if (value instanceof Bundle) {
                     valueString = toString((Bundle) value);
                 } else {
                     final Class<?> cls = value.getClass();

@@ -20,6 +20,8 @@ package com.twofortyfouram.memento.model;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.twofortyfouram.annotation.NonNullElt;
+
 import net.jcip.annotations.NotThreadSafe;
 
 import java.util.Iterator;
@@ -52,7 +54,7 @@ public final class SqliteTableBuilder {
      * List of column builders.
      */
     @NonNull
-    private final List<SqliteColumnBuilder> mColumns = new LinkedList<>();
+    private final List<@NonNullElt SqliteColumnBuilder> mColumns = new LinkedList<>();
 
     /**
      * Sets the name of the table.
@@ -109,11 +111,11 @@ public final class SqliteTableBuilder {
 
     @NonNull
     private String getColumnStatements() {
-        final StringBuilder builder = new StringBuilder();
+        @NonNull final StringBuilder builder = new StringBuilder();
 
-        final Iterator<SqliteColumnBuilder> iterator = mColumns.iterator();
+        @NonNull final Iterator<SqliteColumnBuilder> iterator = mColumns.iterator();
         while (iterator.hasNext()) {
-            final SqliteColumnBuilder columnBuilder = iterator.next();
+            @NonNull final SqliteColumnBuilder columnBuilder = iterator.next();
             builder.append(columnBuilder.build());
 
             if (iterator.hasNext()) {

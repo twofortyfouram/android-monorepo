@@ -25,19 +25,25 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.RemoteException;
+import android.text.format.DateUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.*;
 import androidx.test.rule.provider.ProviderTestRule;
-import androidx.test.runner.AndroidJUnit4;
-import android.text.format.DateUtils;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import com.twofortyfouram.memento.contract.BaseColumnsContract;
 import com.twofortyfouram.memento.contract.MementoContract;
 import com.twofortyfouram.memento.internal.ContentProviderClientCompat;
-import com.twofortyfouram.memento.test.main_process.ContentProviderImpl;
-import com.twofortyfouram.memento.test.main_process.TableOneContract;
-import com.twofortyfouram.memento.test.main_process.YouCanHazNoContract;
-import com.twofortyfouram.memento.contract.BaseColumnsContract;
+import com.twofortyfouram.memento.test.main_process.contract.KeyValueContract;
+import com.twofortyfouram.memento.test.main_process.contract.LatestKeyValueContractView;
+import com.twofortyfouram.memento.test.main_process.contract.TestTableOneContract;
+import com.twofortyfouram.memento.test.main_process.contract.TestYouCanHazNoContract;
+import com.twofortyfouram.memento.test.main_process.provider.ContentProviderImpl;
+import com.twofortyfouram.memento.test.main_process.provider.ContentProviderUtil;
 import com.twofortyfouram.memento.util.Transactable;
+import com.twofortyfouram.spackle.AndroidSdkVersion;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -50,7 +56,6 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static androidx.test.InstrumentationRegistry.getContext;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -68,8 +73,8 @@ public final class MementoContentProviderTest {
     @Before
     public void setup() {
         mProviderRule = new ProviderTestRule.Builder(ContentProviderImpl.class,
-                ContentProviderImpl.getContentAuthority(
-                        getContext())).setPrefix(UUID.randomUUID().toString()).build();
+                ContentProviderUtil.getContentAuthorityString(
+                        ApplicationProvider.getApplicationContext())).setPrefix(UUID.randomUUID().toString()).build();
     }
 
     @After
@@ -77,8 +82,8 @@ public final class MementoContentProviderTest {
         @Nullable ContentProviderClient client = null;
         try {
             client = mProviderRule.getResolver()
-                    .acquireContentProviderClient(ContentProviderImpl.getContentAuthority(
-                            getContext()));
+                    .acquireContentProviderClient(ContentProviderUtil.getContentAuthorityString(
+                            ApplicationProvider.getApplicationContext()));
 
             client.getLocalContentProvider().shutdown();
         } finally {
@@ -151,7 +156,7 @@ public final class MementoContentProviderTest {
     public void query_haz_no() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        resolver.query(YouCanHazNoContract.getContentUri(getContext()), null, null, null, null);
+        resolver.query(TestYouCanHazNoContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null, null);
     }
 
     @SmallTest
@@ -159,7 +164,7 @@ public final class MementoContentProviderTest {
     public void insert_haz_no() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        resolver.insert(YouCanHazNoContract.getContentUri(getContext()), new ContentValues());
+        resolver.insert(TestYouCanHazNoContract.getContentUri(ApplicationProvider.getApplicationContext()), new ContentValues());
     }
 
     @SmallTest
@@ -167,7 +172,7 @@ public final class MementoContentProviderTest {
     public void update_haz_no() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        resolver.update(YouCanHazNoContract.getContentUri(getContext()), new ContentValues(),
+        resolver.update(TestYouCanHazNoContract.getContentUri(ApplicationProvider.getApplicationContext()), new ContentValues(),
                 null,
                 null);
     }
@@ -178,7 +183,7 @@ public final class MementoContentProviderTest {
     public void delete_haz_no() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        resolver.delete(YouCanHazNoContract.getContentUri(getContext()),
+        resolver.delete(TestYouCanHazNoContract.getContentUri(ApplicationProvider.getApplicationContext()),
                 null,
                 null);
     }
@@ -189,15 +194,15 @@ public final class MementoContentProviderTest {
         final ContentResolver resolver = mProviderRule.getResolver();
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, null, null,
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null,
                         null)) {
 
             assertThat(cursor.getCount(), is(0));
             assertThat(cursor.getColumnCount(), is(2));
 
             final String[] actualColumns = cursor.getColumnNames();
-            assertThat(actualColumns, arrayContainingInAnyOrder(TableOneContract._ID,
-                    TableOneContract.COLUMN_STRING_COLUMN_ONE));
+            assertThat(actualColumns, arrayContainingInAnyOrder(TestTableOneContract._ID,
+                    TestTableOneContract.COLUMN_STRING_COLUMN_ONE));
         }
     }
 
@@ -207,13 +212,54 @@ public final class MementoContentProviderTest {
         final ContentResolver resolver = mProviderRule.getResolver();
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), new String[]{
-                        TableOneContract._ID
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), new String[]{
+                        TestTableOneContract._ID
                 }, null, null, null)) {
             assertThat(cursor.getCount(), is(0));
-            assertThat(cursor.getColumnNames(), arrayContainingInAnyOrder(TableOneContract._ID));
+            assertThat(cursor.getColumnNames(), arrayContainingInAnyOrder(TestTableOneContract._ID));
 
-            assertThat(cursor.getColumnIndex(TableOneContract._ID), is(0));
+            assertThat(cursor.getColumnIndex(TestTableOneContract._ID), is(0));
+        }
+    }
+
+    @SmallTest
+    @Test
+    public void query_notify_uri_single() {
+        final ContentResolver resolver = mProviderRule.getResolver();
+
+        try (final Cursor cursor = resolver
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null, null)) {
+
+            assertThat(cursor.getNotificationUri(), is(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext())));
+        }
+    }
+
+    @SmallTest
+    @Test
+    public void query_notify_uri_single_stripped() {
+        final ContentResolver resolver = mProviderRule.getResolver();
+
+        try (final Cursor cursor = resolver
+                .query(ContentUris.withAppendedId(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), 1), null, null, null, null)) {
+
+            assertThat(cursor.getNotificationUri(), is(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext())));
+        }
+    }
+
+    @SmallTest
+    @Test
+    public void query_notify_uri_multiple() {
+        final ContentResolver resolver = mProviderRule.getResolver();
+
+        try (final Cursor cursor = resolver
+                .query(KeyValueContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null, null)) {
+
+            if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.Q)) {
+                assertThat(cursor.getNotificationUris(), contains(KeyValueContract.getContentUri(ApplicationProvider.getApplicationContext())));
+            }
+            else {
+                assertThat(cursor.getNotificationUri(), is(KeyValueContract.getContentUri(ApplicationProvider.getApplicationContext())));
+            }
         }
     }
 
@@ -222,20 +268,20 @@ public final class MementoContentProviderTest {
     public void query_sort_order() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("c")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("a")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("b")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("d")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("c")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("a")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("b")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("d")); //$NON-NLS-1$
 
         final String sortBy = String.format(Locale.US,
                 "%s COLLATE LOCALIZED ASC", //$NON-NLS-1$
-                TableOneContract.COLUMN_STRING_COLUMN_ONE); //$NON-NLS-1$
+                TestTableOneContract.COLUMN_STRING_COLUMN_ONE); //$NON-NLS-1$
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, null, null,
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null,
                         sortBy)) {
 
             assertThat(cursor.getCount(), is(4));
@@ -246,7 +292,7 @@ public final class MementoContentProviderTest {
             cursor.moveToPosition(-1);
             while (cursor.moveToNext()) {
                 results.add(cursor.getString(cursor
-                        .getColumnIndexOrThrow(TableOneContract.COLUMN_STRING_COLUMN_ONE)));
+                        .getColumnIndexOrThrow(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)));
             }
 
             assertThat(results, contains("a", "b", "c", "d")); //$NON-NLS
@@ -258,21 +304,21 @@ public final class MementoContentProviderTest {
     public void query_selection_with_args() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("c")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("a")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("b")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("d")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("c")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("a")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("b")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("d")); //$NON-NLS-1$
 
         final String selection = String.format(Locale.US,
-                "%s != ?", TableOneContract.COLUMN_STRING_COLUMN_ONE); //$NON-NLS-1$
+                "%s != ?", TestTableOneContract.COLUMN_STRING_COLUMN_ONE); //$NON-NLS-1$
         final String[] selectionArgs = {
                 "a"}; //$NON-NLS-1$
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, selection,
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, selection,
                         selectionArgs, null)) {
 
             assertThat(cursor.getCount(), is(3));
@@ -281,7 +327,7 @@ public final class MementoContentProviderTest {
             while (cursor.moveToNext()) {
                 assertThat(
                         cursor.getString(cursor
-                                .getColumnIndexOrThrow(TableOneContract.COLUMN_STRING_COLUMN_ONE)),
+                                .getColumnIndexOrThrow(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)),
                         not("a")); //$NON-NLS
             }
         }
@@ -292,10 +338,10 @@ public final class MementoContentProviderTest {
     public void query_id_in_path() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final Uri uri = resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("test_value_one")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("test_value_two")); //$NON-NLS-1$
+        final Uri uri = resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("test_value_one")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("test_value_two")); //$NON-NLS-1$
 
         try (final Cursor cursor = resolver.query(uri, null, null, null, null)) {
             assertThat(cursor.getCount(), is(1));
@@ -307,21 +353,21 @@ public final class MementoContentProviderTest {
     public void query_limit() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues values = TableOneContract.getContentValues("test_value"); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
+        final ContentValues values = TestTableOneContract.getContentValues("test_value"); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, null, null,
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null,
                         null)) {
             // no limit returns 3 items
             assertThat(cursor.getCount(), is(3));
         }
 
         // limit to 1 item
-        @SuppressWarnings("deprecation") final Uri uri = MementoContract.addLimit(TableOneContract
-                .getContentUri(getContext())
+        @SuppressWarnings("deprecation") final Uri uri = MementoContract.addLimit(TestTableOneContract
+                .getContentUri(ApplicationProvider.getApplicationContext())
                 .buildUpon(), 1).build();
         try (final Cursor cursor = resolver.query(uri, null, null, null, null)) {
             assertThat(cursor.getCount(), is(1));
@@ -334,12 +380,12 @@ public final class MementoContentProviderTest {
         final ContentResolver resolver = mProviderRule.getResolver();
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), new String[]{
-                        TableOneContract._COUNT
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), new String[]{
+                        TestTableOneContract._COUNT
                 }, null, null, null)) {
             assertThat(cursor.getCount(), is(1));
             assertTrue(cursor.moveToFirst());
-            assertThat(cursor.getInt(cursor.getColumnIndexOrThrow(TableOneContract._COUNT)), is(0));
+            assertThat(cursor.getInt(cursor.getColumnIndexOrThrow(TestTableOneContract._COUNT)), is(0));
         }
     }
 
@@ -348,16 +394,16 @@ public final class MementoContentProviderTest {
     public void query_count_non_empty() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("test_value")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("test_value")); //$NON-NLS-1$
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), new String[]{
-                        TableOneContract._COUNT
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), new String[]{
+                        TestTableOneContract._COUNT
                 }, null, null, null)) {
             assertThat(cursor.getCount(), is(1));
             assertTrue(cursor.moveToFirst());
-            assertThat(cursor.getInt(cursor.getColumnIndexOrThrow(TableOneContract._COUNT)), is(1));
+            assertThat(cursor.getInt(cursor.getColumnIndexOrThrow(TestTableOneContract._COUNT)), is(1));
         }
     }
 
@@ -368,14 +414,14 @@ public final class MementoContentProviderTest {
         final ContentResolver resolver = mProviderRule.getResolver();
 
         try (Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, null, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null)) {
 
             assertThat(cursor.getCount(), is(0));
             assertThat(cursor.getColumnCount(), is(2));
 
             final String[] actualColumns = cursor.getColumnNames();
-            assertThat(actualColumns, arrayContainingInAnyOrder(TableOneContract._ID,
-                    TableOneContract.COLUMN_STRING_COLUMN_ONE));
+            assertThat(actualColumns, arrayContainingInAnyOrder(TestTableOneContract._ID,
+                    TestTableOneContract.COLUMN_STRING_COLUMN_ONE));
         }
     }
 
@@ -386,14 +432,14 @@ public final class MementoContentProviderTest {
         final ContentResolver resolver = mProviderRule.getResolver();
 
         try (Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()),
-                        new String[]{TableOneContract._ID}, null, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                        new String[]{TestTableOneContract._ID}, null, null)) {
 
             assertThat(cursor.getCount(), is(0));
             assertThat(cursor.getColumnCount(), is(1));
 
             final String[] actualColumns = cursor.getColumnNames();
-            assertThat(actualColumns, arrayContainingInAnyOrder(TableOneContract._ID));
+            assertThat(actualColumns, arrayContainingInAnyOrder(TestTableOneContract._ID));
 
             assertThat(cursor.getExtras(), notNullValue());
             assertThat(cursor.getExtras().size(), is(0));
@@ -407,14 +453,14 @@ public final class MementoContentProviderTest {
         final ContentResolver resolver = mProviderRule.getResolver();
 
         try (Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, null, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null)) {
 
             assertThat(cursor.getCount(), is(0));
             assertThat(cursor.getColumnCount(), is(2));
 
             final String[] actualColumns = cursor.getColumnNames();
-            assertThat(actualColumns, arrayContainingInAnyOrder(TableOneContract._ID,
-                    TableOneContract.COLUMN_STRING_COLUMN_ONE));
+            assertThat(actualColumns, arrayContainingInAnyOrder(TestTableOneContract._ID,
+                    TestTableOneContract.COLUMN_STRING_COLUMN_ONE));
 
             assertThat(cursor.getExtras(), notNullValue());
             assertThat(cursor.getExtras().size(), is(0));
@@ -429,14 +475,14 @@ public final class MementoContentProviderTest {
         final ContentResolver resolver = mProviderRule.getResolver();
 
         try (Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, Bundle.EMPTY, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, Bundle.EMPTY, null)) {
 
             assertThat(cursor.getCount(), is(0));
             assertThat(cursor.getColumnCount(), is(2));
 
             final String[] actualColumns = cursor.getColumnNames();
-            assertThat(actualColumns, arrayContainingInAnyOrder(TableOneContract._ID,
-                    TableOneContract.COLUMN_STRING_COLUMN_ONE));
+            assertThat(actualColumns, arrayContainingInAnyOrder(TestTableOneContract._ID,
+                    TestTableOneContract.COLUMN_STRING_COLUMN_ONE));
 
             assertThat(cursor.getExtras(), notNullValue());
             assertThat(cursor.getExtras().size(), is(0));
@@ -449,23 +495,23 @@ public final class MementoContentProviderTest {
     public void query_bundle_selection_with_args() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("c")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("a")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("b")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("d")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("c")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("a")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("b")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("d")); //$NON-NLS-1$
 
         final Bundle bundle = new Bundle();
         bundle.putString(ContentResolver.QUERY_ARG_SQL_SELECTION, String.format(Locale.US,
-                "%s != ?", TableOneContract.COLUMN_STRING_COLUMN_ONE)); //$NON-NLS-1$
+                "%s != ?", TestTableOneContract.COLUMN_STRING_COLUMN_ONE)); //$NON-NLS-1$
         bundle.putStringArray(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, new String[]{
                 "a"}); //$NON-NLS-1$
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null,
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null,
                         bundle, null)) {
 
             assertThat(cursor.getCount(), is(3));
@@ -474,7 +520,7 @@ public final class MementoContentProviderTest {
             while (cursor.moveToNext()) {
                 assertThat(
                         cursor.getString(cursor
-                                .getColumnIndexOrThrow(TableOneContract.COLUMN_STRING_COLUMN_ONE)),
+                                .getColumnIndexOrThrow(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)),
                         not("a")); //$NON-NLS
             }
         }
@@ -487,21 +533,21 @@ public final class MementoContentProviderTest {
     public void query_bundle_selection_with_args_bad() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("c")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("a")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("b")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("d")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("c")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("a")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("b")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("d")); //$NON-NLS-1$
 
         final Bundle bundle = new Bundle();
         bundle.putInt(ContentResolver.QUERY_ARG_SQL_SELECTION, 1); //$NON-NLS-1$
         bundle.putString(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, "foo"); //$NON-NLS-1$
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null,
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null,
                         bundle, null)) {
 
             assertThat(cursor.getCount(), is(4));
@@ -517,24 +563,24 @@ public final class MementoContentProviderTest {
     public void query_bundle_sort_order() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("c")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("a")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("b")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("d")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("c")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("a")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("b")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("d")); //$NON-NLS-1$
 
         final String sortBy = String.format(
                 "%s COLLATE LOCALIZED ASC", //$NON-NLS-1$
-                TableOneContract.COLUMN_STRING_COLUMN_ONE); //$NON-NLS-1$
+                TestTableOneContract.COLUMN_STRING_COLUMN_ONE); //$NON-NLS-1$
 
         final Bundle bundle = new Bundle();
         bundle.putString(ContentResolver.QUERY_ARG_SQL_SORT_ORDER, sortBy);
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, bundle, null
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, bundle, null
                 )) {
 
             assertThat(cursor.getCount(), is(4));
@@ -545,7 +591,7 @@ public final class MementoContentProviderTest {
             cursor.moveToPosition(-1);
             while (cursor.moveToNext()) {
                 results.add(cursor.getString(cursor
-                        .getColumnIndexOrThrow(TableOneContract.COLUMN_STRING_COLUMN_ONE)));
+                        .getColumnIndexOrThrow(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)));
             }
 
             assertThat(results, contains("a", "b", "c", "d")); //$NON-NLS
@@ -567,7 +613,7 @@ public final class MementoContentProviderTest {
         final Bundle bundle = new Bundle();
         bundle.putLong(ContentResolver.QUERY_ARG_SQL_SORT_ORDER, 1);
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, bundle, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, bundle, null)) {
 
             assertThat(cursor.getCount(), is(0));
 
@@ -582,14 +628,14 @@ public final class MementoContentProviderTest {
     public void query_bundle_limit() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues values = TableOneContract.getContentValues("test_value"); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
+        final ContentValues values = TestTableOneContract.getContentValues("test_value"); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
 
         // No limit returns 3 items
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, null, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null)) {
             assertThat(cursor.getCount(), is(3));
             assertThat(cursor.getExtras(), notNullValue());
             assertThat(cursor.getExtras().size(), is(0));
@@ -599,7 +645,7 @@ public final class MementoContentProviderTest {
         final Bundle bundle = new Bundle();
         bundle.putInt(ContentResolver.QUERY_ARG_LIMIT, 1);
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, bundle, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, bundle, null)) {
             assertThat(cursor.getCount(), is(1));
 
             assertThat(cursor.getExtras(), notNullValue());
@@ -615,16 +661,16 @@ public final class MementoContentProviderTest {
     public void query_bundle_limit_invalid_long() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues values = TableOneContract.getContentValues("test_value"); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
+        final ContentValues values = TestTableOneContract.getContentValues("test_value"); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
 
         // Put a long instead of an int
         final Bundle bundle = new Bundle();
         bundle.putLong(ContentResolver.QUERY_ARG_LIMIT, 1);
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, bundle, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, bundle, null)) {
 
             assertThat(cursor.getCount(), is(3));
 
@@ -639,16 +685,16 @@ public final class MementoContentProviderTest {
     public void query_bundle_limit_invalid_string() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues values = TableOneContract.getContentValues("test_value"); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
+        final ContentValues values = TestTableOneContract.getContentValues("test_value"); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
 
         // Put a long instead of an int
         final Bundle bundle = new Bundle();
         bundle.putString(ContentResolver.QUERY_ARG_LIMIT, "1"); //$NON-NLS
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, bundle, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, bundle, null)) {
 
             assertThat(cursor.getCount(), is(3));
 
@@ -663,13 +709,13 @@ public final class MementoContentProviderTest {
     public void query_bundle_limit_both() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues values = TableOneContract.getContentValues("test_value"); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
+        final ContentValues values = TestTableOneContract.getContentValues("test_value"); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
 
         @SuppressWarnings("deprecation") final Uri uri = MementoContract
-                .addLimit(TableOneContract.getContentUri(getContext()).buildUpon(), 1).build();
+                .addLimit(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()).buildUpon(), 1).build();
 
         final Bundle bundle = new Bundle();
         bundle.putInt(ContentResolver.QUERY_ARG_LIMIT, 2); //$NON-NLS
@@ -691,13 +737,13 @@ public final class MementoContentProviderTest {
     public void query_bundle_limit_both_invalid_bundle() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues values = TableOneContract.getContentValues("test_value"); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
+        final ContentValues values = TestTableOneContract.getContentValues("test_value"); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
 
         @SuppressWarnings("deprecation") final Uri uri = MementoContract
-                .addLimit(TableOneContract.getContentUri(getContext()).buildUpon(), 1).build();
+                .addLimit(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()).buildUpon(), 1).build();
 
         final Bundle bundle = new Bundle();
         bundle.putLong(ContentResolver.QUERY_ARG_LIMIT, 2); //$NON-NLS
@@ -719,21 +765,21 @@ public final class MementoContentProviderTest {
     public void query_bundle_offset() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues values1 = TableOneContract
+        final ContentValues values1 = TestTableOneContract
                 .getContentValues("test_value1"); //$NON-NLS-1$
 
         final String test_value2 = "test_value2"; //$NON-NLS-1$
-        final ContentValues values2 = TableOneContract.getContentValues(test_value2); //$NON-NLS-1$
+        final ContentValues values2 = TestTableOneContract.getContentValues(test_value2); //$NON-NLS-1$
 
         final String test_value3 = "test_value3"; //$NON-NLS-1$
-        final ContentValues values3 = TableOneContract.getContentValues(test_value3);
+        final ContentValues values3 = TestTableOneContract.getContentValues(test_value3);
 
-        resolver.insert(TableOneContract.getContentUri(getContext()), values1);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values2);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values3);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values1);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values2);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values3);
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, null, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null)) {
             assertThat(cursor.getCount(), is(3));
             assertThat(cursor.getExtras(), notNullValue());
             assertThat(cursor.getExtras().size(), is(0));
@@ -745,11 +791,11 @@ public final class MementoContentProviderTest {
         bundle.putInt(ContentResolver.QUERY_ARG_LIMIT, 2);
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, bundle, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, bundle, null)) {
             assertThat(cursor.getCount(), is(2));
 
             int columnIndex = cursor
-                    .getColumnIndexOrThrow(TableOneContract.COLUMN_STRING_COLUMN_ONE);
+                    .getColumnIndexOrThrow(TestTableOneContract.COLUMN_STRING_COLUMN_ONE);
             assertTrue(cursor.moveToFirst());
             assertThat(cursor.getString(columnIndex), is(test_value2));
             assertTrue(cursor.moveToNext());
@@ -769,13 +815,13 @@ public final class MementoContentProviderTest {
     public void query_bundle_offset_without_limit() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues values = TableOneContract.getContentValues("test_value1"); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
+        final ContentValues values = TestTableOneContract.getContentValues("test_value1"); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, null, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null)) {
             assertThat(cursor.getCount(), is(3));
             assertThat(cursor.getExtras(), notNullValue());
             assertThat(cursor.getExtras().size(), is(0));
@@ -787,7 +833,7 @@ public final class MementoContentProviderTest {
                 1); //will be ignored as limit is not specified
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, bundle, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, bundle, null)) {
             assertThat(cursor.getExtras(), notNullValue());
             assertThat(cursor.getExtras().size(), is(0));
             assertThat(cursor.getCount(), is(3));
@@ -802,16 +848,16 @@ public final class MementoContentProviderTest {
 
         final String test_value1 = "test_value1"; //NON-NLS
         final String test_value2 = "test_value2"; //NON-NLS
-        final ContentValues values1 = TableOneContract.getContentValues(test_value1); //$NON-NLS-1$
-        final ContentValues values2 = TableOneContract.getContentValues(test_value2); //$NON-NLS-1$
-        final ContentValues values3 = TableOneContract
+        final ContentValues values1 = TestTableOneContract.getContentValues(test_value1); //$NON-NLS-1$
+        final ContentValues values2 = TestTableOneContract.getContentValues(test_value2); //$NON-NLS-1$
+        final ContentValues values3 = TestTableOneContract
                 .getContentValues("test_value3"); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()), values1);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values2);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values3);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values1);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values2);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values3);
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, null, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null)) {
             assertThat(cursor.getCount(), is(3));
             assertThat(cursor.getExtras(), notNullValue());
             assertThat(cursor.getExtras().size(), is(0));
@@ -823,11 +869,11 @@ public final class MementoContentProviderTest {
         bundle.putInt(ContentResolver.QUERY_ARG_OFFSET, -1); //will be ignored
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, bundle, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, bundle, null)) {
             assertThat(cursor.getCount(), is(2));
 
             int columnIndex = cursor
-                    .getColumnIndexOrThrow(TableOneContract.COLUMN_STRING_COLUMN_ONE);
+                    .getColumnIndexOrThrow(TestTableOneContract.COLUMN_STRING_COLUMN_ONE);
             assertTrue(cursor.moveToFirst());
             assertThat(cursor.getString(columnIndex), is(test_value1));
             assertTrue(cursor.moveToNext());
@@ -841,14 +887,14 @@ public final class MementoContentProviderTest {
     public void query_bundle_offset_beyond_max_rows() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues values = TableOneContract.getContentValues("test_value1"); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
+        final ContentValues values = TestTableOneContract.getContentValues("test_value1"); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
 
         // No limit returns 5 items
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, null, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null)) {
             assertThat(cursor.getCount(), is(3));
             assertThat(cursor.getExtras(), notNullValue());
             assertThat(cursor.getExtras().size(), is(0));
@@ -860,7 +906,7 @@ public final class MementoContentProviderTest {
         bundle.putInt(ContentResolver.QUERY_ARG_OFFSET, 4);
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, bundle, null)) {
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, bundle, null)) {
             assertThat(cursor.getCount(), is(0));
         }
     }
@@ -870,8 +916,8 @@ public final class MementoContentProviderTest {
     public void insert_init() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues values = TableOneContract.getContentValues("test_value"); //$NON-NLS-1$
-        final Uri resultUri = resolver.insert(TableOneContract.getContentUri(getContext()), values);
+        final ContentValues values = TestTableOneContract.getContentValues("test_value"); //$NON-NLS-1$
+        final Uri resultUri = resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
         assertThat(resultUri, notNullValue());
     }
 
@@ -880,16 +926,16 @@ public final class MementoContentProviderTest {
     public void insert_id_in_uri() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues values = TableOneContract.getContentValues("test_value"); //$NON-NLS-1$
+        final ContentValues values = TestTableOneContract.getContentValues("test_value"); //$NON-NLS-1$
         final Uri uri = ContentUris
-                .withAppendedId(TableOneContract.getContentUri(getContext()), 1234);
+                .withAppendedId(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), 1234);
         final Uri resultUri = resolver.insert(uri, values);
 
         assertThat(resultUri, notNullValue());
         assertThat(resultUri.getLastPathSegment(), is("1234")); //$NON-NLS
 
         // Ensure values wasn't mutated by the insert method
-        assertThat(values, is(TableOneContract.getContentValues("test_value"))); //$NON-NLS-1$
+        assertThat(values, is(TestTableOneContract.getContentValues("test_value"))); //$NON-NLS-1$
     }
 
     @SmallTest
@@ -897,9 +943,9 @@ public final class MementoContentProviderTest {
     public void update_init() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues values = TableOneContract.getContentValues("test_value"); //$NON-NLS-1$
+        final ContentValues values = TestTableOneContract.getContentValues("test_value"); //$NON-NLS-1$
         assertThat(
-                resolver.update(TableOneContract.getContentUri(getContext()), values, null, null),
+                resolver.update(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values, null, null),
                 is(0));
     }
 
@@ -908,14 +954,14 @@ public final class MementoContentProviderTest {
     public void update_no_selection_success() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues initialValues = TableOneContract
+        final ContentValues initialValues = TestTableOneContract
                 .getContentValues("test_value"); //$NON-NLS-1$
         final Uri uri = resolver
-                .insert(TableOneContract.getContentUri(getContext()), initialValues);
+                .insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), initialValues);
 
-        final ContentValues updatedValues = TableOneContract
+        final ContentValues updatedValues = TestTableOneContract
                 .getContentValues("test_value_updated"); //$NON-NLS-1$
-        assertThat(resolver.update(TableOneContract.getContentUri(getContext()),
+        assertThat(resolver.update(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
                 updatedValues, null, null), is(1));
 
         try (final Cursor cursor = resolver.query(uri, null, null, null, null);) {
@@ -925,8 +971,8 @@ public final class MementoContentProviderTest {
             cursor.moveToFirst();
 
             assertThat(cursor.getString(cursor
-                            .getColumnIndexOrThrow(TableOneContract.COLUMN_STRING_COLUMN_ONE)),
-                    is(updatedValues.getAsString(TableOneContract.COLUMN_STRING_COLUMN_ONE)));
+                            .getColumnIndexOrThrow(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)),
+                    is(updatedValues.getAsString(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)));
         }
     }
 
@@ -935,23 +981,23 @@ public final class MementoContentProviderTest {
     public void update_with_selection_success() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues initialValuesOne = TableOneContract
+        final ContentValues initialValuesOne = TestTableOneContract
                 .getContentValues("test_value_one"); //$NON-NLS-1$
-        final Uri uriOne = resolver.insert(TableOneContract.getContentUri(getContext()),
+        final Uri uriOne = resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
                 initialValuesOne);
 
-        final ContentValues initialValuesTwo = TableOneContract
+        final ContentValues initialValuesTwo = TestTableOneContract
                 .getContentValues("test_value_two"); //$NON-NLS-1$
-        final Uri uriTwo = resolver.insert(TableOneContract.getContentUri(getContext()),
+        final Uri uriTwo = resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
                 initialValuesTwo);
 
-        final ContentValues updatedValues = TableOneContract
+        final ContentValues updatedValues = TestTableOneContract
                 .getContentValues("test_value_updated"); //$NON-NLS-1$
         final String selection = String.format(Locale.US,
-                "%s = ?", TableOneContract.COLUMN_STRING_COLUMN_ONE); //$NON-NLS-1$
+                "%s = ?", TestTableOneContract.COLUMN_STRING_COLUMN_ONE); //$NON-NLS-1$
         final String[] selectionArgs = {
                 "test_value_one"}; //$NON-NLS-1$
-        assertThat(resolver.update(TableOneContract.getContentUri(getContext()),
+        assertThat(resolver.update(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
                 updatedValues, selection, selectionArgs), is(1));
 
         try (final Cursor cursor = resolver.query(uriOne, null, null, null, null)) {
@@ -960,8 +1006,8 @@ public final class MementoContentProviderTest {
             cursor.moveToFirst();
 
             assertThat(cursor.getString(cursor
-                            .getColumnIndexOrThrow(TableOneContract.COLUMN_STRING_COLUMN_ONE)),
-                    is(updatedValues.getAsString(TableOneContract.COLUMN_STRING_COLUMN_ONE)));
+                            .getColumnIndexOrThrow(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)),
+                    is(updatedValues.getAsString(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)));
         }
 
         try (final Cursor cursor = resolver.query(uriTwo, null, null, null, null)) {
@@ -971,8 +1017,8 @@ public final class MementoContentProviderTest {
             cursor.moveToFirst();
 
             assertThat(cursor.getString(cursor
-                            .getColumnIndexOrThrow(TableOneContract.COLUMN_STRING_COLUMN_ONE)),
-                    is(initialValuesTwo.getAsString(TableOneContract.COLUMN_STRING_COLUMN_ONE)));
+                            .getColumnIndexOrThrow(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)),
+                    is(initialValuesTwo.getAsString(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)));
         }
     }
 
@@ -981,18 +1027,18 @@ public final class MementoContentProviderTest {
     public void update_with_selection_no_success() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues initialValuesOne = TableOneContract
+        final ContentValues initialValuesOne = TestTableOneContract
                 .getContentValues("test_value_one"); //$NON-NLS-1$
-        final Uri uriOne = resolver.insert(TableOneContract.getContentUri(getContext()),
+        final Uri uriOne = resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
                 initialValuesOne);
 
-        final ContentValues updatedValues = TableOneContract
+        final ContentValues updatedValues = TestTableOneContract
                 .getContentValues("test_value_updated"); //$NON-NLS-1$
         final String selection = String.format(Locale.US,
-                "%s = ?", TableOneContract.COLUMN_STRING_COLUMN_ONE); //$NON-NLS-1$
+                "%s = ?", TestTableOneContract.COLUMN_STRING_COLUMN_ONE); //$NON-NLS-1$
         final String[] selectionArgs = {
                 "bork_bork_bork"}; //$NON-NLS-1$
-        assertThat(resolver.update(TableOneContract.getContentUri(getContext()),
+        assertThat(resolver.update(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
                 updatedValues, selection, selectionArgs), is(0));
 
         try (final Cursor cursor = resolver.query(uriOne, null, null, null, null)) {
@@ -1001,8 +1047,8 @@ public final class MementoContentProviderTest {
             cursor.moveToFirst();
 
             assertThat(cursor.getString(cursor
-                            .getColumnIndexOrThrow(TableOneContract.COLUMN_STRING_COLUMN_ONE)),
-                    is(initialValuesOne.getAsString(TableOneContract.COLUMN_STRING_COLUMN_ONE)));
+                            .getColumnIndexOrThrow(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)),
+                    is(initialValuesOne.getAsString(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)));
         }
     }
 
@@ -1011,17 +1057,17 @@ public final class MementoContentProviderTest {
     public void update_with_id_success() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues initialValuesOne = TableOneContract
+        final ContentValues initialValuesOne = TestTableOneContract
                 .getContentValues("test_value_one"); //$NON-NLS-1$
-        final Uri uriOne = resolver.insert(TableOneContract.getContentUri(getContext()),
+        final Uri uriOne = resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
                 initialValuesOne);
 
-        final ContentValues initialValuesTwo = TableOneContract
+        final ContentValues initialValuesTwo = TestTableOneContract
                 .getContentValues("test_value_two"); //$NON-NLS-1$
-        final Uri uriTwo = resolver.insert(TableOneContract.getContentUri(getContext()),
+        final Uri uriTwo = resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
                 initialValuesTwo);
 
-        final ContentValues updatedValues = TableOneContract
+        final ContentValues updatedValues = TestTableOneContract
                 .getContentValues("test_value_updated"); //$NON-NLS-1$
         assertThat(resolver.update(uriOne, updatedValues, null, null), is(1));
 
@@ -1031,8 +1077,8 @@ public final class MementoContentProviderTest {
             cursor.moveToFirst();
 
             assertThat(cursor.getString(cursor
-                            .getColumnIndexOrThrow(TableOneContract.COLUMN_STRING_COLUMN_ONE)),
-                    is(updatedValues.getAsString(TableOneContract.COLUMN_STRING_COLUMN_ONE)));
+                            .getColumnIndexOrThrow(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)),
+                    is(updatedValues.getAsString(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)));
         }
 
         // Note: This also tests that the ID of the record is unchanged
@@ -1044,8 +1090,8 @@ public final class MementoContentProviderTest {
             cursor.moveToFirst();
 
             assertThat(cursor.getString(cursor
-                            .getColumnIndexOrThrow(TableOneContract.COLUMN_STRING_COLUMN_ONE)),
-                    is(initialValuesTwo.getAsString(TableOneContract.COLUMN_STRING_COLUMN_ONE)));
+                            .getColumnIndexOrThrow(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)),
+                    is(initialValuesTwo.getAsString(TestTableOneContract.COLUMN_STRING_COLUMN_ONE)));
         }
     }
 
@@ -1054,7 +1100,7 @@ public final class MementoContentProviderTest {
     public void delete_init() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        assertThat(resolver.delete(TableOneContract.getContentUri(getContext()), null, null),
+        assertThat(resolver.delete(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null),
                 is(0));
     }
 
@@ -1063,10 +1109,10 @@ public final class MementoContentProviderTest {
     public void delete_no_selection_success() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("test_value")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("test_value")); //$NON-NLS-1$
 
-        assertThat(resolver.delete(TableOneContract.getContentUri(getContext()), null, null),
+        assertThat(resolver.delete(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null),
                 is(1));
 
         assertCount(0);
@@ -1077,10 +1123,10 @@ public final class MementoContentProviderTest {
     public void delete_with_id_in_path() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        final ContentValues values = TableOneContract.getContentValues("test_value"); //$NON-NLS-1$
-        final Uri uri = resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
-        resolver.insert(TableOneContract.getContentUri(getContext()), values);
+        final ContentValues values = TestTableOneContract.getContentValues("test_value"); //$NON-NLS-1$
+        final Uri uri = resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values);
 
         assertThat(resolver.delete(uri, null, null), is(1));
 
@@ -1092,18 +1138,18 @@ public final class MementoContentProviderTest {
     public void delete_with_selection() {
         final ContentResolver resolver = mProviderRule.getResolver();
 
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("test_value_one")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("test_value_two")); //$NON-NLS-1$
-        resolver.insert(TableOneContract.getContentUri(getContext()),
-                TableOneContract.getContentValues("test_value_three")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("test_value_one")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("test_value_two")); //$NON-NLS-1$
+        resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                TestTableOneContract.getContentValues("test_value_three")); //$NON-NLS-1$
 
         final String selection = String.format(Locale.US,
-                "%s = ?", TableOneContract.COLUMN_STRING_COLUMN_ONE); //$NON-NLS-1$
+                "%s = ?", TestTableOneContract.COLUMN_STRING_COLUMN_ONE); //$NON-NLS-1$
         final String[] selectionArgs = {
                 "test_value_two"}; //$NON-NLS-1$
-        assertThat(resolver.delete(TableOneContract.getContentUri(getContext()), selection,
+        assertThat(resolver.delete(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), selection,
                 selectionArgs), is(1));
 
         assertCount(2);
@@ -1116,10 +1162,10 @@ public final class MementoContentProviderTest {
 
         final ArrayList<ContentProviderOperation> ops = new ArrayList<>();
         ops.add(ContentProviderOperation
-                .newAssertQuery(TableOneContract.getContentUri(getContext())).withExpectedCount(0)
+                .newAssertQuery(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext())).withExpectedCount(0)
                 .build());
 
-        resolver.applyBatch(ContentProviderImpl.getContentAuthority(getContext()), ops);
+        resolver.applyBatch(ContentProviderUtil.getContentAuthorityString(ApplicationProvider.getApplicationContext()), ops);
     }
 
     @MediumTest
@@ -1134,16 +1180,16 @@ public final class MementoContentProviderTest {
          */
 
         final ArrayList<ContentProviderOperation> ops = new ArrayList<>();
-        ops.add(ContentProviderOperation.newInsert(TableOneContract.getContentUri(getContext()))
-                .withValues(TableOneContract.getContentValues("table_name")).build()); //$NON-NLS-1$
+        ops.add(ContentProviderOperation.newInsert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()))
+                .withValues(TestTableOneContract.getContentValues("table_name")).build()); //$NON-NLS-1$
 
         // This query will fail, aborting the entire transaction
         ops.add(ContentProviderOperation
-                .newAssertQuery(TableOneContract.getContentUri(getContext())).withExpectedCount(5)
+                .newAssertQuery(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext())).withExpectedCount(5)
                 .build());
 
         try {
-            resolver.applyBatch(ContentProviderImpl.getContentAuthority(getContext()), ops);
+            resolver.applyBatch(ContentProviderUtil.getContentAuthorityString(ApplicationProvider.getApplicationContext()), ops);
             fail("Should have thrown an exception"); //$NON-NLS-1$
         } catch (final OperationApplicationException e) {
             // Expected exception
@@ -1158,20 +1204,20 @@ public final class MementoContentProviderTest {
         final ContentResolver resolver = mProviderRule.getResolver();
 
         final ArrayList<ContentProviderOperation> ops = new ArrayList<>();
-        ops.add(ContentProviderOperation.newInsert(TableOneContract.getContentUri(getContext()))
-                .withValues(TableOneContract.getContentValues("table_name")).build()); //$NON-NLS-1$
-        ops.add(ContentProviderOperation.newInsert(TableOneContract.getContentUri(getContext()))
-                .withValues(TableOneContract.getContentValues("table_name")).build()); //$NON-NLS-1$
-        ops.add(ContentProviderOperation.newInsert(TableOneContract.getContentUri(getContext()))
-                .withValues(TableOneContract.getContentValues("table_name")).build()); //$NON-NLS-1$
-        ops.add(ContentProviderOperation.newUpdate(TableOneContract.getContentUri(getContext()))
-                .withValues(TableOneContract.getContentValues("table_name_updated"))
+        ops.add(ContentProviderOperation.newInsert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()))
+                .withValues(TestTableOneContract.getContentValues("table_name")).build()); //$NON-NLS-1$
+        ops.add(ContentProviderOperation.newInsert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()))
+                .withValues(TestTableOneContract.getContentValues("table_name")).build()); //$NON-NLS-1$
+        ops.add(ContentProviderOperation.newInsert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()))
+                .withValues(TestTableOneContract.getContentValues("table_name")).build()); //$NON-NLS-1$
+        ops.add(ContentProviderOperation.newUpdate(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()))
+                .withValues(TestTableOneContract.getContentValues("table_name_updated"))
                 .build()); //$NON-NLS-1$
 
-        resolver.applyBatch(ContentProviderImpl.getContentAuthority(getContext()), ops);
+        resolver.applyBatch(ContentProviderUtil.getContentAuthorityString(ApplicationProvider.getApplicationContext()), ops);
 
         try (final Cursor cursor = resolver
-                .query(TableOneContract.getContentUri(getContext()), null, null, null,
+                .query(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null, null,
                         null)) {
             assertThat(cursor.getCount(), is(3));
         }
@@ -1187,9 +1233,9 @@ public final class MementoContentProviderTest {
         final ContentResolver resolver = mProviderRule.getResolver();
 
         final ContentValues[] values = new ContentValues[1];
-        values[0] = TableOneContract.getContentValues("test_value"); //$NON-NLS-1$
+        values[0] = TestTableOneContract.getContentValues("test_value"); //$NON-NLS-1$
 
-        assertThat(resolver.bulkInsert(TableOneContract.getContentUri(getContext()), values),
+        assertThat(resolver.bulkInsert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), values),
                 is(1));
     }
 
@@ -1199,10 +1245,10 @@ public final class MementoContentProviderTest {
         final ContentResolver resolver = mProviderRule.getResolver();
 
         final ContentValues[] contentValues = {
-                TableOneContract.getContentValues("test_value_one"), //$NON-NLS-1$
-                TableOneContract.getContentValues("test_value_two")}; //$NON-NLS-1$
+                TestTableOneContract.getContentValues("test_value_one"), //$NON-NLS-1$
+                TestTableOneContract.getContentValues("test_value_two")}; //$NON-NLS-1$
 
-        assertThat(resolver.bulkInsert(TableOneContract.getContentUri(getContext()), contentValues),
+        assertThat(resolver.bulkInsert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), contentValues),
                 is(2));
         assertCount(2);
     }
@@ -1213,21 +1259,21 @@ public final class MementoContentProviderTest {
         final ContentResolver resolver = mProviderRule.getResolver();
 
         // Clear any data left over?
-        resolver.delete(TableOneContract.getContentUri(getContext()), null, null);
+        resolver.delete(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null);
 
         /*
          * Null violates constraints, so this will throw an exception.
          */
         final ContentValues cv = new ContentValues();
-        cv.put(TableOneContract.COLUMN_STRING_COLUMN_ONE, (String) null);
+        cv.put(TestTableOneContract.COLUMN_STRING_COLUMN_ONE, (String) null);
 
         final ContentValues[] contentValues = {
-                TableOneContract.getContentValues("test_value_one"), //$NON-NLS-1$
+                TestTableOneContract.getContentValues("test_value_one"), //$NON-NLS-1$
                 cv
         };
 
         try {
-            resolver.bulkInsert(TableOneContract.getContentUri(getContext()), contentValues);
+            resolver.bulkInsert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), contentValues);
             fail();
         } catch (final SQLiteException e) {
             // Expected exception
@@ -1245,8 +1291,8 @@ public final class MementoContentProviderTest {
         @Nullable ContentProviderClient client = null;
         try {
             client = resolver
-                    .acquireContentProviderClient(ContentProviderImpl
-                            .getContentAuthority(getContext()));
+                    .acquireContentProviderClient(ContentProviderUtil
+                            .getContentAuthorityString(ApplicationProvider.getApplicationContext()));
             final ContentProviderImpl provider = (ContentProviderImpl) client
                     .getLocalContentProvider();
 
@@ -1254,7 +1300,7 @@ public final class MementoContentProviderTest {
                 @Nullable
                 @Override
                 public Bundle runInTransaction(@NonNull final Context context, @NonNull final Bundle bundle) {
-                    resolver.delete(TableOneContract.getContentUri(getContext()), null, null);
+                    resolver.delete(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null, null);
 
                     return null;
                 }
@@ -1285,8 +1331,8 @@ public final class MementoContentProviderTest {
         @Nullable ContentProviderClient client = null;
         try {
             client = resolver
-                    .acquireContentProviderClient(ContentProviderImpl
-                            .getContentAuthority(getContext()));
+                    .acquireContentProviderClient(ContentProviderUtil
+                            .getContentAuthorityString(ApplicationProvider.getApplicationContext()));
 
             final ContentProviderImpl provider = (ContentProviderImpl) client
                     .getLocalContentProvider();
@@ -1299,11 +1345,11 @@ public final class MementoContentProviderTest {
                             = new ArrayList<>(
                             1);
                     ops.add(ContentProviderOperation.newDelete(
-                            TableOneContract.getContentUri(getContext())).build());
+                            TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext())).build());
 
                     try {
                         resolver.applyBatch(
-                                ContentProviderImpl.getContentAuthority(getContext()), ops);
+                                ContentProviderUtil.getContentAuthorityString(ApplicationProvider.getApplicationContext()), ops);
                     } catch (final OperationApplicationException | RemoteException e) {
                         throw new AssertionError(e);
                     }
@@ -1350,8 +1396,8 @@ public final class MementoContentProviderTest {
         @Nullable ContentProviderClient client = null;
         try {
             client = resolver
-                    .acquireContentProviderClient(ContentProviderImpl
-                            .getContentAuthority(getContext()));
+                    .acquireContentProviderClient(ContentProviderUtil
+                            .getContentAuthorityString(ApplicationProvider.getApplicationContext()));
 
             final ContentProviderImpl provider = (ContentProviderImpl) client
                     .getLocalContentProvider();
@@ -1365,8 +1411,8 @@ public final class MementoContentProviderTest {
                                 @Override
                                 public Bundle runInTransaction(@NonNull final Context context, @NonNull final Bundle bundle) {
                                     transactionOneStartLatch.countDown();
-                                    resolver.insert(TableOneContract.getContentUri(getContext()),
-                                            TableOneContract
+                                    resolver.insert(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()),
+                                            TestTableOneContract
                                                     .getContentValues("test_value")); //$NON-NLS-1$
 
                                     try {
@@ -1409,7 +1455,7 @@ public final class MementoContentProviderTest {
                                 @Override
                                 public Bundle runInTransaction(@NonNull final Context context,
                                                                @NonNull final Bundle bundle) {
-                                    resolver.delete(TableOneContract.getContentUri(getContext()), null,
+                                    resolver.delete(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext()), null,
                                             null);
 
                                     keepTransactionAliveLatch.countDown();
@@ -1461,12 +1507,12 @@ public final class MementoContentProviderTest {
     }
 
     /**
-     * Asserts that {@link TableOneContract} has {@code count} rows.
+     * Asserts that {@link TestTableOneContract} has {@code count} rows.
      *
      * @param count Number of rows to assert exist in the table.
      */
     private void assertCount(final int count) {
         assertThat(BaseColumnsContract.getCountForUri(mProviderRule.getResolver(),
-                TableOneContract.getContentUri(getContext())), is(count));
+                TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext())), is(count));
     }
 }

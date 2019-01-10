@@ -20,16 +20,14 @@ package com.twofortyfouram.memento.internal;
 import android.content.ContentProviderClient;
 import android.os.Build;
 import androidx.annotation.Nullable;
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SdkSuppress;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
-import com.twofortyfouram.memento.test.main_process.ContentProviderImpl;
-
+import com.twofortyfouram.memento.test.main_process.provider.ContentProviderUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static androidx.test.InstrumentationRegistry.getContext;
 import static com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher.notInstantiable;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -59,9 +57,9 @@ public final class ContentProviderClientCompatTest {
         // Don't convert to try with resources.
         @Nullable ContentProviderClient client = null;
         try {
-            client = getContext().getContentResolver()
-                    .acquireContentProviderClient(ContentProviderImpl
-                            .getContentAuthority(getContext()));
+            client = ApplicationProvider.getApplicationContext().getContentResolver()
+                    .acquireContentProviderClient(ContentProviderUtil
+                            .getContentAuthorityString(ApplicationProvider.getApplicationContext()));
         } finally {
             if (null != client) {
                 ContentProviderClientCompat.close(client);

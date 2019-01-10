@@ -22,7 +22,7 @@ import android.app.SearchManager;
 import android.content.ContentResolver;
 import android.net.Uri;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.twofortyfouram.memento.contract.MementoContract;
 

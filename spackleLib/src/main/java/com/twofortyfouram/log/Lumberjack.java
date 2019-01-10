@@ -17,21 +17,17 @@
 
 package com.twofortyfouram.log;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
-import android.os.Build;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentManager;
-import androidx.loader.app.LoaderManager;
 import android.util.Log;
 
-import com.twofortyfouram.spackle.AndroidSdkVersion;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.twofortyfouram.spackle.AppBuildInfo;
 import com.twofortyfouram.spackle.ProcessUtil;
 import com.twofortyfouram.spackle.R;
@@ -156,30 +152,6 @@ public final class Lumberjack {
         } catch (final Resources.NotFoundException e) {
             sIsDebuggable = AppBuildInfo.isDebuggable(context);
         }
-    }
-
-    public static void enableFragmentAndLoaderLogging() {
-        enableFragmentAndLoaderLoggingSupport();
-
-        if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.HONEYCOMB)) {
-            enableFragmentAndLoaderLoggingHoneycomb();
-        }
-    }
-
-    private static void enableFragmentAndLoaderLoggingSupport() {
-        try {
-            FragmentManager.enableDebugLogging(true);
-            LoaderManager.enableDebugLogging(true);
-        } catch (final Exception e) {
-            // Do nothing
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private static void enableFragmentAndLoaderLoggingHoneycomb() {
-        android.app.FragmentManager.enableDebugLogging(true);
-        android.app.LoaderManager.enableDebugLogging(true);
     }
 
     /**

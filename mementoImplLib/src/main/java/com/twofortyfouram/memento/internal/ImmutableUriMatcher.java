@@ -30,7 +30,7 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
  * Wraps Android's {@link UriMatcher} in an effectively immutable container class.
  */
 @Immutable
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 public final class ImmutableUriMatcher {
 
     /**

@@ -18,9 +18,9 @@
 package com.twofortyfouram.spackle;
 
 import androidx.annotation.NonNull;
-import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,14 +43,14 @@ public final class ProcessUtilTest {
     @Test
     public void getProcessName() {
 
-        assertThat(ProcessUtil.getProcessName(InstrumentationRegistry.getContext()),
+        assertThat(ProcessUtil.getProcessName(ApplicationProvider.getApplicationContext()),
                 is(TEST_PACKAGE_PROCESS));
     }
 
     @SmallTest
     @Test
     public void getProcessName_not_empty() {
-        final String processName = ProcessUtil.getProcessName(InstrumentationRegistry.getContext());
+        final String processName = ProcessUtil.getProcessName(ApplicationProvider.getApplicationContext());
 
         assertThat(processName, not(isEmptyString()));
     }
@@ -58,7 +58,7 @@ public final class ProcessUtilTest {
     @SmallTest
     @Test
     public void getProcessName_not_null() {
-        final String processName = ProcessUtil.getProcessName(InstrumentationRegistry.getContext());
+        final String processName = ProcessUtil.getProcessName(ApplicationProvider.getApplicationContext());
 
         assertThat(processName, notNullValue());
     }
@@ -66,15 +66,15 @@ public final class ProcessUtilTest {
     @SmallTest
     @Test
     public void getProcessName_same_object() {
-        assertThat(ProcessUtil.getProcessName(InstrumentationRegistry.getContext()),
+        assertThat(ProcessUtil.getProcessName(ApplicationProvider.getApplicationContext()),
                 sameInstance(
-                        ProcessUtil.getProcessName(InstrumentationRegistry.getContext())));
+                        ProcessUtil.getProcessName(ApplicationProvider.getApplicationContext())));
     }
 
     @SmallTest
     @Test
     public void searchForProcessName() {
-        assertThat(ProcessUtil.searchForProcessName(InstrumentationRegistry.getContext()),
+        assertThat(ProcessUtil.searchForProcessName(ApplicationProvider.getApplicationContext()),
                 is(TEST_PACKAGE_PROCESS));
     }
 
@@ -83,10 +83,10 @@ public final class ProcessUtilTest {
     public void setProcessName() {
         final String expectedProcessName = "bork"; //$NON-NLS
 
-        final String before = ProcessUtil.getProcessName(InstrumentationRegistry.getContext());
+        final String before = ProcessUtil.getProcessName(ApplicationProvider.getApplicationContext());
         try {
             ProcessUtil.setProcessName(expectedProcessName);
-            assertThat(ProcessUtil.getProcessName(InstrumentationRegistry.getContext()),
+            assertThat(ProcessUtil.getProcessName(ApplicationProvider.getApplicationContext()),
                     is(expectedProcessName));
         } finally {
             ProcessUtil.setProcessName(before);

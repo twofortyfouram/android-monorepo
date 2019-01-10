@@ -42,6 +42,25 @@ import static com.twofortyfouram.spackle.TimeFormatter.TimeFormat.ISO_8601;
 public final class TimeFormatter {
 
     /**
+     * Formats the wall time from {@code clock}
+     * to its string representation in {@code timeFormat}.
+     *
+     * This method is preferred to {@link #formatTime(String, long)} because it makes it less likely to accidentally pass
+     * in the wrong time in milliseconds.
+     *
+     * @param timeFormat String representation of time format.
+     * @param clock      To determine wall time.
+     * @return String representation of {@code wallTimeMillis} formatted in {@code timeFormat}
+     */
+    @NonNull
+    public static String formatTime(@TimeFormat final String timeFormat,
+                                    @NonNull final Clock clock) {
+        assertNotNull(clock, "clock"); //$NON-NLS
+
+        return formatTime(timeFormat, clock.getWallTimeMillis());
+    }
+
+    /**
      * Formats the given {@code wallTimeMillis}
      * to its string representation in {@code timeFormat}.
      *
@@ -51,7 +70,7 @@ public final class TimeFormatter {
      */
     @NonNull
     public static String formatTime(@TimeFormat final String timeFormat,
-            final long wallTimeMillis) {
+                                    final long wallTimeMillis) {
         return new SimpleDateFormat(timeFormat, Locale.US).format(new Date(wallTimeMillis));
     }
 
@@ -103,7 +122,7 @@ public final class TimeFormatter {
      */
     @NonNull
     public static Date parseTime(@TimeFormat final String timeFormat,
-            @NonNull final String source) {
+                                 @NonNull final String source) {
         assertNotNull(source, "source");  //$NON-NLS-1$
 
         try {

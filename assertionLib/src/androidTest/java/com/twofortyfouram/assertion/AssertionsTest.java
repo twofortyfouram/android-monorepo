@@ -21,7 +21,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
 import android.text.format.DateUtils;
 
 import org.junit.Assert;
@@ -40,7 +39,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.sameInstance;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class AssertionsTest {
 
     @SmallTest

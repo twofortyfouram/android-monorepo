@@ -19,6 +19,7 @@ boolean is_dexguard = Boolean.parseBoolean(IS_DEXGUARD_ENABLED)
 boolean is_test_orchestrator = Boolean.parseBoolean(IS_USE_TEST_ORCHESTRATOR)
 
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 apply from: '../scripts.gradle'
 
 apply plugin: 'maven'
@@ -27,16 +28,21 @@ archivesBaseName = 'android-memento-api'
 version = LIBRARY_VERSION_NAME
 
 dependencies {
-    api group:'androidx.sqlite', name:'sqlite', version:"${ANDROID_ARCHITECTURE_VERSION_MATCHER}"
-    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
-    implementation group:'androidx.lifecycle', name:'lifecycle-livedata-core', version:"${ANDROID_ARCHITECTURE_VERSION_MATCHER}"
+    compileOnly group:'androidx.lifecycle', name:'lifecycle-livedata-core', version:"${ANDROID_LIFECYCLE_VERSION_MATCHER}"
+
+    api group:'androidx.sqlite', name:'sqlite', version:"${ANDROID_DATABASE_VERSION_MATCHER}"
+    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_ANNOTATION_VERSION_MATCHER}"
     implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
     implementation project(':annotationLib')
     implementation project(':assertionLib')
     implementation project(':spackleLib')
 
-    androidTestImplementation group:'androidx.sqlite', name:'sqlite-framework', version:"${ANDROID_ARCHITECTURE_VERSION_MATCHER}"
+    androidTestImplementation group:'androidx.sqlite', name:'sqlite-framework', version:"${ANDROID_DATABASE_VERSION_MATCHER}"
+    androidTestImplementation group:'androidx.lifecycle', name:'lifecycle-livedata-core', version:"${ANDROID_LIFECYCLE_VERSION_MATCHER}"
+
+    androidTestImplementation group:'androidx.test', name: 'core', version: "${ANDROID_TEST_CORE_VERSION_MATCHER}"
     androidTestImplementation group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
+    androidTestImplementation group:'androidx.test.ext', name: 'junit', version: "${ANDROID_TEST_JUNIT_VERSION_MATCHER}"
     androidTestImplementation project(':testLib')
 
     if (is_test_orchestrator) {
@@ -60,11 +66,19 @@ android {
             // This is additive; it doesn't replace but instead appends the AAR's embedded proguard config
             consumerProguardFiles 'dexguard-consumer.txt'
         }
+        if (is_test_orchestrator) {
+            testInstrumentationRunnerArguments clearPackageData: 'true'
+        }
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+        allWarningsAsErrors = true
     }
 
     lintOptions {

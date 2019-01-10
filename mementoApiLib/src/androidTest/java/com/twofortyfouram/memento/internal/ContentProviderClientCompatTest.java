@@ -21,20 +21,17 @@ import android.content.ContentProviderClient;
 import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SdkSuppress;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
 import com.twofortyfouram.test.provider.MockableContentProvider;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static androidx.test.InstrumentationRegistry.getContext;
 import static com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher.notInstantiable;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class ContentProviderClientCompatTest {
 
     private static final String MOCK_CONTENT_PROVIDER_AUTHORITY =
@@ -77,7 +74,7 @@ public final class ContentProviderClientCompatTest {
 
     @NonNull
     private MockableContentProvider getMockableContentProvider() {
-        return MockableContentProvider.newMockProvider(getContext(),
+        return MockableContentProvider.newMockProvider(ApplicationProvider.getApplicationContext(),
                 MOCK_CONTENT_PROVIDER_AUTHORITY);
     }
 

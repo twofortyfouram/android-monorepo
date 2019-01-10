@@ -18,9 +18,6 @@
 package com.twofortyfouram.memento.model;
 
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
-import com.twofortyfouram.memento.model.SqliteIndexBuilder;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -29,7 +26,7 @@ import org.junit.runner.RunWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class SqliteIndexBuilderTest {
 
     @SmallTest

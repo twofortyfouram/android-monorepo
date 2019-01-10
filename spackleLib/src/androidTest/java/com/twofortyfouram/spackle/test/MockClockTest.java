@@ -18,7 +18,6 @@
 package com.twofortyfouram.spackle.test;
 
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,7 +25,7 @@ import org.junit.runner.RunWith;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class MockClockTest {
 
     @SmallTest

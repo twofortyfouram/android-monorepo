@@ -18,7 +18,6 @@
 package com.twofortyfouram.annotation;
 
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,7 +25,7 @@ import org.junit.runner.RunWith;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class PreventCiFromFailTest {
 
     @Test

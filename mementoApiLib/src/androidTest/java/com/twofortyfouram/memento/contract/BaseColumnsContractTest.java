@@ -18,16 +18,16 @@
 package com.twofortyfouram.memento.contract;
 
 import android.content.ContentResolver;
+import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
-import androidx.test.InstrumentationRegistry;
+import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
-import com.twofortyfouram.memento.contract.BaseColumnsContract;
+import com.twofortyfouram.memento.test.BaseColumnsCursorFixture;
 import com.twofortyfouram.test.provider.MockableContentProvider;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -51,10 +51,9 @@ public final class BaseColumnsContractTest {
         final Uri uri = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
                 .authority(authority).path("test").build(); //$NON-NLS
         final MockableContentProvider mockableContentProvider = MockableContentProvider
-                .newMockProvider(InstrumentationRegistry.getContext(), authority);
+                .newMockProvider(ApplicationProvider.getApplicationContext(), authority);
 
-        final MatrixCursor cursor = new MatrixCursor(new String[]{BaseColumns._COUNT}, 1);
-        cursor.addRow(new Object[]{0});
+        @NonNull final Cursor cursor = BaseColumnsCursorFixture.newCountCursor(0);
         mockableContentProvider.addQueryResult(cursor);
 
         assertThat(BaseColumnsContract
@@ -69,7 +68,7 @@ public final class BaseColumnsContractTest {
         final Uri uri = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
                 .authority(authority).path("test").build(); //$NON-NLS
         final MockableContentProvider mockableContentProvider = MockableContentProvider
-                .newMockProvider(InstrumentationRegistry.getContext(), authority);
+                .newMockProvider(ApplicationProvider.getApplicationContext(), authority);
 
         final MatrixCursor cursor = new MatrixCursor(new String[]{BaseColumns._COUNT}, 2);
         cursor.addRow(new Object[]{0});
@@ -88,7 +87,7 @@ public final class BaseColumnsContractTest {
         final Uri uri = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
                 .authority(authority).path("test").build(); //$NON-NLS
         final MockableContentProvider mockableContentProvider = MockableContentProvider
-                .newMockProvider(InstrumentationRegistry.getContext(), authority);
+                .newMockProvider(ApplicationProvider.getApplicationContext(), authority);
 
         mockableContentProvider.addQueryResult(null);
 
@@ -104,7 +103,7 @@ public final class BaseColumnsContractTest {
         final Uri uri = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
                 .authority(authority).path("test").build(); //$NON-NLS
         final MockableContentProvider mockableContentProvider = MockableContentProvider
-                .newMockProvider(InstrumentationRegistry.getContext(), authority);
+                .newMockProvider(ApplicationProvider.getApplicationContext(), authority);
 
         try (final MatrixCursor cursor = new MatrixCursor(new String[]{BaseColumns._ID}, 1)) {
             cursor.addRow(new Object[]{0});
@@ -123,7 +122,7 @@ public final class BaseColumnsContractTest {
         final Uri uri = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
                 .authority(authority).path("test").build(); //$NON-NLS
         final MockableContentProvider mockableContentProvider = MockableContentProvider
-                .newMockProvider(InstrumentationRegistry.getContext(), authority);
+                .newMockProvider(ApplicationProvider.getApplicationContext(), authority);
 
         try (final MatrixCursor cursor = new MatrixCursor(new String[]{BaseColumns._COUNT}, 1)) {
             cursor.addRow(new Object[]{"foo"}); //$NON-NLS
@@ -142,7 +141,7 @@ public final class BaseColumnsContractTest {
         final Uri uri = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
                 .authority(authority).path("test").build(); //$NON-NLS
         final MockableContentProvider mockableContentProvider = MockableContentProvider
-                .newMockProvider(InstrumentationRegistry.getContext(), authority);
+                .newMockProvider(ApplicationProvider.getApplicationContext(), authority);
 
         try (final MatrixCursor cursor = new MatrixCursor(new String[]{BaseColumns._COUNT}, 1)) {
             cursor.addRow(new Object[]{null});

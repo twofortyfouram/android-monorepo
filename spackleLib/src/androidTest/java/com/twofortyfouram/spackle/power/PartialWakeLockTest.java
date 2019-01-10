@@ -19,24 +19,22 @@ package com.twofortyfouram.spackle.power;
 
 import android.Manifest;
 import androidx.annotation.RequiresPermission;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static androidx.test.InstrumentationRegistry.getContext;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class PartialWakeLockTest {
 
     @SmallTest
     @Test
     public void constructor_not_reference_counted() {
-        final PartialWakeLock manager = PartialWakeLock.newInstance(getContext(), "test_lock",
+        final PartialWakeLock manager = PartialWakeLock.newInstance(ApplicationProvider.getApplicationContext(), "test_lock",
                 false);
 
         assertThat(manager.getReferenceCount(), is(0));
@@ -47,7 +45,7 @@ public final class PartialWakeLockTest {
     @Test
     public void constructor_reference_counted() {
         final PartialWakeLock manager = PartialWakeLock
-                .newInstance(getContext(), "test_lock", true);
+                .newInstance(ApplicationProvider.getApplicationContext(), "test_lock", true);
 
         assertThat(manager.isHeld(), is(false));
         assertThat(manager.getReferenceCount(), is(0));
@@ -58,7 +56,7 @@ public final class PartialWakeLockTest {
     @RequiresPermission(Manifest.permission.WAKE_LOCK)
     public void acquire_single_not_reference_counted() {
         final PartialWakeLock manager = PartialWakeLock
-                .newInstance(getContext(), "test_lock", false);
+                .newInstance(ApplicationProvider.getApplicationContext(), "test_lock", false);
 
         manager.acquireLock();
         assertThat(manager.getReferenceCount(), is(1));
@@ -74,7 +72,7 @@ public final class PartialWakeLockTest {
     @RequiresPermission(Manifest.permission.WAKE_LOCK)
     public void acquire_single_reference_counted() {
         final PartialWakeLock manager = PartialWakeLock
-                .newInstance(getContext(), "test_lock", true);
+                .newInstance(ApplicationProvider.getApplicationContext(), "test_lock", true);
 
         manager.acquireLock();
         assertThat(manager.getReferenceCount(), is(1));
@@ -90,7 +88,7 @@ public final class PartialWakeLockTest {
     @RequiresPermission(Manifest.permission.WAKE_LOCK)
     public void acquire_multiple_not_reference_counted() {
         final PartialWakeLock manager = PartialWakeLock
-                .newInstance(getContext(), "test_lock", false);
+                .newInstance(ApplicationProvider.getApplicationContext(), "test_lock", false);
 
         manager.acquireLock();
         assertThat(manager.getReferenceCount(), is(1));
@@ -122,7 +120,7 @@ public final class PartialWakeLockTest {
     @RequiresPermission(Manifest.permission.WAKE_LOCK)
     public void acquire_multiple_reference_counted() {
         final PartialWakeLock manager = PartialWakeLock
-                .newInstance(getContext(), "test_lock", true);
+                .newInstance(ApplicationProvider.getApplicationContext(), "test_lock", true);
 
         manager.acquireLock();
         assertThat(manager.getReferenceCount(), is(1));
@@ -169,7 +167,7 @@ public final class PartialWakeLockTest {
     @Test(expected = IllegalStateException.class)
     public void underlock_not_reference_counted() {
         final PartialWakeLock manager = PartialWakeLock
-                .newInstance(getContext(), "test_lock", false);
+                .newInstance(ApplicationProvider.getApplicationContext(), "test_lock", false);
 
         manager.releaseLock();
     }
@@ -178,7 +176,7 @@ public final class PartialWakeLockTest {
     @Test(expected = IllegalStateException.class)
     public void underlock_reference_counted() {
         final PartialWakeLock manager = PartialWakeLock
-                .newInstance(getContext(), "test_lock", true);
+                .newInstance(ApplicationProvider.getApplicationContext(), "test_lock", true);
 
         manager.releaseLock();
     }
@@ -188,7 +186,7 @@ public final class PartialWakeLockTest {
     @RequiresPermission(Manifest.permission.WAKE_LOCK)
     public void releaseIfHeld_not_reference_counted() {
         final PartialWakeLock manager = PartialWakeLock
-                .newInstance(getContext(), "test_lock", false);
+                .newInstance(ApplicationProvider.getApplicationContext(), "test_lock", false);
 
         manager.releaseLockIfHeld();
 
@@ -204,7 +202,7 @@ public final class PartialWakeLockTest {
     @RequiresPermission(Manifest.permission.WAKE_LOCK)
     public void testReleaseIfHeld_reference_counted() {
         final PartialWakeLock manager = PartialWakeLock
-                .newInstance(getContext(), "test_lock", true);
+                .newInstance(ApplicationProvider.getApplicationContext(), "test_lock", true);
 
         manager.releaseLockIfHeld();
 
@@ -225,7 +223,7 @@ public final class PartialWakeLockTest {
     @RequiresPermission(Manifest.permission.WAKE_LOCK)
     public void testAcquireIfNotHeld_not_reference_counted() {
         final PartialWakeLock manager = PartialWakeLock
-                .newInstance(getContext(), "test_lock", false);
+                .newInstance(ApplicationProvider.getApplicationContext(), "test_lock", false);
 
         manager.acquireLockIfNotHeld();
         assertThat(manager.getReferenceCount(), is(1));
@@ -247,7 +245,7 @@ public final class PartialWakeLockTest {
     @RequiresPermission(Manifest.permission.WAKE_LOCK)
     public void testAcquireIfNotHeld_reference_counted() {
         final PartialWakeLock manager = PartialWakeLock
-                .newInstance(getContext(), "test_lock", true);
+                .newInstance(ApplicationProvider.getApplicationContext(), "test_lock", true);
 
         manager.acquireLockIfNotHeld();
         assertThat(manager.getReferenceCount(), is(1));
@@ -267,7 +265,7 @@ public final class PartialWakeLockTest {
     @SmallTest
     @Test
     public void testToString() {
-        assertThat(PartialWakeLock.newInstance(getContext(), "test_lock", false).toString(),
+        assertThat(PartialWakeLock.newInstance(ApplicationProvider.getApplicationContext(), "test_lock", false).toString(),
                 notNullValue());
     }
 }

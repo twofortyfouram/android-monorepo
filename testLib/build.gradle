@@ -19,6 +19,7 @@ boolean is_dexguard = Boolean.parseBoolean(IS_DEXGUARD_ENABLED)
 boolean is_test_orchestrator = Boolean.parseBoolean(IS_USE_TEST_ORCHESTRATOR)
 
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 apply from: '../scripts.gradle'
 
 apply plugin: 'maven'
@@ -28,14 +29,12 @@ version = LIBRARY_VERSION_NAME
 
 dependencies {
     implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
-    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
-    implementation group:'com.linkedin.testbutler', name:'test-butler-library', version:"${TEST_BUTLER_VERSION_MATCHER}"
+    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_ANNOTATION_VERSION_MATCHER}"
     implementation project(':annotationLib')
-
-    compileOnly group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
-
-    androidTestImplementation group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
-    androidTestImplementation project(':assertionLib') // Required at runtime, but provided scope works around some quirks with compiling.  Clients need to include this as a compile dependency.
+    implementation group:'androidx.test', name: 'core', version: "${ANDROID_TEST_CORE_VERSION_MATCHER}"
+    implementation group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
+    
+    androidTestImplementation group:'androidx.test.ext', name: 'junit', version: "${ANDROID_TEST_JUNIT_VERSION_MATCHER}"
 
     if (is_test_orchestrator) {
         androidTestUtil group:'androidx.test', name:'orchestrator', version:"${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}", ext:'apk'
@@ -72,6 +71,11 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+        allWarningsAsErrors = true
     }
 
     buildTypes {

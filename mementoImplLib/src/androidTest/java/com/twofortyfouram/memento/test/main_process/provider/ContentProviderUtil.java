@@ -15,31 +15,24 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.memento.test.main_process;
+package com.twofortyfouram.memento.test.main_process.provider;
 
-import androidx.sqlite.db.SupportSQLiteOpenHelper;
-import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
-import androidx.annotation.NonNull;
-
-import com.twofortyfouram.memento.model.SqliteUriMatcher;
-import com.twofortyfouram.memento.provider.MementoContentProvider;
 
 import net.jcip.annotations.ThreadSafe;
 
+import androidx.annotation.NonNull;
+
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
-/**
- * Simple concrete implementation of {@link MementoContentProvider} for testing.
- */
 @ThreadSafe
-public final class ContentProviderImpl extends MementoContentProvider {
+public final class ContentProviderUtil {
 
     @NonNull
-    private static final String DB_FILE_NAME = "com.twofortyfouram.memento.debug.sqlite3";
-    //$NON-NLS-1$
+    public static final String MIME_PROVIDER_NAME_PART = "/vnd.com.twofortyfouram.memento";
+    //$NON-NLS
 
     /**
      * @param context Application context.
@@ -55,7 +48,7 @@ public final class ContentProviderImpl extends MementoContentProvider {
      * is that the ProviderTestCase2's mock context throws UnsupportedOperationException.
      */
     @NonNull
-    public static String getContentAuthority(@NonNull final Context context) {
+    public static String getContentAuthorityString(@NonNull final Context context) {
         assertNotNull(context, "context"); //$NON-NLS-1$
 
         return "com.twofortyfouram.memento.impl.test.provider"; //$NON-NLS-1$
@@ -64,26 +57,6 @@ public final class ContentProviderImpl extends MementoContentProvider {
     @NonNull
     public static Uri getContentAuthorityUri(@NonNull final Context context) {
         return new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority
-                (getContentAuthority(context)).build();
-    }
-
-    @NonNull
-    @Override
-    public SqliteUriMatcher newSqliteUriMatcher() {
-        return new SqliteUriMatcherImpl(getContext());
-    }
-
-    @NonNull
-    @Override
-    public SupportSQLiteOpenHelper newSqliteOpenHelper() {
-        final SupportSQLiteOpenHelper.Configuration.Builder config
-                = SupportSQLiteOpenHelper.Configuration
-                .builder(getContext());
-
-        config.name(DB_FILE_NAME);
-
-        config.callback(new CallbackImpl());
-
-        return new FrameworkSQLiteOpenHelperFactory().create(config.build());
+                (getContentAuthorityString(context)).build();
     }
 }

@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.twofortyfouram.memento.util;
+package com.twofortyfouram.memento.livedata;
 
 import android.content.Context;
 import android.database.ContentObserver;
@@ -25,7 +25,6 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 import androidx.lifecycle.LiveData;
 import com.twofortyfouram.annotation.Incubating;
@@ -33,31 +32,28 @@ import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.memento.api.BuildConfig;
 import com.twofortyfouram.spackle.ContextUtil;
 import net.jcip.annotations.NotThreadSafe;
-import net.jcip.annotations.ThreadSafe;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 
 /**
- * Queries on a background thread and emits a collection of objects.  Note this class is best used for small
- * queries rather than large ones.
- *
- * @param <T>
+ * Queries on a background thread and emits a Cursor.
+ * <p>
+ * Note that clients should always reset the cursor position, as it may not be at position -1 due to prior usage.
+ * Clients also shouldn't hold onto the cursor, as it can be closed.  Also note that multiple clients probably shouldn't
+ * be trying to use the same CursorLiveData at the same time.
+ * </p>
+ * <p>
+ * Note this class doesn't deal with paging.
+ * </p>
  */
 @NotThreadSafe
 @Incubating
-public final class QueryLiveData<T> extends LiveData<Collection<T>> {
+public final class CursorLiveData extends LiveData<Cursor> {
 
     @NonNull
     private final Context mContext;
 
-    private boolean mIsAsync;
-
-    @NonNull
-    private final CursorParser<T> mCursorParser;
+    private final boolean mIsAsync;
 
     @NonNull
     private final Uri mUri;
@@ -74,27 +70,37 @@ public final class QueryLiveData<T> extends LiveData<Collection<T>> {
     @Nullable
     private final String mOrderBy;
 
+    private boolean mIsLoadedYet = false;
+
     @Nullable
     private ContentObserver mContentObserver = null;
 
     @Nullable
-    private AsyncTask<Void, Void, Collection<T>> mAsyncTask;
+    private CursorAsyncTask mAsyncTask = null;
 
-    @VisibleForTesting
-        /*package*/ QueryLiveData(@NonNull final Context context, final boolean isAsync,
-                                  @NonNull final CursorParser<T> cursorParser,
-                                  @NonNull final Uri uri,
-                                  @Nullable final String[] projection,
-                                  @Nullable final String selection,
-                                  @Nullable final String[] selectionArgs,
-                                  @Nullable final String orderBy) {
+    /**
+     * Constructor for testing to force synchronous behavior.
+     *
+     * @param context
+     * @param isAsync
+     * @param uri
+     * @param projection
+     * @param selection
+     * @param selectionArgs
+     * @param orderBy
+     */
+    public CursorLiveData(@NonNull final Context context,
+                               @Nullable final boolean isAsync,
+                               @NonNull final Uri uri,
+                               @Nullable final String[] projection,
+                               @Nullable final String selection,
+                               @Nullable final String[] selectionArgs,
+                               @Nullable final String orderBy) {
         assertNotNull(context, "context"); //$NON-NLS
-        assertNotNull(cursorParser, "providerParser"); //$NON-NLS
         assertNotNull(uri, "uri"); //$NON-NLS
 
         mContext = ContextUtil.cleanContext(context);
         mIsAsync = isAsync;
-        mCursorParser = cursorParser;
 
         mUri = uri;
         mProjection = projection;
@@ -103,21 +109,30 @@ public final class QueryLiveData<T> extends LiveData<Collection<T>> {
         mOrderBy = orderBy;
     }
 
-    public QueryLiveData(@NonNull final Context context, @NonNull final CursorParser<T> cursorParser,
-                         @NonNull final Uri uri,
-                         @Nullable final String[] projection,
-                         @Nullable final String selection,
-                         @Nullable final String[] selectionArgs,
-                         @Nullable final String orderBy) {
-        this(context, true, cursorParser, uri, projection, selection, selectionArgs, orderBy);
+    /**
+     *
+     * @param context Application context.
+     * @param uri Uri to query.
+     * @param projection Columns to return.
+     * @param selection Optional selection arguments.
+     * @param selectionArgs Optional arguments for {@code selection}.
+     * @param orderBy Optional orderby.
+     */
+    public CursorLiveData(@NonNull final Context context,
+                          @NonNull final Uri uri,
+                          @Nullable final String[] projection,
+                          @Nullable final String selection,
+                          @Nullable final String[] selectionArgs,
+                          @Nullable final String orderBy) {
+        this(context, true, uri, projection, selection, selectionArgs, orderBy);
     }
 
     @Override
     protected void onActive() {
         super.onActive();
 
-        mContentObserver = new ContentObserverImpl(new Handler());
         try {
+            mContentObserver = new ContentObserverImpl(new Handler());
             mContext.getContentResolver().registerContentObserver(mUri, true, mContentObserver);
         }
         catch (final SecurityException e) {
@@ -142,18 +157,31 @@ public final class QueryLiveData<T> extends LiveData<Collection<T>> {
             mContentObserver = null;
         }
 
-        // TODO: Is it standard to null out the value here?
+        @Nullable final Cursor cursor = getValue();
+        if (null != cursor) {
+            cursor.close();
+            setValue(null);
+        }
+
+        mIsLoadedYet = false;
     }
 
     private void loadData() {
         if (mIsAsync) {
             // Don't cancel the other async task, as the Cursor still needs to be closed.
-            mAsyncTask = new QueryAsyncTask();
+            mAsyncTask = new CursorAsyncTask();
             mAsyncTask.execute();
         } else {
             // Kludge to make testing possible.  Might be able to refactor in the future with InstantTaskExecutorRule
             onPostExecute(doInBackground());
         }
+    }
+
+    /**
+     * @return True if the data is actually loaded from the source (versus null by initial value).
+     */
+    public boolean isLoadedYet() {
+        return mIsLoadedYet;
     }
 
     private final class ContentObserverImpl extends ContentObserver {
@@ -166,7 +194,7 @@ public final class QueryLiveData<T> extends LiveData<Collection<T>> {
         public void onChange(final boolean selfChange, @NonNull final Uri uri) {
             super.onChange(selfChange, uri);
 
-            Lumberjack.v("uri=%s changed"); //$NON-NLS
+            Lumberjack.v("uri=%s changed", uri); //$NON-NLS
 
             if (mContentObserver != this) {
                 return;
@@ -178,53 +206,40 @@ public final class QueryLiveData<T> extends LiveData<Collection<T>> {
 
     @Nullable
     @WorkerThread
-    private Collection<T> doInBackground() {
-        try (@Nullable final Cursor cursor = mContext.getContentResolver().query(mUri, mProjection, mSelection, mSelectionArgs, mOrderBy)) {
-            if (null != cursor) {
-                @NonNull final Collection<T> items = new ArrayList<>(cursor.getCount());
-                cursor.moveToPosition(-1);
-                while (cursor.moveToNext()) {
-                    items.add(mCursorParser.newObject(cursor));
-                }
+    private Cursor doInBackground() {
+        @Nullable final Cursor cursor = mContext.getContentResolver().query(mUri, mProjection, mSelection, mSelectionArgs, mOrderBy);
 
-                return Collections.unmodifiableCollection(items);
-            }
+        if (null != cursor) {
+            // Apparently fills cursor window?
+            cursor.getCount();
         }
 
-        return Collections.emptyList();
+        return cursor;
     }
 
-    private void onPostExecute(@Nullable final Collection<T> parsedItems) {
-        setValue(parsedItems);
+    private void onPostExecute(@Nullable final Cursor cursor) {
+        mIsLoadedYet = true;
+
+        @Nullable final Cursor oldValue = getValue();
+        if (null != oldValue) {
+            oldValue.close();
+        }
+
+        setValue(cursor);
     }
 
     @NotThreadSafe
-    private final class QueryAsyncTask extends AsyncTask<Void, Void, Collection<T>> {
+    private final class CursorAsyncTask extends AsyncTask<Void, Void, Cursor> {
 
         @Override
-        protected Collection<T> doInBackground(final Void... voids) {
-            return doInBackground();
+        protected Cursor doInBackground(final Void... voids) {
+            return CursorLiveData.this.doInBackground();
         }
 
         @Override
-        protected void onPostExecute(@Nullable final Collection<T> items) {
-            QueryLiveData.this.onPostExecute(items);
+        protected void onPostExecute(@Nullable final Cursor cursor) {
+            CursorLiveData.this.onPostExecute(cursor);
         }
     }
 
-    @ThreadSafe
-    public interface CursorParser<T> {
-        /**
-         * Extracts an object from a Cursor.  This method assumes that the Cursor contains all the columns of the
-         * contract and that the Cursor is positioned to a row that is ready to be read. This method will not mutate
-         * the Cursor or move the Cursor position.
-         *
-         * @param cursor Cursor from a query to a contract this parser can handle.
-         * @return a new Object.
-         * @throws AssertionError If the cursor is closed or the cursor is out of range.
-         */
-        @NonNull
-        @WorkerThread
-        T newObject(@NonNull final Cursor cursor);
-    }
 }

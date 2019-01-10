@@ -28,7 +28,11 @@ version = LIBRARY_VERSION_NAME
 
 dependencies {
     implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
-    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_ANNOTATION_VERSION_MATCHER}"
+
+    androidTestImplementation group: 'androidx.test', name: 'core', version: "${ANDROID_TEST_CORE_VERSION_MATCHER}"
+    androidTestImplementation group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
+    androidTestImplementation group:'androidx.test.ext', name: 'junit', version: "${ANDROID_TEST_JUNIT_VERSION_MATCHER}"
 
     if (is_test_orchestrator) {
         androidTestUtil group:'androidx.test', name:'orchestrator', version:"${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}", ext:'apk'

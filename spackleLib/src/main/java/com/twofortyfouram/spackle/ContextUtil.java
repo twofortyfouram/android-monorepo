@@ -22,9 +22,7 @@ import android.app.Service;
 import android.app.backup.BackupAgent;
 import android.content.Context;
 import androidx.annotation.NonNull;
-
 import com.twofortyfouram.log.Lumberjack;
-
 import net.jcip.annotations.ThreadSafe;
 
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
@@ -42,7 +40,7 @@ public final class ContextUtil {
      * context memory leaks.
      *
      * A leak could still occur if a malicious actor passes in a context that overrides
-      * getApplicationContext().
+     * getApplicationContext().
      */
 
     /**
@@ -56,9 +54,15 @@ public final class ContextUtil {
      * Class name of isolated context.
      */
     @NonNull
-    private static final String RENAMING_DELEGATING_CONTEXT_CLASS_NAME
-            = "android.test.RenamingDelegatingContext";
-    //$NON-NLS-1$
+    private static final String RENAMING_DELEGATING_CONTEXT_CLASS_NAME = "android.test.RenamingDelegatingContext";//$NON-NLS-1$
+
+    /**
+     * Class name of delegating context.
+     */
+    // Note this could break with future updates to the Espresso test rules library
+    // This did break with the Android X refactor.
+    @NonNull
+    private static final String DELEGATING_CONTEXT_CLASS_NAME = "androidx.test.rule.provider.DelegatingContext"; //$NON-NLS
 
     /**
      * Gets the Application Context of {@code context} to prevent memory leaks
@@ -67,7 +71,7 @@ public final class ContextUtil {
      * This is typically used to check a Context parameter when entering a
      * method that expects an Application context, because this will log whether
      * the Context is correctly cleaned or not.
-     *
+     * <p>
      * This method is useful, because it tries to avoid breaking out of context during automated
      * tests.
      *
@@ -91,10 +95,7 @@ public final class ContextUtil {
             Lumberjack.w("context was an instance of BackupAgent%s", new Exception()); //$NON-NLS-1$
         }
 
-        final String className = context.getClass().getName();
-
-        if (className.equals(ISOLATED_CONTEXT_CLASS_NAME) || className
-                .equals(RENAMING_DELEGATING_CONTEXT_CLASS_NAME)) {
+        if (isTestContext(context)) {
             return context;
         } else {
             try {
@@ -120,6 +121,18 @@ public final class ContextUtil {
                 return context;
             }
         }
+    }
+
+    /**
+     * @param context Context to check.
+     * @return True if the class name of the context is one of the known test context classes.  This will not detect all
+     * usages.
+     */
+    public static final boolean isTestContext(@NonNull final Context context) {
+        @NonNull final String className = context.getClass().getName();
+
+        return className.equals(ISOLATED_CONTEXT_CLASS_NAME) || className
+                .equals(RENAMING_DELEGATING_CONTEXT_CLASS_NAME) || className.equals(DELEGATING_CONTEXT_CLASS_NAME);
     }
 
     /**

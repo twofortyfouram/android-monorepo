@@ -22,10 +22,6 @@ import android.content.ContentResolver;
 import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
-import com.twofortyfouram.memento.model.Operation;
-import com.twofortyfouram.memento.model.SqliteUriMatch;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +39,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class SqliteUriMatchTest {
 
     /**

@@ -24,9 +24,8 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
 import com.twofortyfouram.assertion.BundleAssertions;
 import com.twofortyfouram.memento.util.Transactable;
 import com.twofortyfouram.test.provider.MockableContentProvider;
@@ -39,7 +38,7 @@ import static com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher.notIns
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class TransactionContractTest {
 
     @SmallTest
@@ -53,7 +52,7 @@ public final class TransactionContractTest {
     public void runInTransaction() {
         @NonNull final Uri uri = Uri.parse("content://test/foo"); //$NON-NLS
 
-        @NonNull final MockableContentProvider provider = MockableContentProvider.newMockProvider(InstrumentationRegistry.getContext(), uri.getAuthority());
+        @NonNull final MockableContentProvider provider = MockableContentProvider.newMockProvider(ApplicationProvider.getApplicationContext(), uri.getAuthority());
         @NonNull final Bundle expectedCallResultBundle = new Bundle();
         expectedCallResultBundle.putBoolean(TestTransactable.EXTRA_RESULT_BOOLEAN, true);
         provider.addCallResult(expectedCallResultBundle);

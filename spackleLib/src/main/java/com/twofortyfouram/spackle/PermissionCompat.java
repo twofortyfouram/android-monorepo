@@ -21,15 +21,18 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.PowerManager;
 import android.provider.Settings;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Size;
 
 import com.twofortyfouram.log.Lumberjack;
+import com.twofortyfouram.spackle.internal.Constants;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -52,11 +55,11 @@ public final class PermissionCompat {
     /**
      * Dynamically checks app permissions at runtime, with forward and backward
      * compatibility for pre-Marshmallow and post-Mashmallow permission behavior.
-     *
+     * <p>
      * The behavior is different from {@code android.support.v4.content.PermissionChecker}.  This
      * method lets SDK and app developers handle scenarios when permissions may intentionally
      * be omitted from the manifest.
-     *
+     * <p>
      * Note that on Marshmallow, this class also correctly handles checking for {@link
      * android.Manifest.permission#WRITE_SETTINGS},
      * {@link android.Manifest.permission#REQUEST_IGNORE_BATTERY_OPTIMIZATIONS}, and {@link
@@ -72,7 +75,7 @@ public final class PermissionCompat {
      */
     @NonNull
     public static PermissionStatus getPermissionStatus(@NonNull final Context context,
-            @NonNull @Size(min = 1) final String permissionName) {
+                                                       @NonNull @Size(min = 1) final String permissionName) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotEmpty(permissionName, "permissionName"); //$NON-NLS-1$
 
@@ -89,14 +92,16 @@ public final class PermissionCompat {
 
     @NonNull
     private static PermissionStatus getPermissionStatusLegacy(@NonNull final Context context,
-            @NonNull @Size(min = 1) final String permissionName) {
+                                                              @NonNull @Size(min = 1) final String permissionName) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotEmpty(permissionName, "permissionName"); //$NON-NLS-1$
 
         if (PackageManager.PERMISSION_DENIED == context.getPackageManager().checkPermission(
                 permissionName, context.getPackageName())) {
-            Lumberjack.i("Permission %s is not granted via the AndroidManifest",
-                    permissionName); //$NON-NLS-1$
+            if (Constants.IS_LOGGING_ENABLED) {
+                Lumberjack.i("Permission %s is not granted via the AndroidManifest",
+                        permissionName); //$NON-NLS-1$
+            }
             return PermissionStatus.NOT_GRANTED_BY_MANIFEST;
         }
 
@@ -113,7 +118,7 @@ public final class PermissionCompat {
     @NonNull
     @TargetApi(Build.VERSION_CODES.M)
     private static PermissionStatus getPermissionStatusMarshmallow(@NonNull final Context context,
-            @NonNull @Size(min = 1) final String permissionName) {
+                                                                   @NonNull @Size(min = 1) final String permissionName) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotEmpty(permissionName, "permissionName"); //$NON-NLS-1$
         /*
@@ -126,6 +131,12 @@ public final class PermissionCompat {
                 return PermissionStatus.NOT_GRANTED_BY_USER;
             } else {
                 return PermissionStatus.NOT_GRANTED_BY_MANIFEST;
+            }
+        } else {
+            if (Manifest.permission.ACCESS_BACKGROUND_LOCATION.equals(permissionName) || Manifest.permission.ACTIVITY_RECOGNITION.equals(permissionName)) {
+                if (!isPermissionGrantedByManifest(context, permissionName)) {
+                    return PermissionStatus.NOT_GRANTED_BY_MANIFEST;
+                }
             }
         }
 
@@ -141,7 +152,7 @@ public final class PermissionCompat {
      */
     @TargetApi(Build.VERSION_CODES.M)
     private static boolean isPermissionGrantedByUser(@NonNull final Context context,
-            @NonNull @Size(min = 1) final String permissionName) {
+                                                     @NonNull @Size(min = 1) final String permissionName) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotEmpty(permissionName, "permissionName"); //$NON-NLS-1$
 
@@ -173,6 +184,22 @@ public final class PermissionCompat {
                     .isNotificationPolicyAccessGranted()) {
                 return true;
             }
+        } else if (Manifest.permission.SYSTEM_ALERT_WINDOW.equals(permissionName)&& !FEATURE_CONTEXT_WRAPPER_CLASS_NAME
+                .equals(context.getClass().getName())) {
+            if (Settings.canDrawOverlays(context)) {
+                return true;
+            }
+        } else if (Manifest.permission.ACTIVITY_RECOGNITION.equals(permissionName) || Manifest.permission.ACCESS_BACKGROUND_LOCATION.equals(permissionName)) {
+            final int targetSdkVersion = AppBuildInfo.getTargetSdkVersion(context);
+            if (targetSdkVersion >= Build.VERSION_CODES.Q && AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.Q)) {
+                if (PackageManager.PERMISSION_GRANTED == context
+                        .checkSelfPermission(permissionName)) {
+                    return true;
+                }
+            } else {
+                // Always true if the target SDK version is not current
+                return true;
+            }
         } else if (PackageManager.PERMISSION_GRANTED == context
                 .checkSelfPermission(permissionName)) {
             return true;
@@ -189,11 +216,11 @@ public final class PermissionCompat {
     // TODO: [Case 16597] This may not work correctly with a sharedUserId and a second package
     // that grants a permission.
     private static boolean isPermissionGrantedByManifest(@NonNull final Context context,
-            @NonNull @Size(min = 1) final String permissionName) {
+                                                         @NonNull @Size(min = 1) final String permissionName) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotEmpty(permissionName, "permissionName"); //$NON-NLS-1$
 
-        final PackageInfo myPackageInfo = AppBuildInfo.getMyPackageInfo(context,
+        @NonNull final PackageInfo myPackageInfo = AppBuildInfo.getMyPackageInfo(context,
                 PackageManager.GET_PERMISSIONS);
 
         final String[] requestedPermissions = myPackageInfo.requestedPermissions;
@@ -235,7 +262,7 @@ public final class PermissionCompat {
         /**
          * The permission is granted and the app can use the permission.
          */
-        GRANTED;
+        GRANTED
     }
 
     /**

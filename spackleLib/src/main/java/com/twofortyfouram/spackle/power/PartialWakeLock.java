@@ -21,19 +21,33 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.PowerManager;
+import android.os.RemoteException;
 import android.os.SystemClock;
+import android.os.Trace;
+import android.text.format.DateUtils;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
+import androidx.annotation.Size;
 import androidx.annotation.VisibleForTesting;
+
 import com.twofortyfouram.log.Lumberjack;
+import com.twofortyfouram.spackle.internal.Constants;
+
 import net.jcip.annotations.ThreadSafe;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.twofortyfouram.assertion.Assertions.assertNotNull;
@@ -58,6 +72,28 @@ public final class PartialWakeLock {
     @NonNull
     private static final ConcurrentHashMap<String, AtomicLong> sWakeLockCumulativeUsage
             = new ConcurrentHashMap<>();
+
+    /**
+     * Map of WakeLock name to approximate cumulative counts of when the lock was acquired.
+     */
+    @NonNull
+    private static final ConcurrentHashMap<String, AtomicLong> sWakeLockCumulativeCounts
+            = new ConcurrentHashMap<>();
+
+    /**
+     * References to outstanding WakeLocks.  Useful to see if any are dangling.
+     */
+    @NonNull
+    private static final Map<PartialWakeLock, Void> sWakeLockReferences
+            = Collections.synchronizedMap(new WeakHashMap<>());
+
+    /**
+     * Tags of WakeLocks that were garbage collected while still held.
+     */
+    @NonNull
+    private static final Set<String> sGarbageCollegedLocks = new ConcurrentSkipListSet<>();
+
+    private static final long LEAKED_WAKELOCK_DURATION_MILLIS = 10 * DateUtils.SECOND_IN_MILLIS;
 
     /**
      * The {@code WakeLock} tag.
@@ -88,17 +124,20 @@ public final class PartialWakeLock {
     private long mAcquiredRealtimeMillis = 0;
 
     @NonNull
-    private final AtomicLong mAtomicLong;
+    private final AtomicLong mCumulativeUsage;
+
+    @NonNull
+    private final AtomicLong mCumulativeCount;
 
     /**
-     * Dumps cumulative WakeLock usage from this class and {@link com.twofortyfouram.spackle.power.PartialWakeLockForService}.
+     * Dumps cumulative WakeLock usage from this class and {@link PartialWakeLockForService}.
      * This is useful to debug WakeLock usage.
      *
      * @return A map of WakeLock name and cumulative duration in milliseconds that the lock was
      * held.
      */
     @NonNull
-    public static Map<String, Long> dumpWakeLockUsage() {
+    public static Map<String, Long> dumpWakeLockUsageInMillis() {
         final Map<String, Long> wakeLockCumulativeUsageToReturn = new HashMap<>();
 
         /*
@@ -107,11 +146,84 @@ public final class PartialWakeLock {
          * usages could be incremented. The results returned by this method are therefore
          * approximate.
          */
-        for (final Entry<String, AtomicLong> entry : sWakeLockCumulativeUsage.entrySet()) {
+        for (@NonNull final Entry<String, AtomicLong> entry : sWakeLockCumulativeUsage.entrySet()) {
             wakeLockCumulativeUsageToReturn.put(entry.getKey(), entry.getValue().get());
         }
 
         return wakeLockCumulativeUsageToReturn;
+    }
+
+    /**
+     * Dumps wakelocks that are currently held.  Might help detect locks that are dangling.
+     *
+     * @return A map of WakeLock name and cumulative duration in milliseconds that the lock was
+     * held (if there are multiple dangling with the same tag).
+     */
+    @NonNull
+    @Size(min = 0)
+    public static Map<String, Long> dumpActivelyLeakedWakelocks() {
+        @NonNull final Map<String, Long> wakeLockCumulativeUsageToReturn = new HashMap<>();
+
+        /*
+         * Note that the iterator does not lock the map.  The read is thread safe, but it is not
+         * atomic.
+         */
+        for (@NonNull final PartialWakeLock wakeLock : sWakeLockReferences.keySet()) {
+            synchronized (wakeLock.mWakeLock) {
+                if (wakeLock.isHeld()) {
+                    @NonNull final String tag = wakeLock.mLockName;
+                    final long heldDurationMillis = SystemClock.elapsedRealtime() - wakeLock.mAcquiredRealtimeMillis;
+                    if (LEAKED_WAKELOCK_DURATION_MILLIS < heldDurationMillis) {
+                        if (wakeLockCumulativeUsageToReturn.containsKey(tag)) {
+                            wakeLockCumulativeUsageToReturn.put(tag, wakeLockCumulativeUsageToReturn.get(tag) + heldDurationMillis);
+                        }
+                        else {
+                            wakeLockCumulativeUsageToReturn.put(tag, heldDurationMillis);
+                        }
+                    }
+                }
+            }
+        }
+
+        return wakeLockCumulativeUsageToReturn;
+    }
+
+    /**
+     * Dumps wakelocks that were garbage collected while still held.
+     *
+     * @return A set of WakeLock tags.
+     */
+    @NonNull
+    @Size(min = 0)
+    public static Set<String> dumpGarbageCollectedLeakedWakeLocks() {
+        @NonNull final Set<String> wakeLockTagsToReturn = new HashSet<>(sGarbageCollegedLocks);
+
+        return wakeLockTagsToReturn;
+    }
+
+    /**
+     * Dumps cumulative WakeLock counts from this class and {@link PartialWakeLockForService}.
+     * This is useful to debug WakeLock usage.
+     *
+     * @return A map of WakeLock name and cumulative number of times the lock was acquired by an
+     * {@link #acquireLock()} or {@link #acquireLockIfNotHeld()} call.
+     */
+    @NonNull
+    @Size(min = 0)
+    public static Map<String, Long> dumpWakeLockCounts() {
+        @NonNull final Map<String, Long> wakeLockCumulativeCountsToReturn = new HashMap<>();
+
+        /*
+         * Note that the iterator does not lock the map.  The read is thread safe, but it is not
+         * atomic.  In other words, between starting the loop and ending the loop, some cumulative
+         * usages could be incremented. The results returned by this method are therefore
+         * approximate.
+         */
+        for (@NonNull final Entry<String, AtomicLong> entry : sWakeLockCumulativeCounts.entrySet()) {
+            wakeLockCumulativeCountsToReturn.put(entry.getKey(), entry.getValue().get());
+        }
+
+        return wakeLockCumulativeCountsToReturn;
     }
 
     /**
@@ -123,7 +235,7 @@ public final class PartialWakeLock {
      * a background service.  Using the name "my_service_lock" every time the service is started
      * would be better than "my_service_lock_%d" where %d is incremented
      * every time the service starts.  Internally this class maintains a historical count of lock
-     * durations to enable {@link #dumpWakeLockUsage()}, so creating an unbounded number of tags
+     * durations to enable {@link #dumpWakeLockUsageInMillis()}, so creating an unbounded number of tags
      * would grow linearly in memory usage.</p>
      * <p>It is also recommended to use a hard coded value for the lock name, as opposed to
      * one generated dynamically.  While dynamic names (for example based on class name) are
@@ -137,31 +249,46 @@ public final class PartialWakeLock {
      */
     @NonNull
     public static PartialWakeLock newInstance(@NonNull final Context context,
-            @NonNull final String lockName, final boolean isReferenceCounted) {
+                                              @NonNull final String lockName, final boolean isReferenceCounted) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotNull(lockName, "lockName"); //$NON-NLS-1$
 
-        @NonNull final AtomicLong atomicLong;
+        @NonNull final AtomicLong durationAtomicLong;
         {
             @NonNull final AtomicLong newAtomicLong = new AtomicLong(0);
             @Nullable final AtomicLong oldAtomicLong = sWakeLockCumulativeUsage.putIfAbsent(lockName, newAtomicLong);
 
             if (null == oldAtomicLong) {
-                atomicLong = newAtomicLong;
-            }
-            else {
-                atomicLong = oldAtomicLong;
+                durationAtomicLong = newAtomicLong;
+            } else {
+                durationAtomicLong = oldAtomicLong;
             }
         }
 
-        return new PartialWakeLock(context, lockName, isReferenceCounted, atomicLong);
+        @NonNull final AtomicLong countAtomicLong;
+        {
+            @NonNull final AtomicLong newAtomicLong = new AtomicLong(0);
+            @Nullable final AtomicLong oldAtomicLong = sWakeLockCumulativeCounts.putIfAbsent(lockName, newAtomicLong);
+
+            if (null == oldAtomicLong) {
+                countAtomicLong = newAtomicLong;
+            } else {
+                countAtomicLong = oldAtomicLong;
+            }
+        }
+
+        @NonNull final PartialWakeLock partialWakeLock = new PartialWakeLock(context, lockName, isReferenceCounted, durationAtomicLong, countAtomicLong);
+        sWakeLockReferences.put(partialWakeLock, null);
+
+        return partialWakeLock;
     }
 
     private PartialWakeLock(@NonNull final Context context, @NonNull final String lockName,
-            final boolean isReferenceCounted, @NonNull final AtomicLong cumulativeUsage) {
+                            final boolean isReferenceCounted, @NonNull final AtomicLong cumulativeUsageMillis, @NonNull final AtomicLong cumulativeAcquireCount) {
         assertNotNull(context, "context"); //$NON-NLS-1$
         assertNotNull(lockName, "lockName"); //$NON-NLS-1$
-        assertNotNull(cumulativeUsage, "cumulativeUsage"); //$NON-NLS-1$
+        assertNotNull(cumulativeUsageMillis, "cumulativeUsageMillis"); //$NON-NLS-1$
+        assertNotNull(cumulativeAcquireCount, "cumulativeAcquireCount"); //$NON-NLS-1$
 
         mLockName = lockName;
         mIsReferenceCounted = isReferenceCounted;
@@ -171,7 +298,8 @@ public final class PartialWakeLock {
         mWakeLock = mgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, mLockName);
         mWakeLock.setReferenceCounted(isReferenceCounted);
 
-        mAtomicLong = cumulativeUsage;
+        mCumulativeUsage = cumulativeUsageMillis;
+        mCumulativeCount = cumulativeAcquireCount;
     }
 
     /**
@@ -197,8 +325,11 @@ public final class PartialWakeLock {
             }
 
             mWakeLock.acquire();
+            mCumulativeCount.incrementAndGet();
 
-            Lumberjack.v("%s", this); //$NON-NLS-1$
+            if (Constants.IS_LOGGING_ENABLED) {
+                Lumberjack.v("%s", this); //$NON-NLS-1$
+            }
         }
     }
 
@@ -228,11 +359,13 @@ public final class PartialWakeLock {
                 mReferenceCount--;
                 mWakeLock.release();
 
-                Lumberjack.v("%s", this); //$NON-NLS-1$
+                if (Constants.IS_LOGGING_ENABLED) {
+                    Lumberjack.v("%s", this); //$NON-NLS-1$
+                }
 
                 if (!isHeld()) {
                     //noinspection AccessToStaticFieldLockedOnInstance
-                    mAtomicLong.addAndGet(getHeldDurationMillis());
+                    mCumulativeUsage.addAndGet(getHeldDurationMillis());
                     mAcquiredRealtimeMillis = 0;
                 }
             } else {
@@ -305,5 +438,16 @@ public final class PartialWakeLock {
                         //$NON-NLS-1$
                         mLockName, mIsReferenceCounted, mReferenceCount, getHeldDurationMillis(),
                         mWakeLock);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        synchronized (mWakeLock) {
+            if (isHeld()) {
+                sGarbageCollegedLocks.add(mLockName);
+            }
+        }
+
+        super.finalize();
     }
 }

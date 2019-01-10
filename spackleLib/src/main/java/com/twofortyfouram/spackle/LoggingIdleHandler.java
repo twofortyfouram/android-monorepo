@@ -24,9 +24,12 @@ import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.twofortyfouram.log.Lumberjack;
+import com.twofortyfouram.spackle.internal.Constants;
+
 import net.jcip.annotations.NotThreadSafe;
 import net.jcip.annotations.ThreadSafe;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Idle handler with logging to track how much CPU time Handler threads are using.
- *
+ * <p>
  * This class must be constructed on the thread that it is tracking.  The easiest way to add it to
  * a Handler would be to post a runnable to the Handler immediately after construction.  {@link
  * #getInitRunnable()} provides an easy way to do that.
@@ -49,6 +52,14 @@ public final class LoggingIdleHandler implements MessageQueue.IdleHandler {
      */
     @NonNull
     private static final ConcurrentHashMap<String, AtomicLong> sCpuCumulativeUsage
+            = new ConcurrentHashMap<>();
+
+    /**
+     * Map of thread name to approximate cumulative idle counts, which provides an indication of
+     * how often a thread is being tasked with work.
+     */
+    @NonNull
+    private static final ConcurrentHashMap<String, AtomicLong> sCumulativeIdles
             = new ConcurrentHashMap<>();
 
     /**
@@ -74,11 +85,40 @@ public final class LoggingIdleHandler implements MessageQueue.IdleHandler {
     }
 
     /**
+     * Dumps cumulative idle counts.
+     *
+     * @return A map of thread name and cumulative number of times a thread went idle.
+     */
+    @NonNull
+    public static Map<String, Long> dumpIdleCounts() {
+        @NonNull final Map<String, Long> threadCumulativeUsageToReturn = new HashMap<>();
+
+        /*
+         * Note that the iterator does not lock the map.  The read is thread safe, but it is not
+         * atomic.  In other words, between starting the loop and ending the loop, some cumulative
+         * usages could be incremented. The results returned by this method are therefore
+         * approximate.
+         */
+        for (@NonNull final Map.Entry<String, AtomicLong> entry : sCumulativeIdles.entrySet()) {
+            threadCumulativeUsageToReturn.put(entry.getKey(), entry.getValue().get());
+        }
+
+        return threadCumulativeUsageToReturn;
+    }
+
+    /**
      * Reference to the thread's AtomicLong in {@link #sCpuCumulativeUsage}.  Avoids the map lookup each time it needs
      * to be updated.
      */
     @NonNull
-    private final AtomicLong mAtomicLong;
+    private final AtomicLong mNanosReference;
+
+    /**
+     * Reference to the thread's AtomicLong in {@link #sCumulativeIdles}.  Avoids the map lookup each time it needs
+     * to be updated.
+     */
+    @NonNull
+    private final AtomicLong mCountReference;
 
     private final long mInitCpuTimeNanos;
 
@@ -87,19 +127,31 @@ public final class LoggingIdleHandler implements MessageQueue.IdleHandler {
     public LoggingIdleHandler() {
         @Nullable final String threadName = Thread.currentThread().getName();
 
-        @NonNull final AtomicLong atomicLong;
+        @NonNull final AtomicLong nanosAtomicLong;
         {
             @NonNull final AtomicLong newAtomicLong = new AtomicLong(0);
             @Nullable final AtomicLong oldAtomicLong = sCpuCumulativeUsage.putIfAbsent(threadName, newAtomicLong);
 
             if (null == oldAtomicLong) {
-                atomicLong = newAtomicLong;
-            }
-            else {
-                atomicLong = oldAtomicLong;
+                nanosAtomicLong = newAtomicLong;
+            } else {
+                nanosAtomicLong = oldAtomicLong;
             }
         }
-        mAtomicLong = atomicLong;
+        mNanosReference = nanosAtomicLong;
+
+        @NonNull final AtomicLong countAtomicLong;
+        {
+            @NonNull final AtomicLong newAtomicLong = new AtomicLong(0);
+            @Nullable final AtomicLong oldAtomicLong = sCumulativeIdles.putIfAbsent(threadName, newAtomicLong);
+
+            if (null == oldAtomicLong) {
+                countAtomicLong = newAtomicLong;
+            } else {
+                countAtomicLong = oldAtomicLong;
+            }
+        }
+        mCountReference = countAtomicLong;
 
         mInitCpuTimeNanos = Debug.threadCpuTimeNanos();
         mLastIdleCpuTimeNanos = Debug.threadCpuTimeNanos();
@@ -107,6 +159,8 @@ public final class LoggingIdleHandler implements MessageQueue.IdleHandler {
 
     @Override
     public boolean queueIdle() {
+        mCountReference.getAndIncrement();
+
         final long currentCpuTimeNanos = Debug.threadCpuTimeNanos();
 
         final long cumulativeThreadTimeNanos = currentCpuTimeNanos - mInitCpuTimeNanos;
@@ -114,17 +168,28 @@ public final class LoggingIdleHandler implements MessageQueue.IdleHandler {
 
         mLastIdleCpuTimeNanos = currentCpuTimeNanos;
 
-        Lumberjack
-                .v("Idling... CPU time: cumulative=%d [milliseconds], lastUnitOfWork=%d [milliseconds]",
-                        //$NON-NLS-1$
-                        TimeUnit.MILLISECONDS.convert(cumulativeThreadTimeNanos, TimeUnit.NANOSECONDS),
-                        TimeUnit.MILLISECONDS.convert(cpuTimeSinceLastIdleNanos, TimeUnit.NANOSECONDS));
+        if (Constants.IS_LOGGING_ENABLED) {
+            Lumberjack
+                    .v("Idling... count=%d CPU time: cumulative=%d [milliseconds], lastUnitOfWork=%d [milliseconds]",
+                            //$NON-NLS-1$
+                            mCountReference.get(),
+                            TimeUnit.MILLISECONDS.convert(cumulativeThreadTimeNanos, TimeUnit.NANOSECONDS),
+                            TimeUnit.MILLISECONDS.convert(cpuTimeSinceLastIdleNanos, TimeUnit.NANOSECONDS));
+        }
 
-        mAtomicLong.set(cumulativeThreadTimeNanos);
+        mNanosReference.set(cumulativeThreadTimeNanos);
 
         return true;
     }
 
+    /**
+     *
+     * Note this Runnable is intelligent enough to avoid adding duplicate {@link LoggingIdleHandler} instances to the
+     * same thread.  E.g. posting two Runnable instances to the same thread will only configure one
+     * {@code LoggingIdleHandler}.
+     *
+     * @return Runnable to post to a Handler to initialize thread usage statistics.
+     */
     @NonNull
     @AnyThread
     public static Runnable getInitRunnable() {
@@ -134,11 +199,32 @@ public final class LoggingIdleHandler implements MessageQueue.IdleHandler {
     @ThreadSafe
     private static final class InitRunnable implements Runnable {
 
+        @NonNull
+        private static final ThreadLocal<WeakReference<LoggingIdleHandler>> sLocalLoggingIdleHandler = new ThreadLocal<>();
+
         @Override
         public void run() {
+            @Nullable final WeakReference<LoggingIdleHandler> weakReference = sLocalLoggingIdleHandler.get();
+
+            if (null == weakReference) {
+                setupIdleHandler();
+            }
+            else {
+                @Nullable final LoggingIdleHandler existingIdleHandler = weakReference.get();
+
+                if (null == existingIdleHandler) {
+                    setupIdleHandler();
+                }
+            }
+        }
+
+        private void setupIdleHandler() {
             @NonNull final LoggingIdleHandler idleHandler = new LoggingIdleHandler();
 
             Looper.myQueue().addIdleHandler(idleHandler);
+
+            sLocalLoggingIdleHandler.set(new WeakReference<>(idleHandler));
         }
     }
+
 }

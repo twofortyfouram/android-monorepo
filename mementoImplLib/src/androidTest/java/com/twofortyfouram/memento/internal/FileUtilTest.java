@@ -17,25 +17,17 @@
 
 package com.twofortyfouram.memento.internal;
 
-import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 
+import static com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher.notInstantiable;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
 public final class FileUtilTest {
@@ -48,7 +40,7 @@ public final class FileUtilTest {
 
         try {
             final String testString = "Some text 123 ..."; //NON-NLS
-            final File externalFilesDir = InstrumentationRegistry.getContext()
+            final File externalFilesDir = ApplicationProvider.getApplicationContext()
                     .getExternalFilesDir(null);
             sourceFile = new File(externalFilesDir, "source_file"); //NON-NLS
             destinationFile = new File(externalFilesDir, "output_file"); //NON-NLS
@@ -82,7 +74,7 @@ public final class FileUtilTest {
     @Test
     @SmallTest
     public void copyFile_non_existent_source_file() throws IOException {
-        final File externalFilesDir = InstrumentationRegistry.getContext()
+        final File externalFilesDir = ApplicationProvider.getApplicationContext()
                 .getExternalFilesDir(null);
 
         final File sourceFile = new File(externalFilesDir, "non_existent_file"); //NON-NLS
@@ -105,7 +97,7 @@ public final class FileUtilTest {
         File destinationFile = null;
 
         try {
-            final File externalFilesDir = InstrumentationRegistry.getContext()
+            final File externalFilesDir = ApplicationProvider.getApplicationContext()
                     .getExternalFilesDir(null);
 
             final File systemNonWritableDir = new File("/system"); //NON-NLS
@@ -142,7 +134,7 @@ public final class FileUtilTest {
         File destinationFile = null;
 
         try {
-            final File externalFilesDir = InstrumentationRegistry.getContext()
+            final File externalFilesDir = ApplicationProvider.getApplicationContext()
                     .getExternalFilesDir(null);
 
             sourceFile = new File(externalFilesDir, "source_file"); //NON-NLS
@@ -177,7 +169,7 @@ public final class FileUtilTest {
         File destinationFile = null;
 
         try {
-            final File externalFilesDir = InstrumentationRegistry.getContext()
+            final File externalFilesDir = ApplicationProvider.getApplicationContext()
                     .getExternalFilesDir(null);
 
             sourceFile = new File(externalFilesDir, "source_file"); //NON-NLS
@@ -202,7 +194,7 @@ public final class FileUtilTest {
     @Test
     @SmallTest
     public void copyFile_source_equals_destination() throws IOException {
-        final File externalFilesDir = InstrumentationRegistry.getContext()
+        final File externalFilesDir = ApplicationProvider.getApplicationContext()
                 .getExternalFilesDir(null);
 
         final File sourceFile = new File(externalFilesDir, "source_file"); //NON-NLS
@@ -217,4 +209,9 @@ public final class FileUtilTest {
         assertTrue(exception);
     }
 
+    @Test
+    @SmallTest
+    public void nonInstantiable() {
+        assertThat(FileUtil.class, notInstantiable());
+    }
 }

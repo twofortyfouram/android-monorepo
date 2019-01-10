@@ -20,21 +20,20 @@ package com.twofortyfouram.spackle;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import androidx.test.InstrumentationRegistry;
+
+import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
 import com.twofortyfouram.test.context.MyMockContext;
 import com.twofortyfouram.test.context.MyMockPackageManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static androidx.test.InstrumentationRegistry.getContext;
 import static com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher.notInstantiable;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class AppBuildInfoTest {
 
     @Test
@@ -60,7 +59,7 @@ public final class AppBuildInfoTest {
     @SmallTest
     public void getVersionName() {
         final String expected = ""; //$NON-NLS-1$
-        final String actual = AppBuildInfo.getVersionName(getContext());
+        final String actual = AppBuildInfo.getVersionName(ApplicationProvider.getApplicationContext());
 
         assertThat(actual, is(expected));
     }
@@ -69,15 +68,25 @@ public final class AppBuildInfoTest {
     @SmallTest
     public void getVersionCode() {
         final long expected = 0;
-        final long actual = AppBuildInfo.getVersionCode(getContext());
+        final long actual = AppBuildInfo.getVersionCode(ApplicationProvider.getApplicationContext());
         assertThat(actual, is(expected));
     }
 
     @Test
     @SmallTest
     public void getApplicationName() {
-        final String expected = getContext().getPackageName();
-        final String actual = AppBuildInfo.getApplicationName(getContext());
+        final String expected = ApplicationProvider.getApplicationContext().getPackageName();
+        final String actual = AppBuildInfo.getApplicationName(ApplicationProvider.getApplicationContext());
+
+        assertThat(actual, is(expected));
+    }
+
+    @Test
+    @SmallTest
+    public void getTargetSdkVersion() {
+        final int expected = 5;
+        final int actual = AppBuildInfo.getTargetSdkVersion(new TargetSdkVersionContext(expected));
+
 
         assertThat(actual, is(expected));
     }
@@ -102,7 +111,7 @@ public final class AppBuildInfoTest {
 
         @Override
         public String getPackageName() {
-            return InstrumentationRegistry.getContext().getPackageName();
+            return ApplicationProvider.getApplicationContext().getPackageName();
         }
 
         @Override
@@ -132,7 +141,7 @@ public final class AppBuildInfoTest {
 
         @Override
         public String getPackageName() {
-            return InstrumentationRegistry.getContext().getPackageName();
+            return ApplicationProvider.getApplicationContext().getPackageName();
         }
 
         @Override
@@ -148,6 +157,44 @@ public final class AppBuildInfoTest {
                     if (mIsDebuggable) {
                         info.applicationInfo.flags = ApplicationInfo.FLAG_DEBUGGABLE;
                     }
+
+                    return info;
+                }
+            };
+        }
+    }
+
+    public static final class TargetSdkVersionContext extends MyMockContext {
+
+        private final int mTargetSdkVersion;
+
+        public TargetSdkVersionContext(final int targetSdkVersion) {
+            mTargetSdkVersion = targetSdkVersion;
+        }
+
+        @Override
+        public String getPackageName() {
+            return ApplicationProvider.getApplicationContext().getPackageName();
+        }
+
+        @Override
+        public ApplicationInfo getApplicationInfo() {
+            @NonNull final ApplicationInfo info = new ApplicationInfo();
+
+            info.targetSdkVersion = mTargetSdkVersion;
+
+            return info;
+        }
+
+        @Override
+        public PackageManager getPackageManager() {
+            return new MyMockPackageManager() {
+                @Override
+                public PackageInfo getPackageInfo(String packageName, int flags)
+                        throws NameNotFoundException {
+                    PackageInfo info = new PackageInfo();
+
+                    info.applicationInfo = TargetSdkVersionContext.this.getApplicationInfo();
 
                     return info;
                 }

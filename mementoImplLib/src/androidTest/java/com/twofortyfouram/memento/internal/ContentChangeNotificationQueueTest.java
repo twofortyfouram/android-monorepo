@@ -25,13 +25,12 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.MediumTest;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
 import android.text.format.DateUtils;
 
-import com.twofortyfouram.memento.test.main_process.TableOneContract;
+import com.twofortyfouram.memento.test.main_process.contract.TestTableOneContract;
 import com.twofortyfouram.spackle.HandlerThreadFactory;
 import com.twofortyfouram.spackle.HandlerThreadFactory.ThreadPriority;
 import com.twofortyfouram.test.context.ReceiverContextWrapper;
@@ -51,14 +50,14 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(androidx.test.ext.junit.runners.AndroidJUnit4.class)
 public final class ContentChangeNotificationQueueTest {
 
     @SmallTest
     @Test
     public void non_batch_by_default() {
         final ContentChangeNotificationQueue queue = new ContentChangeNotificationQueue(
-                InstrumentationRegistry.getContext(), false, null);
+                ApplicationProvider.getApplicationContext(), false, null);
 
         assertFalse(queue.isBatch());
     }
@@ -67,7 +66,7 @@ public final class ContentChangeNotificationQueueTest {
     @Test
     public void isBatch_true_after_start() {
         final ContentChangeNotificationQueue queue = new ContentChangeNotificationQueue(
-                InstrumentationRegistry.getContext(), false, null);
+                ApplicationProvider.getApplicationContext(), false, null);
 
         queue.startBatch();
         assertTrue(queue.isBatch());
@@ -77,7 +76,7 @@ public final class ContentChangeNotificationQueueTest {
     @Test
     public void endBatch_notify() {
         final ContentChangeNotificationQueue queue = new ContentChangeNotificationQueue(
-                InstrumentationRegistry.getContext(), false, null);
+                ApplicationProvider.getApplicationContext(), false, null);
 
         queue.startBatch();
         queue.endBatch(true);
@@ -88,7 +87,7 @@ public final class ContentChangeNotificationQueueTest {
     @Test
     public void endBatch_dont_notify() {
         final ContentChangeNotificationQueue queue = new ContentChangeNotificationQueue(
-                InstrumentationRegistry.getContext(), false, null);
+                ApplicationProvider.getApplicationContext(), false, null);
 
         queue.startBatch();
         queue.endBatch(false);
@@ -99,7 +98,7 @@ public final class ContentChangeNotificationQueueTest {
     @Test(expected = IllegalStateException.class)
     public void startBatch_second_call_throws() {
         final ContentChangeNotificationQueue queue = new ContentChangeNotificationQueue(
-                InstrumentationRegistry.getContext(), false, null);
+                ApplicationProvider.getApplicationContext(), false, null);
 
         queue.startBatch();
         queue.startBatch(); //Expected to throw
@@ -109,7 +108,7 @@ public final class ContentChangeNotificationQueueTest {
     @Test(expected = IllegalStateException.class)
     public void endBatch_throws_without_start_notify() {
         final ContentChangeNotificationQueue queue = new ContentChangeNotificationQueue(
-                InstrumentationRegistry.getContext(), false, null);
+                ApplicationProvider.getApplicationContext(), false, null);
 
         queue.endBatch(true); //Expected to throw
     }
@@ -118,7 +117,7 @@ public final class ContentChangeNotificationQueueTest {
     @Test(expected = IllegalStateException.class)
     public void endBatch_throws_without_start_dont_notify() {
         final ContentChangeNotificationQueue queue = new ContentChangeNotificationQueue(
-                InstrumentationRegistry.getContext(), false, null);
+                ApplicationProvider.getApplicationContext(), false, null);
 
         queue.endBatch(false); //Expected to throw
     }
@@ -140,11 +139,11 @@ public final class ContentChangeNotificationQueueTest {
                     latch.countDown();
                 }
             };
-            InstrumentationRegistry.getContext().getContentResolver()
+            ApplicationProvider.getApplicationContext().getContentResolver()
                     .registerContentObserver(uri, true, observer);
 
             final ContentChangeNotificationQueue queue = new ContentChangeNotificationQueue(
-                    InstrumentationRegistry.getContext(), false, null);
+                    ApplicationProvider.getApplicationContext(), false, null);
             queue.onContentChanged(uri);
 
             assertTrue(latch.await(1 * DateUtils.SECOND_IN_MILLIS, TimeUnit.MILLISECONDS));
@@ -170,11 +169,11 @@ public final class ContentChangeNotificationQueueTest {
                     latch.countDown();
                 }
             };
-            InstrumentationRegistry.getContext().getContentResolver()
+            ApplicationProvider.getApplicationContext().getContentResolver()
                     .registerContentObserver(uri, true, observer);
 
             final ContentChangeNotificationQueue queue = new ContentChangeNotificationQueue(
-                    InstrumentationRegistry.getContext(), false, null);
+                    ApplicationProvider.getApplicationContext(), false, null);
             queue.startBatch();
             queue.onContentChanged(uri);
 
@@ -205,11 +204,11 @@ public final class ContentChangeNotificationQueueTest {
                     latch.countDown();
                 }
             };
-            InstrumentationRegistry.getContext().getContentResolver()
+            ApplicationProvider.getApplicationContext().getContentResolver()
                     .registerContentObserver(uri, true, observer);
 
             final ContentChangeNotificationQueue queue = new ContentChangeNotificationQueue(
-                    InstrumentationRegistry.getContext(), false, null);
+                    ApplicationProvider.getApplicationContext(), false, null);
             queue.startBatch();
             queue.onContentChanged(uri);
 
@@ -258,7 +257,7 @@ public final class ContentChangeNotificationQueueTest {
         final Uri.Builder builder = new Uri.Builder();
 
         builder.scheme(ContentResolver.SCHEME_CONTENT);
-        builder.authority(TableOneContract.getContentUri(InstrumentationRegistry.getContext())
+        builder.authority(TestTableOneContract.getContentUri(ApplicationProvider.getApplicationContext())
                 .getAuthority());
         builder.path(Uri.encode(UUID.randomUUID().toString()));
 
@@ -288,7 +287,7 @@ public final class ContentChangeNotificationQueueTest {
             @NonNull final Uri changedUri) {
 
         final ReceiverContextWrapper context = new ReceiverContextWrapper(
-                InstrumentationRegistry.getContext());
+                ApplicationProvider.getApplicationContext());
 
         final ContentChangeNotificationQueue queue = new ContentChangeNotificationQueue(context,
                 isProviderExported, providerReadPermission);

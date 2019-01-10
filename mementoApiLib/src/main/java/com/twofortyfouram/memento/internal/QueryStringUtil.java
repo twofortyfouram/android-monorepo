@@ -62,7 +62,7 @@ public final class QueryStringUtil {
     public static String getLimit(@NonNull final Uri uri) {
         assertNotNull(uri, "uri"); //$NON-NLS
 
-        final String queryStringParam = getQueryString(uri, SearchManager.SUGGEST_PARAMETER_LIMIT);
+        @Nullable final String queryStringParam = getQueryString(uri, SearchManager.SUGGEST_PARAMETER_LIMIT);
 
         if (null != queryStringParam) {
             try {

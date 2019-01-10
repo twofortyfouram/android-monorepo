@@ -27,12 +27,11 @@ archivesBaseName = 'android-plugin-client-sdk-for-locale'
 version = LIBRARY_VERSION_NAME
 
 dependencies {
-    // support-v4 and appcompat-v7 are optional for backwards compatibility
-    compileOnly group:'androidx.appcompat', name:'appcompat', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
-    compileOnly group:'androidx.legacy', name:'legacy-support-v4', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+    implementation group:'androidx.appcompat', name:'appcompat', version:"${ANDROID_APPCOMPAT_VERSION_MATCHER}"
+    implementation group:'androidx.legacy', name:'legacy-support-v4', version:"${ANDROID_LEGACY_SUPPORT_VERSION_MATCHER}"
 
     implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
-    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_SUPPORT_VERSION_MATCHER}"
+    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_ANNOTATION_VERSION_MATCHER}"
     implementation project(':annotationLib')
     implementation project(':assertionLib')
     implementation project(':pluginApiLib')
@@ -49,6 +48,9 @@ dependencies {
 
 android {
     compileSdkVersion ANDROID_COMPILE_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_COMPILE_SDK_VERSION) : ANDROID_COMPILE_SDK_VERSION
+
+    // Need MockPackageManager
+    useLibrary 'android.test.mock'
 
     resourcePrefix 'com_twofortyfouram_locale_sdk_client_'
 

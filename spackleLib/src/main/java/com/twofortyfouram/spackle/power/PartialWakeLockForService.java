@@ -104,7 +104,7 @@ public final class PartialWakeLockForService {
          * Double-checked idiom for lazy initialization, Effective Java 2nd edition page 283.
          */
         @SuppressWarnings("FieldAccessNotGuarded")
-        PartialWakeLock wakeLock = mWakeLock;
+        @Nullable PartialWakeLock wakeLock = mWakeLock;
         if (null == wakeLock) {
             synchronized (mIntrinsicLock) {
                 wakeLock = mWakeLock;

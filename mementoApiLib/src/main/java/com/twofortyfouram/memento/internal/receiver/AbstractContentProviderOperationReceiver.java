@@ -20,6 +20,7 @@ package com.twofortyfouram.memento.internal.receiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import androidx.annotation.NonNull;
 import com.twofortyfouram.log.Lumberjack;
 import com.twofortyfouram.memento.internal.BatchHelper;
@@ -36,10 +37,10 @@ public abstract class AbstractContentProviderOperationReceiver extends Broadcast
 
         @NonNull final PendingResult pendingResult = goAsync();
 
-        new Thread(() -> {
+        AsyncTask.SERIAL_EXECUTOR.execute(() -> {
             BatchHelper.handleIntent(context, intent);
 
             pendingResult.finish();
-        }).start();
+        });
     }
 }

@@ -32,7 +32,7 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
 /**
  * This is not part of the public API of the library.
  */
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 @ThreadSafe
 public final class ContentProviderClientCompat {
 

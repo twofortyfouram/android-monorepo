@@ -17,15 +17,13 @@
 
 package com.twofortyfouram.spackle;
 
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
-
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.twofortyfouram.spackle.test.R;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static androidx.test.InstrumentationRegistry.getContext;
 import static com.twofortyfouram.test.matcher.ClassNotInstantiableMatcher.notInstantiable;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -42,15 +40,15 @@ public final class ResourceUtilTest {
     @SmallTest
     @Test
     public void getPositionForIdInArray() {
-        assertThat(ResourceUtil.getPositionForIdInArray(getContext(), R.array
+        assertThat(ResourceUtil.getPositionForIdInArray(ApplicationProvider.getApplicationContext(), R.array
                         .com_twofortyfouram_spackle_test_array,
                 R.string.com_twofortyfouram_spackle_test_string_key_1), is(0));
 
-        assertThat(ResourceUtil.getPositionForIdInArray(getContext(), R.array
+        assertThat(ResourceUtil.getPositionForIdInArray(ApplicationProvider.getApplicationContext(), R.array
                         .com_twofortyfouram_spackle_test_array,
                 R.string.com_twofortyfouram_spackle_test_string_key_2), is(1));
 
-        assertThat(ResourceUtil.getPositionForIdInArray(getContext(), R.array
+        assertThat(ResourceUtil.getPositionForIdInArray(ApplicationProvider.getApplicationContext(), R.array
                         .com_twofortyfouram_spackle_test_array,
                 R.string.com_twofortyfouram_spackle_test_string_key_3), is(2));
     }
@@ -58,15 +56,15 @@ public final class ResourceUtilTest {
     @SmallTest
     @Test
     public void resourceIdForPositionInArray() {
-        assertThat(ResourceUtil.getResourceIdForPositionInArray(getContext(), R.array
+        assertThat(ResourceUtil.getResourceIdForPositionInArray(ApplicationProvider.getApplicationContext(), R.array
                         .com_twofortyfouram_spackle_test_array, 0),
                 is(R.string.com_twofortyfouram_spackle_test_string_key_1));
 
-        assertThat(ResourceUtil.getResourceIdForPositionInArray(getContext(),
+        assertThat(ResourceUtil.getResourceIdForPositionInArray(ApplicationProvider.getApplicationContext(),
                 R.array.com_twofortyfouram_spackle_test_array, 1),
                 is(R.string.com_twofortyfouram_spackle_test_string_key_2));
 
-        assertThat(ResourceUtil.getResourceIdForPositionInArray(getContext(),
+        assertThat(ResourceUtil.getResourceIdForPositionInArray(ApplicationProvider.getApplicationContext(),
                 R.array.com_twofortyfouram_spackle_test_array, 2),
                 is(R.string.com_twofortyfouram_spackle_test_string_key_3));
     }

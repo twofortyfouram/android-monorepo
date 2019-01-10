@@ -111,9 +111,8 @@ public final class SqliteUriMatch {
 
     /**
      * @return The Uris to notify when a change occurs.  A single Uri may notify multiple Uris of
-     * changes, especially if the base Uri is composed of several Uris.  The collection will be
-     * wrapped in a call to {@link
-     * Collections#unmodifiableList(java.util.List)}}.
+     * changes, especially if several other URIs are dependent on the base uri.  The returned list will be wrapped in
+     * a call to {@link Collections#unmodifiableList(java.util.List)}}.
      */
     @NonNull
     public List<Uri> getNotifyUris() {
@@ -146,7 +145,7 @@ public final class SqliteUriMatch {
     }
 
     /**
-     * @return The name of the table.
+     * @return The name of the table.  Technically this could be a view name as well.
      */
     @NonNull
     public String getTableName() {

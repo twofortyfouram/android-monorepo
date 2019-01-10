@@ -56,9 +56,14 @@ public final class SqliteColumnBuilder {
     private SqliteStorageClass mType = null;
 
     /**
-     * True if null is not allowed. False if null is not allowed.
+     * True if null is not allowed. False if null is allowed.
      */
     private boolean mIsNotNull = false;
+
+    /**
+     * True if empty is not allowed. False if empty is allowed.
+     */
+    private boolean mIsNotEmpty = false;
 
     /**
      * True if the column must be unique. False if the column is not unique.
@@ -156,6 +161,20 @@ public final class SqliteColumnBuilder {
     }
 
     /**
+     * Sets the constraint that the column must not be empty ''.
+     * <p>
+     * By default, empty is allowed.
+     *
+     * @return The builder for chained calls.
+     */
+    @NonNull
+    public SqliteColumnBuilder setConstraintNotEmpty() {
+        mIsNotEmpty = true;
+
+        return this;
+    }
+
+    /**
      * Sets the constraint that the column must be unique.
      * <p>
      * By default, columns have no uniqueness constraint.
@@ -221,7 +240,7 @@ public final class SqliteColumnBuilder {
     public SqliteColumnBuilder setConstraintSet(@NonNull final String... args) {
         assertNotNull(args, "args"); //$NON-NLS-1$
 
-        final String[] arrayCopy = new String[args.length];
+        @NonNull final String[] arrayCopy = new String[args.length];
         System.arraycopy(args, 0, arrayCopy, 0, args.length);
 
         mConstraintSet = arrayCopy;
@@ -243,7 +262,7 @@ public final class SqliteColumnBuilder {
             throw new IllegalStateException("type must be set"); //$NON-NLS-1$
         }
 
-        final StringBuilder builder = new StringBuilder();
+        @NonNull final StringBuilder builder = new StringBuilder();
 
         builder.append(mColumnName);
         builder.append(" "); //$NON-NLS-1$
@@ -273,6 +292,11 @@ public final class SqliteColumnBuilder {
             }
         }
 
+        if (mIsNotEmpty) {
+            builder.append(String.format(Locale.US,
+                    " CHECK(%s != '')", mColumnName));  //$NON-NLS-1$
+        }
+
         if (null != mLowerBound && null != mUpperBound) {
             builder.append(String.format(Locale.US,
                     " CHECK(%s >= %d AND %s <= %d)", mColumnName, mLowerBound, //$NON-NLS-1$
@@ -290,7 +314,7 @@ public final class SqliteColumnBuilder {
     private static String buildCheckSet(@NonNull final String columnName,
             @NonNull final String[] set) {
         final int length = set.length;
-        final StringBuilder csv = new StringBuilder();
+        @NonNull final StringBuilder csv = new StringBuilder();
         for (int x = 0; x < length; x++) {
             csv.append("\"");
             csv.append(set[x]);

@@ -17,16 +17,43 @@
 
 package com.twofortyfouram.memento.model;
 
+import android.content.ContentProvider;
+import android.content.ContentValues;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.CancellationSignal;
+import androidx.annotation.NonNull;
 import net.jcip.annotations.ThreadSafe;
 
 /**
  * Set of operations that can be performed on a ContentProvider.
+ *
+ * @see SqliteUriMatch#isOperationAllowed(Operation)
  */
 @ThreadSafe
 public enum Operation {
 
+    /**
+     * @see ContentProvider#query(Uri, String[], Bundle, CancellationSignal)
+     * @see ContentProvider#query(Uri, String[], String, String[], String)
+     * @see ContentProvider#query(Uri, String[], String, String[], String, CancellationSignal)
+     */
+    @NonNull
     QUERY,
+    /**
+     * @see ContentProvider#insert(Uri, ContentValues)
+     * @see ContentProvider#bulkInsert(Uri, ContentValues[])
+     */
+    @NonNull
     INSERT,
+    /**
+     * @see ContentProvider#update(Uri, ContentValues, String, String[])
+     */
+    @NonNull
     UPDATE,
+    /**
+     * @see ContentProvider#delete(Uri, String, String[])
+     */
+    @NonNull
     DELETE;
 }

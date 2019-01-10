@@ -40,8 +40,9 @@ public interface Transactable extends Parcelable {
      * or other slow operations inside this method.
      *
      * @context Application context.
-     * @param bundle Bundle of arguments specific to this Transactable object.  These would have
-     *               been passed along with the Transactable object itself to the ContentProvider.
+     * @param bundle Bundle of arguments specific to this Transactable object.  These will be
+     *               been passed along with the Transactable object itself to the ContentProvider and then provided to
+     *               {@link Transactable#runInTransaction(Context, Bundle)}.
      * @return An optional Bundle result.
      */
     @Nullable

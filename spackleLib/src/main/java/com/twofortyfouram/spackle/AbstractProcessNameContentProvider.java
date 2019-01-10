@@ -44,6 +44,8 @@ import static com.twofortyfouram.assertion.Assertions.assertNotNull;
  * An implementation for the default process already exists.  Clients with other processes should
  * add a subclass implementation for each additional process, assigning the content provider the
  * highest initialization order and setting the provider to not be multiprocess.
+ *
+ * @see com.twofortyfouram.spackle.internal.DefaultProcessNameContentProvider
  */
 @ThreadSafe
 public class AbstractProcessNameContentProvider extends ContentProvider {
@@ -59,8 +61,6 @@ public class AbstractProcessNameContentProvider extends ContentProvider {
     public void attachInfo(final Context context, final ProviderInfo info) {
         super.attachInfo(context, info);
 
-        // Although the default ContentProvider is disabled via a resource boolean, that doesn't prevent
-        // implementors of the ContentProvider from not disabling it.
         @NonNull final String processName;
         if (AndroidSdkVersion.isAtLeastSdk(Build.VERSION_CODES.P)) {
             processName = getProcessNamePPlus();

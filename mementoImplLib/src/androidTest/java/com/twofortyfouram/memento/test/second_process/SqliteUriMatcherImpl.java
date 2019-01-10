@@ -26,7 +26,7 @@ import com.twofortyfouram.memento.internal.ImmutableUriMatcher;
 import com.twofortyfouram.memento.model.Operation;
 import com.twofortyfouram.memento.model.SqliteUriMatch;
 import com.twofortyfouram.memento.model.SqliteUriMatcher;
-import com.twofortyfouram.memento.test.main_process.ContentProviderImpl;
+import com.twofortyfouram.memento.test.main_process.provider.ContentProviderUtil;
 import com.twofortyfouram.spackle.ContextUtil;
 import net.jcip.annotations.Immutable;
 
@@ -91,7 +91,7 @@ public final class SqliteUriMatcherImpl implements SqliteUriMatcher {
 
     @NonNull
     private static UriMatcher newUriMatcher(@NonNull final Context context) {
-        final String contentAuthority = ContentProviderImpl.getContentAuthority(context);
+        final String contentAuthority = ContentProviderUtil.getContentAuthorityString(context);
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         matcher.addURI(contentAuthority, TableOneContractSecondProcess.TABLE_NAME, MATCH_TABLE_ONE_DIR);
         matcher.addURI(contentAuthority,

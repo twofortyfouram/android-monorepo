@@ -20,7 +20,7 @@ package com.twofortyfouram.spackle;
 import android.os.Build;
 import androidx.test.filters.SdkSuppress;
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.util.ArrayMap;
 
 import org.junit.Test;
