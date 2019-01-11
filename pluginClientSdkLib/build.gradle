@@ -93,7 +93,7 @@ android {
     testOptions {
         animationsDisabled true
         if (is_test_orchestrator) {
-            execution 'ANDROID_TEST_ORCHESTRATOR'
+            execution 'ANDROIDX_TEST_ORCHESTRATOR'
         }
     }
 }
