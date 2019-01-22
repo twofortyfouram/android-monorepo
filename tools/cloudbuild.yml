@@ -1,0 +1,164 @@
+# Several substitutions need to be configured:
+# _BUILD_CACHE_BUCKET - the storage bucket for the build cache, without the leading gs://
+# _ARTIFACT_BUCKET - the storage bucket for storing build artifacts, without the leading gs://
+# _CREDENTIALS_BUCKET - the storage bucket for build credentials, without the leading gs://
+# _TEST_LAB_PROJECT - Name of the Firebase Test Lab project
+# _TEST_LAB_KEY_FILE_NAME - Name of the JSON key file in _CREDENTIALS_BUCKET
+
+steps:
+# Copy the build cache locally and then unzip into place. Cache is being
+# placed into a shared volume and the default gradle home needs to be overridden.
+# Note that the cache download uses rsync because the file might not exist the
+# first time it runs.
+- id: download_build_cache
+  name: 'gcr.io/cloud-builders/gsutil'
+  args: ['rsync', 'gs://${_BUILD_CACHE_BUCKET}/', '/build_cache']
+  volumes:
+    - name: 'build_cache'
+      path: '/build_cache'
+
+- id: decompress_build_cache
+  name: 'gcr.io/$PROJECT_ID/zip'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      set -o errexit -o pipefail # Exit on error
+
+      echo "Starting build cache bash script"
+      if [ -f ${_GRADLE_HOME_ZIP} ]; then
+          echo "Unzipping build cache"
+          unzip -qq ${_GRADLE_HOME_ZIP} -d ${_GRADLE_HOME_DIR}
+          ls -a ${_GRADLE_HOME_DIR}
+      else
+          echo "Build cache doesn't exist yet"
+          mkdir -p ${_GRADLE_HOME_DIR}
+      fi
+      echo "Finishing build cache bash script"
+  waitFor:
+    - download_build_cache
+  volumes:
+    - name: 'build_cache'
+      path: '/build_cache'
+
+- id: download_credentials
+  name: 'gcr.io/cloud-builders/gsutil'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      set -o errexit -o pipefail # Exit on error
+
+      gsutil cp gs://${_CREDENTIALS_BUCKET}/* /build_credentials
+
+      mkdir -p ${_GRADLE_HOME_DIR}
+      cp /build_credentials/gradle.properties ${_GRADLE_HOME_DIR}/gradle.properties
+  waitFor:
+    - decompress_build_cache
+  volumes:
+    - name: 'build_cache'
+      path: '/build_cache'
+    - name: 'build_credentials'
+      path: '/build_credentials'
+
+# Conditional logic for building branches versus master, as only master will
+# upload to the play store.
+# Note need to pass sha to gradle, because shelling out to git doesn't work
+# Note: debug max workers is to allow firebase testing in parallel
+- id: gradle_build
+  name: 'gcr.io/$PROJECT_ID/android'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      set -o errexit -o pipefail # Exit on error
+
+      if [[ 'master' == "$BRANCH_NAME" ]]; then
+          echo "master upload bundle"
+          ./gradlew :app:publishBundle -PIS_CRASHLYTICS_ENABLED=true --parallel --stacktrace --profile -Dorg.gradle.daemon=false -PGIT_SHA=$SHORT_SHA
+      else
+          echo "branch build and test"
+
+          # Configure gcloud with the Firebase Test Lab credentials
+          gcloud --quiet auth activate-service-account --key-file /build_credentials/${_TEST_LAB_KEY_FILE_NAME}
+          gcloud --quiet config set project ${_TEST_LAB_PROJECT}
+
+          # max_workers should correlate with the number of modules so that FTL tasks don't hold up the build
+          ./gradlew assemble lintRelease ftlCheck --parallel --stacktrace --profile --max-workers=10 -Dorg.gradle.daemon=false -PGIT_SHA=$SHORT_SHA
+      fi
+  env:
+    - 'GRADLE_USER_HOME=${_GRADLE_HOME_DIR}'
+  timeout: 1700s
+  waitFor:
+    - decompress_build_cache
+    - download_credentials
+  volumes:
+    - name: 'build_cache'
+      path: '/build_cache'
+    - name: 'build_credentials'
+      path: '/build_credentials'
+
+- id: compress_build_artifacts
+  name: 'gcr.io/$PROJECT_ID/zip'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      zip -r artifacts . -i *build/outputs/androidTest-results/* *build/outputs/reports/* *build/outputs/reports/* *app/build/outputs/apk/*/* *app/build/outputs/bundle/* *app/build/outputs/mapping/*/* build/dependencyUpdates build/reports
+  waitFor:
+    - gradle_build  
+
+# Copy build results apk to cloud storage bucket
+- id: upload_build_artifacts
+  name: 'gcr.io/cloud-builders/gsutil'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
+    
+      echo "Build artifacts stored under https://console.cloud.google.com/storage/browser/${_ARTIFACT_BUCKET}/${$_DATE}-$BRANCH_NAME-$SHORT_SHA-$BUILD_ID/"
+      
+      gsutil -q cp artifacts.zip gs://${_ARTIFACT_BUCKET}/${$_DATE}-$BRANCH_NAME-$SHORT_SHA-$BUILD_ID/
+  waitFor:
+   - compress_build_artifacts
+
+# Repopulate the build-cache
+# Compress the gradle_home directory into a zip file, excluding the gradle.properties
+# Note: Filename is hardcoded and must be preserved between this zip task and the prior unzip task
+- id: compress_build_cache
+  name: 'gcr.io/$PROJECT_ID/zip'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      set -o errexit -o pipefail # Exit on error
+
+      cd ${_GRADLE_HOME_DIR}
+      zip -qq -FS -r ${_GRADLE_HOME_ZIP} . -x gradle.properties
+  waitFor:
+    - gradle_build
+  volumes:
+    - name: 'build_cache'
+      path: '/build_cache'
+
+- id: upload_build_cache
+  name: 'gcr.io/cloud-builders/gsutil'
+  args: ['-q', 'cp', '${_GRADLE_HOME_ZIP}', 'gs://${_BUILD_CACHE_BUCKET}']
+  waitFor:
+    - compress_build_cache
+  volumes:
+    - name: 'build_cache'
+      path: '/build_cache'
+
+# Hack to get a $DATE variable to work in the compress_build_artifacts step
+# Also hack to get a $MODULES_TO_TEST variable to work in the test step
+substitutions:
+    _DATE: DATE
+    _GRADLE_HOME_DIR: /build_cache/gradle_home
+    _GRADLE_HOME_ZIP: /build_cache/gradle_home.zip
+
+timeout: 2500s
+
+options:
+  machineType: 'N1_HIGHCPU_8'
