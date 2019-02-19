@@ -165,6 +165,6 @@ task findbugs(type: FindBugs, dependsOn: ':pluginHostSdkLib:compileReleaseSource
         // Only one report type can be enabled at a time, apparently.
         xml.enabled = false
         html.enabled = true
-        html.destination = "${project.buildDir}/outputs/reports/findbugs/findbugs.html"
+        //html.destination = "${project.buildDir}/outputs/reports/findbugs/findbugs.html"
     }
 }
