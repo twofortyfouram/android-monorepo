@@ -67,13 +67,30 @@ jobs:
                unzip -qq ${GRADLE_HOME_ZIP_PATH} -d ${GRADLE_HOME_DIR_PATH}
            fi
 
+# Put secrets into gradle.properties instead of passing them as command line arguments.
+    - name: Setup Secrets
+      env:
+          FIREBASE_TEST_LAB_BUCKET: ${{ secrets.FIREBASE_TEST_LAB_BUCKET }}
+      run: |
+           GRADLE_HOME_DIR_PATH=${HOME}/.gradle
+           mkdir -p ${GRADLE_HOME_DIR_PATH}
+           
+           GRADLE_PROPERTIES=${GRADLE_HOME_DIR_PATH}/gradle.properties
+
+           echo "TWOFORTYFOURAM_MONOREPO_FIREBASE_TEST_LAB_BUCKET=${FIREBASE_TEST_LAB_BUCKET}" >> ${GRADLE_PROPERTIES}
+
     - name: Download Gradle
       run: |
            ./gradlew --version
 
     - name: Build with Gradle
       run: |
-           ./gradlew assemble lint --profile --stacktrace
+           ./gradlew assemble assembleAndroidTest lint --profile --stacktrace
+
+# max-workers exceeds number of CPU cores, but mostly the workers are blocked waiting for Firebase Test Lab to return results since compiling the tests happens in the prior build step
+    - name: Test
+      run: |
+           ./gradlew ftlCheck --max-workers=7 --stacktrace
 
     - name: Zip Dot Gradle
       env:
