@@ -1,37 +1,37 @@
-apply plugin: 'com.github.spotbugs'
-
-spotbugs {
-    toolVersion = "${SPOTBUGS_VERSION_MATCHER}"
-}
-
-buildscript {
-    repositories {
-        maven { url 'https://plugins.gradle.org/m2/' }
-    }
-    dependencies {
-        classpath group:'gradle.plugin.com.github.spotbugs.snom', name:'spotbugs-gradle-plugin', version:"${SPOTBUGS_GRADLE_PLUGIN_VERSION_MATCHER}"
-    }
-}
-
-final BUILD_TYPE = ":compileReleaseSources"
-
-task spotbugs(type: com.github.spotbugs.SpotBugsTask, dependsOn: moduleName.concat(BUILD_TYPE)) {
-    ignoreFailures = true
-    classes = fileTree('build/intermediates/classes/release/')
-    source = fileTree('src/main/java/')
-    spotbugsClasspath = buildscript.configurations.classpath
-    pluginClasspath = project.configurations.spotbugsPlugins
-    classpath = files()
-    excludeFilter = file("${rootProject.projectDir}/tools/spotbugs/android-filter.xml")
-    effort = 'max'
-    reportLevel = 'low'
-    reports {
-        // Only one report type can be enabled at a time, apparently.
-        xml.enabled = false
-        html.enabled = true
-        html.setDestination(new File("${project.buildDir}/outputs/reports/spotbugs/spotbugs.html"))
-    }
-}
+//apply plugin: 'com.github.spotbugs'
+//
+//spotbugs {
+//    toolVersion = "${SPOTBUGS_VERSION_MATCHER}"
+//}
+//
+//buildscript {
+//    repositories {
+//        maven { url 'https://plugins.gradle.org/m2/' }
+//    }
+//    dependencies {
+//        classpath group:'gradle.plugin.com.github.spotbugs.snom', name:'spotbugs-gradle-plugin', version:"${SPOTBUGS_GRADLE_PLUGIN_VERSION_MATCHER}"
+//    }
+//}
+//
+//final BUILD_TYPE = ":compileReleaseSources"
+//
+//task spotbugs(type: com.github.spotbugs.SpotBugsTask, dependsOn: moduleName.concat(BUILD_TYPE)) {
+//    ignoreFailures = true
+//    classes = fileTree('build/intermediates/classes/release/')
+//    source = fileTree('src/main/java/')
+//    spotbugsClasspath = buildscript.configurations.classpath
+//    pluginClasspath = project.configurations.spotbugsPlugins
+//    classpath = files()
+//    excludeFilter = file("${rootProject.projectDir}/tools/spotbugs/android-filter.xml")
+//    effort = 'max'
+//    reportLevel = 'low'
+//    reports {
+//        // Only one report type can be enabled at a time, apparently.
+//        xml.enabled = false
+//        html.enabled = true
+//        html.setDestination(new File("${project.buildDir}/outputs/reports/spotbugs/spotbugs.html"))
+//    }
+//}
 
 private def getModuleName() {
     return displayName.substring(displayName.indexOf(":"), displayName.length() - 1)
