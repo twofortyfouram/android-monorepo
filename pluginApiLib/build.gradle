@@ -19,7 +19,6 @@ boolean is_dexguard = Boolean.parseBoolean(IS_DEXGUARD_ENABLED)
 boolean is_test_orchestrator = Boolean.parseBoolean(IS_USE_TEST_ORCHESTRATOR)
 
 apply plugin: 'com.android.library'
-apply plugin: 'findbugs'
 
 apply plugin: 'maven'
 group = 'com.twofortyfouram'
@@ -143,20 +142,4 @@ android.libraryVariants.all { variant ->
     }
 
     project.artifacts.add('archives', tasks["${variant.name}SourceJar"]);
-}
-
-task findbugs(type: FindBugs, dependsOn: ':pluginApiLib:compileReleaseSources') {
-    ignoreFailures = true
-    classes = fileTree('build/intermediates/classes/release/')
-    source = fileTree('src/main/java/')
-    classpath = files()
-    excludeFilter = file("$rootProject.projectDir/tools/findbugs/android-filter.xml")
-    effort = 'max'
-    reportLevel = 'low'
-    reports {
-        // Only one report type can be enabled at a time, apparently.
-        xml.enabled = false
-        html.enabled = true
-        // html.destination = "$project.buildDir/outputs/reports/findbugs/findbugs.html"
-    }
 }
