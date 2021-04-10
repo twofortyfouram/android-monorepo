@@ -1,0 +1,6 @@
+# This improves obfuscation.
+-repackageclasses 'com.twofortyfouram.empty'
+
+# Ensure that stacktraces are reversible.
+-renamesourcefileattribute SourceFile
+-keepattributes SourceFile,LineNumberTable
