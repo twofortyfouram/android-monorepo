@@ -1,130 +1,78 @@
 # Expected Secrets
-# 
-# GCLOUD_JSON_KEY_BASE_64 - Base64 encoded Google Cloud JSON API key
-# GCLOUD_PROJECT - Name of the Google Cloud project
-# BUILD_CACHE_BUCKET - the storage bucket for the build cache as one zip file, without the leading gs://
-# FIREBASE_TEST_LAB_BUCKET - Default bucket for Firebase Test Lab test results
+# GCLOUD_JSON_KEY_BASE_64
 
 name: Android CI
 
-on: [push]
+on:
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/dependabot.yml'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - '.github/ISSUE_TEMPLATE/**'
+      - 'README.md'
+      - 'LICENSE'
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout
+      timeout-minutes: 1
+      uses: actions/checkout@v2
 
-    - name: Set up JDK 1.8
-      uses: actions/setup-java@v1
+    - name: Gradle Validation
+      timeout-minutes: 1
+      uses: gradle/wrapper-validation-action@v1
+
+    - name: Set up Java
+      timeout-minutes: 1
+      uses: actions/setup-java@v2
       with:
-        java-version: 1.8
+        distribution: 'zulu'
+        java-version: 15
 
-    - name: Setup Google Cloud SDK
-      env:
-          GCLOUD_PROJECT: ${{ secrets.GCLOUD_PROJECT }}
-          GCLOUD_KEY_JSON_BASE_64: ${{ secrets.GCLOUD_JSON_KEY_BASE_64 }}
-          GCLOUD_KEY_FILENAME: gcloud-key.json
-      run: |
-           GCLOUD_KEY_PATH=${HOME}/${GCLOUD_KEY_FILENAME}
-           echo ${GCLOUD_KEY_JSON_BASE_64} | base64 --decode > ${GCLOUD_KEY_PATH}
-           
-           gcloud --quiet auth activate-service-account --key-file ${GCLOUD_KEY_PATH}
-           gcloud --quiet config set project ${GCLOUD_PROJECT}
-           rm ${GCLOUD_KEY_PATH}
-
-    - name: Download Dot Gradle
-      env:
-          GRADLE_HOME_ZIP_FILENAME: gradle_home.zip
-          BUILD_CACHE_BUCKET: ${{ secrets.BUILD_CACHE_BUCKET }}
-      run: |
-           GRADLE_HOME_ZIP_PATH=${HOME}/${GRADLE_HOME_ZIP_FILENAME}
-           GRADLE_HOME_GCLOUD_PATH=gs://${BUILD_CACHE_BUCKET}/${GRADLE_HOME_ZIP_FILENAME}
-
-           set +e
-           gsutil stat ${GRADLE_HOME_GCLOUD_PATH}
-           IS_ZIP_EXISTS=$?
-           echo $IS_ZIP_EXISTS
-           set -e
-           
-           if [ 0 == ${IS_ZIP_EXISTS} ]; then
-               echo "Downloading .gradle"
-               gsutil cp ${GRADLE_HOME_GCLOUD_PATH} ${GRADLE_HOME_ZIP_PATH}
-           else
-               echo "Build cache doesn't exist yet"
-           fi
-
-    - name: Unzip Dot Gradle
-      env:
-          GRADLE_HOME_ZIP_FILENAME: gradle_home.zip
-      run: |
-           GRADLE_HOME_ZIP_PATH=${HOME}/${GRADLE_HOME_ZIP_FILENAME}
-           GRADLE_HOME_DIR_PATH=${HOME}/.gradle
-           
-           if [ -f ${GRADLE_HOME_ZIP_PATH} ]; then
-               echo "Unzipping .gradle"
-               unzip -qq ${GRADLE_HOME_ZIP_PATH} -d ${GRADLE_HOME_DIR_PATH}
-           fi
-
-# Put secrets into gradle.properties instead of passing them as command line arguments.
     - name: Setup Secrets
       env:
-          FIREBASE_TEST_LAB_BUCKET: ${{ secrets.FIREBASE_TEST_LAB_BUCKET }}
+        FIREBASE_TEST_LAB_API_KEY_BASE_64: ${{ secrets.GCLOUD_JSON_KEY_BASE_64 }}
+        FIREBASE_API_KEY_FILE_NAME: gcloud-key.json
       run: |
-           GRADLE_HOME_DIR_PATH=${HOME}/.gradle
-           mkdir -p ${GRADLE_HOME_DIR_PATH}
-           
-           GRADLE_PROPERTIES=${GRADLE_HOME_DIR_PATH}/gradle.properties
+           FIREBASE_API_KEY_FILE_PATH=${HOME}/${FIREBASE_API_KEY_FILE_NAME}
+           echo $FIREBASE_TEST_LAB_API_KEY_BASE_64 | base64 --decode > ${FIREBASE_API_KEY_FILE_PATH}
 
-           echo "TWOFORTYFOURAM_MONOREPO_FIREBASE_TEST_LAB_BUCKET=${FIREBASE_TEST_LAB_BUCKET}" >> ${GRADLE_PROPERTIES}
-
-    - name: Download Gradle
+    - name: Build
+      timeout-minutes: 15
+      env:
+        ORG_GRADLE_PROJECT_IS_COVERAGE_ENABLED: false
       run: |
-           ./gradlew --version
+        ./gradlew assembleDebug assembleAndroidTest --no-daemon
 
-    - name: Build with Gradle
-      run: |
-           ./gradlew assemble assembleAndroidTest lint --profile --stacktrace
-
-# max-workers exceeds number of CPU cores, but mostly the workers are blocked waiting for Firebase Test Lab to return results since compiling the tests happens in the prior build step
     - name: Test
-      run: |
-           ./gradlew ftlCheck --max-workers=7 --stacktrace
-
-    - name: Zip Dot Gradle
+      timeout-minutes: 20
       env:
-          GRADLE_HOME_ZIP_FILENAME: gradle_home.zip
+        ORG_GRADLE_PROJECT_IS_COVERAGE_ENABLED: false
+        GCLOUD_KEY_FILENAME: gcloud-key.json
       run: |
-           GRADLE_HOME_ZIP_PATH=${HOME}/${GRADLE_HOME_ZIP_FILENAME}
-           GRADLE_HOME_DIR_PATH=${HOME}/.gradle
+        GCLOUD_KEY_PATH=${HOME}/${GCLOUD_KEY_FILENAME}
 
-           cd ${GRADLE_HOME_DIR_PATH}
-           zip -qq -FS -r ${GRADLE_HOME_ZIP_PATH} . -x gradle.properties *.out.log
+        ./gradlew runFlank --no-daemon --parallel --stacktrace -PtwofortyfouramFirebaseTestLabServiceAccountKeyPath=${GCLOUD_KEY_PATH}
 
-    - name: Upload Dot Gradle
+    - name: Collect Artifacts
+      timeout-minutes: 1
       env:
-          GRADLE_HOME_ZIP_FILENAME: gradle_home.zip
-          BUILD_CACHE_BUCKET: ${{ secrets.BUILD_CACHE_BUCKET }}
+        ARTIFACTS_DIR_NAME: artifacts
+        TEST_RESULTS_FILE_NAME: test_results.zip
       run: |
-           GRADLE_HOME_ZIP_PATH=${HOME}/${GRADLE_HOME_ZIP_FILENAME}
-           GRADLE_HOME_GCLOUD_PATH=gs://${BUILD_CACHE_BUCKET}/${GRADLE_HOME_ZIP_FILENAME}
+        ARTIFACTS_DIR_PATH=~/${ARTIFACTS_DIR_NAME}
+        mkdir ${ARTIFACTS_DIR_PATH}
 
-           gsutil -q cp ${GRADLE_HOME_ZIP_PATH} ${GRADLE_HOME_GCLOUD_PATH}
+        TEST_RESULTS_ZIP_PATH=${ARTIFACTS_DIR_PATH}/${TEST_RESULTS_FILE_NAME}
+        zip -r ${TEST_RESULTS_ZIP_PATH} . -i *build/outputs/androidTest-results/*
 
-    - name: Collect Build Artifacts
-      env:
-          TEMP_ZIP_FILE: temp.zip
-          ARTIFACTS_DIR_NAME: artifacts
-      run: |
-           ARTIFACTS_DIR_PATH=${ARTIFACTS_DIR_NAME}
-           mkdir ${ARTIFACTS_DIR_PATH}
-
-           # Using zip to selectively copy to a directory
-           zip -0 -r ${TEMP_ZIP_FILE} . -i *build/outputs/androidTest-results/* *build/outputs/reports/* *app/build/outputs/apk/*/* *app/build/outputs/bundle/* *app/build/outputs/mapping/*/* build/dependencyUpdates/ build/reports/
-           unzip ${TEMP_ZIP_FILE} -d ${ARTIFACTS_DIR_PATH}
-
-    - uses: actions/upload-artifact@v1
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      timeout-minutes: 1
       with:
-          name: artifacts.zip
-          path: artifacts
+        name: Test results
+        path: ~/artifacts
