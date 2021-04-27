@@ -46,14 +46,14 @@ jobs:
     - name: Build
       timeout-minutes: 15
       env:
-        ORG_GRADLE_PROJECT_IS_COVERAGE_ENABLED: false
+        ORG_GRADLE_PROJECT_isCoverageEnabled: false
       run: |
         ./gradlew assembleDebug assembleAndroidTest --no-daemon
 
     - name: Test
       timeout-minutes: 20
       env:
-        ORG_GRADLE_PROJECT_IS_COVERAGE_ENABLED: false
+        ORG_GRADLE_PROJECT_isCoverageEnabled: false
         GCLOUD_KEY_FILENAME: gcloud-key.json
       run: |
         GCLOUD_KEY_PATH=${HOME}/${GCLOUD_KEY_FILENAME}

@@ -15,8 +15,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-boolean is_dexguard = Boolean.parseBoolean(IS_DEXGUARD_ENABLED)
-boolean is_test_orchestrator = Boolean.parseBoolean(IS_USE_TEST_ORCHESTRATOR)
+
+boolean is_test_orchestrator = Boolean.parseBoolean(isUseTestOrchestrator)
 
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
@@ -47,25 +47,7 @@ dependencies {
 }
 
 android {
-    compileSdkVersion ANDROID_COMPILE_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_COMPILE_SDK_VERSION) : ANDROID_COMPILE_SDK_VERSION
-
     resourcePrefix "com_twofortyfouram_locale_sdk_host_"
-
-    defaultConfig {
-        minSdkVersion ANDROID_MIN_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_MIN_SDK_VERSION) : ANDROID_MIN_SDK_VERSION
-        targetSdkVersion ANDROID_TARGET_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_TARGET_SDK_VERSION) : ANDROID_TARGET_SDK_VERSION
-        versionCode Integer.parseInt(LIBRARY_VERSION_CODE)
-        versionName LIBRARY_VERSION_NAME
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "proguard-consumer.txt"
-        if (is_dexguard) {
-            // This is additive; it doesn't replace but instead appends the AAR's embedded proguard config
-            consumerProguardFiles "dexguard-consumer.txt"
-        }
-        if (is_test_orchestrator) {
-            testInstrumentationRunnerArguments clearPackageData: "true"
-        }
-    }
 
     lintOptions {
         lintConfig file("lint.xml")
@@ -75,18 +57,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    buildTypes {
-        debug {
-            testCoverageEnabled Boolean.parseBoolean(IS_COVERAGE_ENABLED)
-        }
-        release {
-            // Obfuscation is enabled to cleanup classes declared public
-            // but which are considered internal APIs
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-project.txt"
-        }
     }
 
     testOptions {

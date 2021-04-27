@@ -17,6 +17,8 @@ dependencyResolutionManagement {
     }
 }
 
+includeBuild("build-conventions")
+
 include(":emptyApp")
 
 include(":annotationLib")
