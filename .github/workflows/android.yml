@@ -16,7 +16,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    permissions:
+      packages: read
+      contents: read
     steps:
     - name: Checkout
       timeout-minutes: 1
