@@ -18,30 +18,30 @@
 boolean is_dexguard = Boolean.parseBoolean(IS_DEXGUARD_ENABLED)
 boolean is_test_orchestrator = Boolean.parseBoolean(IS_USE_TEST_ORCHESTRATOR)
 
-apply plugin: 'com.android.library'
+apply plugin: "com.android.library"
 
 apply plugin: 'maven'
-group = 'com.twofortyfouram'
-archivesBaseName = 'android-plugin-client-sdk-for-locale'
+group = "com.twofortyfouram"
+archivesBaseName = "android-plugin-client-sdk-for-locale"
 version = LIBRARY_VERSION_NAME
 
 dependencies {
-    implementation group:'androidx.appcompat', name:'appcompat', version:"${ANDROID_APPCOMPAT_VERSION_MATCHER}"
-    implementation group:'androidx.legacy', name:'legacy-support-v4', version:"${ANDROID_LEGACY_SUPPORT_VERSION_MATCHER}"
+    implementation("androidx.appcompat:appcompat:${ANDROID_APPCOMPAT_VERSION_MATCHER}")
+    implementation("androidx.legacy:legacy-support-v4:${ANDROID_LEGACY_SUPPORT_VERSION_MATCHER}")
 
-    implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
-    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_ANNOTATION_VERSION_MATCHER}"
-    implementation project(':annotationLib')
-    implementation project(':assertionLib')
-    implementation project(':pluginApiLib')
-    implementation project(':spackleLib')
+    implementation("net.jcip:jcip-annotations:${JCIP_ANNOTATION_VERSION_MATCHER}")
+    implementation("androidx.annotation:annotation:${ANDROID_ANNOTATION_VERSION_MATCHER}")
+    implementation(project(":annotationLib"))
+    implementation(project(":assertionLib"))
+    implementation(project(":pluginApiLib"))
+    implementation(project(":spackleLib"))
 
-    androidTestImplementation group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
-    androidTestImplementation group:'androidx.test.espresso', name:'espresso-intents', version:"${ESPRESSO_VERSION_MATCHER}"
-    androidTestImplementation project(':testLib')
+    androidTestImplementation("androidx.test.espresso:espresso-core:${ESPRESSO_VERSION_MATCHER}")
+    androidTestImplementation("androidx.test.espresso:espresso-intents:${ESPRESSO_VERSION_MATCHER}")
+    androidTestImplementation(project(":testLib"))
 
     if (is_test_orchestrator) {
-        androidTestUtil group:'androidx.test', name:'orchestrator', version:"${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}", ext:'apk'
+        androidTestUtil("androidx.test:orchestrator:${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}:apk")
     }
 }
 
@@ -49,28 +49,28 @@ android {
     compileSdkVersion ANDROID_COMPILE_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_COMPILE_SDK_VERSION) : ANDROID_COMPILE_SDK_VERSION
 
     // Need MockPackageManager
-    useLibrary 'android.test.mock'
+    useLibrary "android.test.mock"
 
-    resourcePrefix 'com_twofortyfouram_locale_sdk_client_'
+    resourcePrefix "com_twofortyfouram_locale_sdk_client_"
 
     defaultConfig {
         minSdkVersion ANDROID_MIN_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_MIN_SDK_VERSION) : ANDROID_MIN_SDK_VERSION
         targetSdkVersion ANDROID_TARGET_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_TARGET_SDK_VERSION) : ANDROID_TARGET_SDK_VERSION
         versionCode Integer.parseInt(LIBRARY_VERSION_CODE)
         versionName LIBRARY_VERSION_NAME
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-        consumerProguardFiles 'proguard-consumer.txt'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "proguard-consumer.txt"
         if (is_dexguard) {
             // This is additive; it doesn't replace but instead appends the AAR's embedded proguard config
-            consumerProguardFiles 'dexguard-consumer.txt'
+            consumerProguardFiles "dexguard-consumer.txt"
         }
         if (is_test_orchestrator) {
-            testInstrumentationRunnerArguments clearPackageData: 'true'
+            testInstrumentationRunnerArguments clearPackageData: "true"
         }
     }
 
     lintOptions {
-        lintConfig file('lint.xml')
+        lintConfig file("lint.xml")
         checkDependencies Boolean.parseBoolean(IS_LINT_CHECK_DEPENDENCIES)
     }
 
@@ -87,14 +87,14 @@ android {
             // Obfuscation is enabled to cleanup classes declared public
             // but which are considered internal APIs
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-project.txt'
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-project.txt"
         }
     }
 
     testOptions {
         animationsDisabled true
         if (is_test_orchestrator) {
-            execution 'ANDROIDX_TEST_ORCHESTRATOR'
+            execution "ANDROIDX_TEST_ORCHESTRATOR"
         }
     }
 }
@@ -135,10 +135,10 @@ android.libraryVariants.all { variant ->
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
         classpath += variant.javaCompile.classpath
         classpath += variant.javaCompile.outputs.files
-        options.linksOffline('https://developer.android.com/reference/', "${androidHome}/docs/reference")
-        options.links('http://jcip.net.s3-website-us-east-1.amazonaws.com/annotations/doc/', 'https://twofortyfouram.github.io/android-annotation/', 'https://twofortyfouram.github.io/android-plugin-api-for-locale/')
-        exclude '**/R.java'
-        exclude 'com/twofortyfouram/locale/sdk/client/internal/**'
+        options.linksOffline("https://developer.android.com/reference/", "${androidHome}/docs/reference")
+        options.links("http://jcip.net.s3-website-us-east-1.amazonaws.com/annotations/doc/", 'https://twofortyfouram.github.io/android-annotation/', 'https://twofortyfouram.github.io/android-plugin-api-for-locale/')
+        exclude "**/R.java"
+        exclude "com/twofortyfouram/locale/sdk/client/internal/**"
     }
 }
 
@@ -146,7 +146,7 @@ android.libraryVariants.all { variant ->
 if (JavaVersion.current().isJava8Compatible()) {
     allprojects {
         tasks.withType(Javadoc) {
-            options.addStringOption('Xdoclint:none', '-quiet')
+            options.addStringOption("Xdoclint:none", "-quiet")
         }
     }
 }
@@ -154,20 +154,20 @@ if (JavaVersion.current().isJava8Compatible()) {
 // Generates the JavaDoc as a JAR for uploading an artifact
 android.libraryVariants.all { variant ->
     task("${variant.name}JavadocJar", type: Jar, dependsOn: "${variant.name}Javadoc") {
-        classifier = 'javadoc'
+        classifier = "javadoc"
         from tasks["${variant.name}Javadoc"].destinationDir
     }
 
-    project.artifacts.add('archives', tasks["${variant.name}JavadocJar"]);
+    project.artifacts.add("archives", tasks["${variant.name}JavadocJar"]);
 }
 
 
 // Generates the source as a JAR for uploading an artifact
 android.libraryVariants.all { variant ->
     task("${variant.name}SourceJar", type: Jar) {
-        classifier = 'sources'
+        classifier = "sources"
         from variant.javaCompile.source
     }
 
-    project.artifacts.add('archives', tasks["${variant.name}SourceJar"]);
+    project.artifacts.add("archives", tasks["${variant.name}SourceJar"]);
 }

@@ -18,23 +18,23 @@
 boolean is_dexguard = Boolean.parseBoolean(IS_DEXGUARD_ENABLED)
 boolean is_test_orchestrator = Boolean.parseBoolean(IS_USE_TEST_ORCHESTRATOR)
 
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-apply from: '../scripts.gradle'
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+apply from: "../scripts.gradle"
 
-apply plugin: 'maven'
-group = 'com.twofortyfouram'
-archivesBaseName = 'android-test'
+apply plugin: "maven"
+group = "com.twofortyfouram"
+archivesBaseName = "android-test"
 version = LIBRARY_VERSION_NAME
 
 dependencies {
-    implementation group:'net.jcip', name:'jcip-annotations', version:"${JCIP_ANNOTATION_VERSION_MATCHER}"
-    implementation group:'androidx.annotation', name:'annotation', version:"${ANDROID_ANNOTATION_VERSION_MATCHER}"
-    implementation project(':annotationLib')
-    implementation group:'androidx.test', name: 'core', version: "${ANDROID_TEST_CORE_VERSION_MATCHER}"
-    implementation group:'androidx.test.espresso', name:'espresso-core', version:"${ESPRESSO_VERSION_MATCHER}"
+    implementation("net.jcip:jcip-annotations:${JCIP_ANNOTATION_VERSION_MATCHER}")
+    implementation("androidx.annotation:annotation:${ANDROID_ANNOTATION_VERSION_MATCHER}")
+    implementation(project(':annotationLib'))
+    implementation("androidx.test:core:${ANDROID_TEST_CORE_VERSION_MATCHER}")
+    implementation("androidx.test.espresso:espresso-core:${ESPRESSO_VERSION_MATCHER}")
     
-    androidTestImplementation group:'androidx.test.ext', name: 'junit', version: "${ANDROID_TEST_JUNIT_VERSION_MATCHER}"
+    androidTestImplementation("androidx.test.ext:junit:${ANDROID_TEST_JUNIT_VERSION_MATCHER}")
 
     if (is_test_orchestrator) {
         androidTestUtil group:'androidx.test', name:'orchestrator', version:"${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}", ext:'apk'
@@ -45,26 +45,26 @@ android {
     compileSdkVersion ANDROID_COMPILE_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_COMPILE_SDK_VERSION) : ANDROID_COMPILE_SDK_VERSION
 
     // Need MockContentResolver
-    useLibrary 'android.test.mock'
+    useLibrary "android.test.mock"
 
     defaultConfig {
         minSdkVersion ANDROID_MIN_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_MIN_SDK_VERSION) : ANDROID_MIN_SDK_VERSION
         targetSdkVersion ANDROID_TARGET_SDK_VERSION.isInteger() ? Integer.parseInt(ANDROID_TARGET_SDK_VERSION) : ANDROID_TARGET_SDK_VERSION
         versionCode Integer.parseInt(LIBRARY_VERSION_CODE)
         versionName LIBRARY_VERSION_NAME
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-        consumerProguardFiles 'proguard-consumer.txt'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "proguard-consumer.txt"
         if (is_dexguard) {
             // This is additive; it doesn't replace but instead appends the AAR's embedded proguard config
-            consumerProguardFiles 'dexguard-consumer.txt'
+            consumerProguardFiles "dexguard-consumer.txt"
         }
         if (is_test_orchestrator) {
-            testInstrumentationRunnerArguments clearPackageData: 'true'
+            testInstrumentationRunnerArguments clearPackageData: "true"
         }
     }
 
     lintOptions {
-        lintConfig file('lint.xml')
+        lintConfig file("lint.xml")
         checkDependencies Boolean.parseBoolean(IS_LINT_CHECK_DEPENDENCIES)
     }
 
@@ -74,7 +74,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = "1.8"
         allWarningsAsErrors = true
     }
 
@@ -93,7 +93,7 @@ android {
     testOptions {
         animationsDisabled true
         if (is_test_orchestrator) {
-            execution 'ANDROIDX_TEST_ORCHESTRATOR'
+            execution "ANDROIDX_TEST_ORCHESTRATOR"
         }
     }
 }
