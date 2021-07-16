@@ -61,12 +61,12 @@ subprojects {
             lintOptions {
                 lintConfig = File("lint.xml")
             }
-//
-//            testCoverage {
-//                val jacocoVersion: String by project
-//
-//                version = jacocoVersion
-//            }
+
+            jacoco {
+                val jacocoVersion: String by project
+
+                version = jacocoVersion
+            }
         }
     }
 }
