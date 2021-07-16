@@ -28,23 +28,23 @@ PluginInstanceData has getters for [getType()](https://twofortyfouram.github.io/
 The SDKs are compatible and optimized for Android API Level 19 and above.  Note, however, consuming the SDKs requires at least Android Gradle Plugin 1.3.0. (This is due to a manifest placeholder in the AAR's manifest.)
 
 
-<!--
 ### Download
-The library is published as an artifact to jCenter.  To use the library, the jCenter repository and the artifact need to be added to your build script.
+The library is published as an artifact on GitHub Package Registry.  To use the library, the repository and the artifact need to be added to your build script.
 
 The build.gradle repositories section would look something like the following:
 
     repositories {
-        jcenter()
+        maven("https://maven.pkg.github.com/twofortyfouram/android-monorepo")
     }
+
 
 And the dependencies section would look something like this:
     
     dependencies {
-        compile group:'com.twofortyfouram', name:'android-plugin-host-sdk-for-locale', version:'[2.0.3,3.0['
+        implementation("com.twofortyfouram:android-plugin-host-sdk-for-locale:9.0.0")
     }
 
-
+<!--
 ### History
 * 1.0.0: Initial release
 * 2.0.0: Update transitive dependency on [plug-in-client-sdk-for-locale](https://twofortyfouram.github.io/android-plugin-client-sdk-for-locale) to a major new version.  Although the host SDK APIs didn't change, the dependency change could break downstream clients hence a major new version.

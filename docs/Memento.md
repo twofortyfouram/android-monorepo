@@ -17,7 +17,6 @@ Additional features include:
 * Enhanced security by ensuring _ID queries are not susceptible to SQL injection
 
 
-
 ## Usage
 ### Step by step
 1. Define the contract classes for the ContentProvider.  (A contract usually class more or less represents a database table.)
@@ -26,35 +25,34 @@ Additional features include:
     1. `SqliteUriMatcher`: Takes Uris and converts them into `SqliteUriMatch` objects that the ContentProvider uses whenever an operation (query, insert, update, delete, etc.) occurs.
 1. Create an AndroidManifest entry for the ContentProvider.
 
+### API versus Impl
+The library is broken into two modules: API and Impl.
+
+The API defines utilities for interacting with a ContentProvider implementation.  Impl defines classes to create a ContentProvider implementation.
+
+If you're creating a ContentProvider in your app for other apps to use, your app would use Impl internally.  Clients of your ContentProvider might optionally use the API library, to make it easier to interact with.
+
 ### Example
 An [example implementation](https://github.com/twofortyfouram/android-monorepo/tree/master/mementoImplLib/src/androidTest/java/com/twofortyfouram/memento/test) exists as part of the test suite.
 
 ### Further reading
 The official Android [ContentProvider Developer Guide](https://developer.android.com/guide/topics/providers/content-providers.html).
 
-<!--
-## API Reference
-JavaDocs for the library are published [here](http://twofortyfouram.github.io/android-memento).-->
-
 ## Compatibility
 The library is compatible and optimized for Android API Level 19 and above.
 
-<!--
 ## Download
-The library is published as an artifact to jCenter.  To use the library, the jCenter repository and the artifact need to be added to your build script.
+The library is published as an artifact on GitHub Package Registry.  To use the library, the repository and the artifact need to be added to your build script.
 
 The build.gradle repositories section would look something like the following:
 
     repositories {
-        jcenter()
+        maven("https://maven.pkg.github.com/twofortyfouram/android-monorepo")
     }
 
 And the dependencies section would look something like this:
     
     dependencies {
-        implementation group:'com.twofortyfouram', name:'android-memento-api', version:’[1.0.0,2.0[‘
-        implementation group:'com.twofortyfouram', name:'android-memento-impl', version:’[1.0.0,2.0[‘
+        implementation("com.twofortyfouram:android-memento-api:9.0.0)
+        implementation("com.twofortyfouram:android-memento-impl:9.0.0")
     }
-
-## History
--->

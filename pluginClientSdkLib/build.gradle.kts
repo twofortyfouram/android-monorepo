@@ -18,6 +18,8 @@
 plugins {
     id("com.android.library")
     kotlin("android")
+    `maven-publish`
+    id("twofortyfouram.maven-conventions")
 }
 apply(from = "../scripts.gradle")
 
@@ -119,3 +121,11 @@ android {
 //
 //    project.artifacts.add("archives", tasks["${variant.name}SourceJar"]);
 //}
+
+publishing {
+    publications {
+        publications.withType<MavenPublication>().all {
+            artifactId = com.twofortyfouram.MavenName.remap(name, "android-plugin-client-sdk-for-locale")
+        }
+    }
+}

@@ -9,26 +9,27 @@ JavaDocs for the library are published [here](http://twofortyfouram.github.io/an
 # Compatibility
 The library is compatible and optimized for Android API Level 19 and above.
 
-<!--
+
 # Download
 ## Gradle
-The library is published as an artifact to jCenter.  To use the library, the jCenter repository and the artifact need to be added to your build script.
+The library is published as an artifact on GitHub Package Registry.  To use the library, the repository and the artifact need to be added to your build script.
 
 The build.gradle repositories section would look something like the following:
 
     repositories {
-        jcenter()
+        maven("https://maven.pkg.github.com/twofortyfouram/android-monorepo")
     }
 
 And the dependencies section would look something like this:
 
     dependencies {
-        androidTestImplementation group:'com.twofortyfouram', name:'android-test', version:'[3.0.0,4.0['
-        androidTestImplementation group:'com.twofortyfouram', name:'android-assertion', version:'[1.1.1,2.0['
+        androidTestImplementation("com.twofortyfouram:android-test:9.0.0")
+        androidTestImplementation("com.twofortyfouram:android-assertion:9.0.0")
     }
 
-Note that the testLib has a `compileOnly` scope dependency on the assertion library, hence the compile dependency needed for any app using the library.
 
+Note that the testLib has a `compileOnly` scope dependency on the assertion library, hence the implementation dependency needed for any user of the library.
+<!--
 # History
 * 1.0.0: Initial release
 * 1.0.1: Disable running ProGuard, to fix RuntimeInvisibleParameterAnnotations error

@@ -18,6 +18,8 @@
 plugins {
     id("com.android.library")
     kotlin("android")
+    `maven-publish`
+    id("twofortyfouram.maven-conventions")
 }
 apply(from = "../scripts.gradle")
 
@@ -75,3 +77,11 @@ android {
 // android.libraryVariants.all { variant ->
 //     createJavaDocTaskForVariant(variant, "com/twofortyfouram/memento", "com_twofortyfouram_memento")
 // }
+
+publishing {
+    publications {
+        publications.withType<MavenPublication>().all {
+            artifactId = com.twofortyfouram.MavenName.remap(name, "android-memento-api")
+        }
+    }
+}

@@ -4,22 +4,22 @@ Spackle smooths things over and fills in the cracks.  This is a hodgepodge of ut
 ## Compatibility
 The library is compatible and optimized for Android API Level 19 and above.
 
-<!--
+
 ## Download
 The library is published as an artifact to jCenter.  To use the library, the jCenter repository and the artifact need to be added to your build script.
 
 The build.gradle repositories section would look something like the following:
 
     repositories {
-        jcenter()
+        maven("https://maven.pkg.github.com/twofortyfouram/android-monorepo")
     }
 
 And the dependencies section would look something like this:
     
     dependencies {
-        compile group:'com.twofortyfouram', name:'android-spackle', version:'[3.0.0,4.0['
+        implementation("com.twofortyfouram:android-spackle:9.0.0")
     }
-
+<!--
 ## History
 * 2.0.0: Initial release
 * 2.0.1: PermissionCompat handles WRITE_SETTINGS and REQUEST_IGNORE_BATTERY_OPTIMIZATIONS on Android Marshmallow

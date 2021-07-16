@@ -18,6 +18,8 @@
 plugins {
     id("com.android.library")
     kotlin("android")
+    `maven-publish`
+    id("twofortyfouram.maven-conventions")
 }
 apply(from = "../scripts.gradle")
 
@@ -61,3 +63,11 @@ android {
 //android.libraryVariants.all { variant ->
 //    createJavaDocTaskForVariant(variant, "com/twofortyfouram/annotation", "com_twofortyfouram_annotation")
 //}
+
+publishing {
+    publications {
+        publications.withType<MavenPublication>().all {
+            artifactId = com.twofortyfouram.MavenName.remap(name, "android-annotation")
+        }
+    }
+}

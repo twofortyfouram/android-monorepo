@@ -18,6 +18,8 @@
 plugins {
     id("com.android.library")
     kotlin("android")
+    `maven-publish`
+    id("twofortyfouram.maven-conventions")
 }
 apply(from = "../scripts.gradle")
 
@@ -35,7 +37,6 @@ version = run {
 dependencies {
     val JCIP_ANNOTATION_VERSION_MATCHER: String by project
     val ANDROID_ANNOTATION_VERSION_MATCHER: String by project
-    val ANDROID_FRAGMENT_VERSION_MATCHER: String by project
 
     val ANDROID_TEST_CORE_VERSION_MATCHER: String by project
     val ESPRESSO_VERSION_MATCHER: String by project
@@ -70,3 +71,11 @@ android {
 //    Javadoc javadoc = createJavaDocTaskForVariant(variant, "com/twofortyfouram/spackle", "com_twofortyfouram_spackle")
 //    javadoc.exclude('com/twofortyfouram/spackle/internal/**')
 //}
+
+publishing {
+    publications {
+        publications.withType<MavenPublication>().all {
+            artifactId = com.twofortyfouram.MavenName.remap(name, "android-spackle")
+        }
+    }
+}

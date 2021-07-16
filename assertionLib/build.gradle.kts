@@ -18,6 +18,8 @@
 plugins {
     id("com.android.library")
     kotlin("android")
+    `maven-publish`
+    id("twofortyfouram.maven-conventions")
 }
 apply(from = "../scripts.gradle")
 
@@ -68,3 +70,11 @@ android {
 //        "com_twofortyfouram_assertion"
 //    )
 //}
+
+publishing {
+    publications {
+        publications.withType<MavenPublication>().all {
+            artifactId = com.twofortyfouram.MavenName.remap(name, "android-assertion")
+        }
+    }
+}
