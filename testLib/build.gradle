@@ -21,7 +21,7 @@ apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 apply from: "../scripts.gradle"
 
-apply plugin: "maven"
+
 group = "com.twofortyfouram"
 archivesBaseName = "android-test"
 version = LIBRARY_VERSION_NAME
@@ -64,34 +64,6 @@ android {
         if (is_test_orchestrator) {
             execution "ANDROIDX_TEST_ORCHESTRATOR"
         }
-    }
-}
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: 'https://api.bintray.com/maven/twofortyfouram/maven/android-test') {
-                authentication(userName: TWOFORTYFOURAM_MONOREPO_MAVEN_USERNAME, password: TWOFORTYFOURAM_MONOREPO_MAVEN_PASSWORD)
-            }
-            pom.project {
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution 'repo'
-                    }
-                }
-            }
-        }
-    }
-}
-
-// Workaround for naming conflict between maven and android plugins
-// http://stackoverflow.com/questions/18559932/gradle-maven-plugin-install-task-does-not-work-with-android-library-project
-task installArchives(type: Upload) {
-    description "Installs artifacts to mavenLocal."
-    repositories.mavenInstaller {
-        configuration = configurations.default
     }
 }
 

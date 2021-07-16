@@ -22,7 +22,7 @@ apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 apply from: "../scripts.gradle"
 
-apply plugin: "maven"
+
 group = "com.twofortyfouram"
 archivesBaseName = "android-spackle"
 version = LIBRARY_VERSION_NAME

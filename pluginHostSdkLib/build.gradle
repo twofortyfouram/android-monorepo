@@ -21,7 +21,7 @@ boolean is_test_orchestrator = Boolean.parseBoolean(isUseTestOrchestrator)
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 
-apply plugin: "maven"
+
 group = "com.twofortyfouram"
 archivesBaseName = "android-plugin-host-sdk-for-locale"
 version = LIBRARY_VERSION_NAME
@@ -63,25 +63,6 @@ android {
         animationsDisabled true
         if (is_test_orchestrator) {
             execution "ANDROIDX_TEST_ORCHESTRATOR"
-        }
-    }
-}
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: 'https://api.bintray.com/maven/twofortyfouram/maven/android-plugin-host-sdk-for-locale') {
-                authentication(userName: TWOFORTYFOURAM_MONOREPO_MAVEN_USERNAME, password: TWOFORTYFOURAM_MONOREPO_MAVEN_PASSWORD)
-            }
-            pom.project {
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution 'repo'
-                    }
-                }
-            }
         }
     }
 }

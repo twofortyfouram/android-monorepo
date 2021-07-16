@@ -61,33 +61,6 @@ android {
     }
 }
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: 'https://api.bintray.com/maven/twofortyfouram/maven/android-assertion') {
-                authentication(userName: TWOFORTYFOURAM_MONOREPO_MAVEN_USERNAME, password: TWOFORTYFOURAM_MONOREPO_MAVEN_PASSWORD)
-            }
-            pom.project {
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution 'repo'
-                    }
-                }
-            }
-        }
-    }
-}
-
-// Workaround for naming conflict between maven and android plugins
-// http://stackoverflow.com/questions/18559932/gradle-maven-plugin-install-task-does-not-work-with-android-library-project
-task installArchives(type: Upload) {
-    description "Installs artifacts to mavenLocal."
-    repositories.mavenInstaller {
-        configuration = configurations.default
-    }
-}
 
 android.libraryVariants.all { variant ->
     createJavaDocTaskForVariant(variant, "com/twofortyfouram/assertion", "com_twofortyfouram_assertion")
