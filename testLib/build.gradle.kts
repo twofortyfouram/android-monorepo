@@ -15,58 +15,54 @@
  * specific language governing permissions and limitations under the License.
  */
 
-boolean is_test_orchestrator = Boolean.parseBoolean(isUseTestOrchestrator)
+plugins {
+    id("com.android.library")
+    kotlin("android")
+}
+apply(from = "../scripts.gradle")
 
-apply plugin: "com.android.library"
-apply plugin: "kotlin-android"
-apply from: "../scripts.gradle"
-
+val isTestOrchestrator = run {
+    val isUseTestOrchestrator: String by project
+    isUseTestOrchestrator.toBoolean()
+}
 
 group = "com.twofortyfouram"
-archivesBaseName = "android-test"
-version = LIBRARY_VERSION_NAME
+version = run {
+    val LIBRARY_VERSION_NAME: String by project
+    LIBRARY_VERSION_NAME
+}
 
 dependencies {
+    val JCIP_ANNOTATION_VERSION_MATCHER: String by project
+    val ANDROID_ANNOTATION_VERSION_MATCHER: String by project
+
+    val ANDROID_TEST_CORE_VERSION_MATCHER: String by project
+    val ESPRESSO_VERSION_MATCHER: String by project
+    val ANDROID_TEST_JUNIT_VERSION_MATCHER: String by project
+    val ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER: String by project
+
     implementation("net.jcip:jcip-annotations:${JCIP_ANNOTATION_VERSION_MATCHER}")
     implementation("androidx.annotation:annotation:${ANDROID_ANNOTATION_VERSION_MATCHER}")
-    implementation(project(':annotationLib'))
+    implementation(project(":annotationLib"))
     implementation("androidx.test:core:${ANDROID_TEST_CORE_VERSION_MATCHER}")
     implementation("androidx.test.espresso:espresso-core:${ESPRESSO_VERSION_MATCHER}")
     
     androidTestImplementation("androidx.test.ext:junit:${ANDROID_TEST_JUNIT_VERSION_MATCHER}")
 
-    if (is_test_orchestrator) {
-        androidTestUtil group:'androidx.test', name:'orchestrator', version:"${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}", ext:'apk'
+    if (isTestOrchestrator) {
+        androidTestUtil("androidx.test:orchestrator:${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}") {
+            artifact {
+                classifier = "apk"
+            }
+        }
     }
 }
 
 android {
     // Need MockContentResolver
-    useLibrary "android.test.mock"
-
-    lintOptions {
-        lintConfig file("lint.xml")
-        checkDependencies Boolean.parseBoolean(IS_LINT_CHECK_DEPENDENCIES)
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = "1.8"
-        allWarningsAsErrors = true
-    }
-
-    testOptions {
-        animationsDisabled true
-        if (is_test_orchestrator) {
-            execution "ANDROIDX_TEST_ORCHESTRATOR"
-        }
-    }
+    useLibrary("android.test.mock")
 }
 
-android.libraryVariants.all { variant ->
-    createJavaDocTaskForVariant(variant, "com/twofortyfouram/test", "com_twofortyfouram_test")
-}
+//android.libraryVariants.all { variant ->
+//    createJavaDocTaskForVariant(variant, "com/twofortyfouram/test", "com_twofortyfouram_test")
+//}

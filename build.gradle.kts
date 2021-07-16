@@ -58,9 +58,9 @@ subprojects {
                 }
             }
 
-//            lint {
-//                lintConfig = File("lint.xml")
-//            }
+            lintOptions {
+                lintConfig = File("lint.xml")
+            }
 //
 //            testCoverage {
 //                val jacocoVersion: String by project
@@ -80,18 +80,20 @@ fun com.android.build.gradle.BaseExtension.configureBaseExtension() {
         targetCompatibility(JavaVersion.VERSION_1_8)
     }
 
+    signingConfigs {
+        getByName("debug").apply {
+            storeFile = File("${rootProject.projectDir}/tools/debug.keystore")
+        }
+    }
+
     buildTypes {
         getByName("debug").apply {
             isTestCoverageEnabled = run {
                 val isCoverageEnabled: String by project
                 isCoverageEnabled.toBoolean()
             }
-        }
-    }
 
-    signingConfigs {
-        getByName("debug").apply {
-            storeFile = File("${rootProject.projectDir}/tools/debug.keystore")
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 

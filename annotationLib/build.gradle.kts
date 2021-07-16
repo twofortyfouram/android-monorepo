@@ -15,50 +15,49 @@
  * specific language governing permissions and limitations under the License.
  */
 
+plugins {
+    id("com.android.library")
+    kotlin("android")
+}
+apply(from = "../scripts.gradle")
 
-boolean is_test_orchestrator = Boolean.parseBoolean(isUseTestOrchestrator)
+val isTestOrchestrator = run {
+    val isUseTestOrchestrator: String by project
+    isUseTestOrchestrator.toBoolean()
+}
 
-apply plugin: 'com.android.library'
-apply from: '../scripts.gradle'
-
-apply plugin: 'maven'
-group = 'com.twofortyfouram'
-archivesBaseName = 'android-annotation'
-version = LIBRARY_VERSION_NAME
+group = "com.twofortyfouram"
+version = run {
+    val LIBRARY_VERSION_NAME: String by project
+    LIBRARY_VERSION_NAME
+}
 
 dependencies {
+    val JCIP_ANNOTATION_VERSION_MATCHER: String by project
+    val ANDROID_TEST_CORE_VERSION_MATCHER: String by project
+    val ESPRESSO_VERSION_MATCHER: String by project
+    val ANDROID_TEST_JUNIT_VERSION_MATCHER: String by project
+    val ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER: String by project
+
     implementation("net.jcip:jcip-annotations:${JCIP_ANNOTATION_VERSION_MATCHER}")
 
     androidTestImplementation("androidx.test:core:${ANDROID_TEST_CORE_VERSION_MATCHER}")
     androidTestImplementation("androidx.test.espresso:espresso-core:${ESPRESSO_VERSION_MATCHER}")
     androidTestImplementation("androidx.test.ext:junit:${ANDROID_TEST_JUNIT_VERSION_MATCHER}")
 
-    if (is_test_orchestrator) {
-        androidTestUtil("androidx.test:orchestrator:${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}:apk")
-    }
-}
-
-android {
-    resourcePrefix "com_twofortyfouram_annotation_"
-
-    lintOptions {
-        lintConfig file("lint.xml")
-        checkDependencies Boolean.parseBoolean(IS_LINT_CHECK_DEPENDENCIES)
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    testOptions {
-        animationsDisabled true
-        if (is_test_orchestrator) {
-            execution "ANDROIDX_TEST_ORCHESTRATOR"
+    if (isTestOrchestrator) {
+        androidTestUtil("androidx.test:orchestrator:${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}") {
+            artifact {
+                classifier = "apk"
+            }
         }
     }
 }
 
-android.libraryVariants.all { variant ->
-    createJavaDocTaskForVariant(variant, "com/twofortyfouram/annotation", "com_twofortyfouram_annotation")
+android {
+    resourcePrefix = "com_twofortyfouram_annotation_"
 }
+
+//android.libraryVariants.all { variant ->
+//    createJavaDocTaskForVariant(variant, "com/twofortyfouram/annotation", "com_twofortyfouram_annotation")
+//}
