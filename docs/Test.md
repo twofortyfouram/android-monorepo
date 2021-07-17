@@ -14,10 +14,24 @@ The library is compatible and optimized for Android API Level 19 and above.
 ## Gradle
 The library is published as an artifact on GitHub Package Registry.  To use the library, the repository and the artifact need to be added to your build script.
 
-The build.gradle repositories section would look something like the following:
+Generate a GitHub Personal Access token.  The dependencies are currently published to GitHub Package Registry which does not allow for anonymous access.  Until we get these packages published to Maven Central use the following steps:
+    1. Generate a new [Personal Access Token](https://github.com/settings/tokens/new)
+    1. Put in a name for the token, such as `package registry`
+    1. Check the box for `read:packages` only
+    1. Click Generate Token
+    1. Save the token, which you'll need to use below
+
+The build.gradle.kts repositories section would look something like the following:
 
     repositories {
-        maven("https://maven.pkg.github.com/twofortyfouram/android-monorepo")
+        maven {
+            // GitHub Package Registry does not allow anonymous access
+            url = java.net.URI("https://maven.pkg.github.com/twofortyfouram/android-monorepo")
+            credentials  {
+                username = "YOUR_GITHUB_USERNAME"
+                password = "YOUR_GITHUB_TOKEN"
+            }
+        }
     }
 
 And the dependencies section would look something like this:
