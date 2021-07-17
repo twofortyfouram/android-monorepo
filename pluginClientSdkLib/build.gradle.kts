@@ -30,39 +30,29 @@ val isTestOrchestrator = run {
 
 group = "com.twofortyfouram"
 version = run {
-    val LIBRARY_VERSION_NAME: String by project
-    LIBRARY_VERSION_NAME
+    val libraryVersionName: String by project
+    libraryVersionName
 }
 
 dependencies {
-    val JCIP_ANNOTATION_VERSION_MATCHER: String by project
-    val ANDROID_ANNOTATION_VERSION_MATCHER: String by project
-    val ANDROID_DATABASE_VERSION_MATCHER: String by project
-    val ANDROID_LIFECYCLE_VERSION_MATCHER: String by project
-    val ANDROID_APPCOMPAT_VERSION_MATCHER: String by project
-    val ANDROID_LEGACY_SUPPORT_VERSION_MATCHER: String by project
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.supportv4)
 
-    val ANDROID_TEST_CORE_VERSION_MATCHER: String by project
-    val ESPRESSO_VERSION_MATCHER: String by project
-    val ANDROID_TEST_JUNIT_VERSION_MATCHER: String by project
-    val ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER: String by project
+    implementation(libs.jcip)
+    implementation(libs.androidx.annotation)
+    implementation(projects.annotationLib)
+    implementation(projects.assertionLib)
+    implementation(projects.spackleLib)
+    implementation(projects.pluginApiLib)
 
-    implementation("androidx.appcompat:appcompat:${ANDROID_APPCOMPAT_VERSION_MATCHER}")
-    implementation("androidx.legacy:legacy-support-v4:${ANDROID_LEGACY_SUPPORT_VERSION_MATCHER}")
-
-    implementation("net.jcip:jcip-annotations:${JCIP_ANNOTATION_VERSION_MATCHER}")
-    implementation("androidx.annotation:annotation:${ANDROID_ANNOTATION_VERSION_MATCHER}")
-    implementation(project(":annotationLib"))
-    implementation(project(":assertionLib"))
-    implementation(project(":pluginApiLib"))
-    implementation(project(":spackleLib"))
-
-    androidTestImplementation("androidx.test.espresso:espresso-core:${ESPRESSO_VERSION_MATCHER}")
-    androidTestImplementation("androidx.test.espresso:espresso-intents:${ESPRESSO_VERSION_MATCHER}")
-    androidTestImplementation(project(":testLib"))
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(libs.androidx.espresso.intents)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(projects.testLib)
 
     if (isTestOrchestrator) {
-        androidTestUtil("androidx.test:orchestrator:${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}") {
+        androidTestUtil(libs.androidx.test.orchestrator) {
             artifact {
                 classifier = "apk"
             }

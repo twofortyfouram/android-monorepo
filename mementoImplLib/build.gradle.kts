@@ -30,40 +30,30 @@ val isTestOrchestrator = run {
 
 group = "com.twofortyfouram"
 version = run {
-    val LIBRARY_VERSION_NAME: String by project
-    LIBRARY_VERSION_NAME
+    val libraryVersionName: String by project
+    libraryVersionName
 }
 
 dependencies {
-    val JCIP_ANNOTATION_VERSION_MATCHER: String by project
-    val ANDROID_ANNOTATION_VERSION_MATCHER: String by project
-    val ANDROID_DATABASE_VERSION_MATCHER: String by project
-    val ANDROID_TEST_CORE_VERSION_MATCHER: String by project
-    val ESPRESSO_VERSION_MATCHER: String by project
-    val ANDROID_TEST_JUNIT_VERSION_MATCHER: String by project
-    val ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER: String by project
-    val ANDROID_SUPPORT_TEST_RULES_VERSION_MATCHER: String by project
-    val ESPRESSO_REMOTE_VERSION_MATCHER: String by project
+    api(libs.androidx.sqlite.api)
+    api(libs.jcip)
+    api(libs.androidx.annotation)
+    api(projects.mementoApiLib)
+    implementation(projects.annotationLib)
+    implementation(projects.assertionLib)
+    implementation(projects.spackleLib)
 
-    api("androidx.sqlite:sqlite:${ANDROID_DATABASE_VERSION_MATCHER}")
-    implementation("androidx.annotation:annotation:${ANDROID_ANNOTATION_VERSION_MATCHER}")
-    implementation("net.jcip:jcip-annotations:${JCIP_ANNOTATION_VERSION_MATCHER}")
-    implementation(project(":annotationLib"))
-    implementation(project(":assertionLib"))
-    implementation(project(":mementoApiLib"))
-    implementation(project(":spackleLib"))
+    androidTestImplementation(libs.androidx.sqlite.framework)
 
-    androidTestImplementation("androidx.sqlite:sqlite-framework:${ANDROID_DATABASE_VERSION_MATCHER}")
-    androidTestImplementation("androidx.test:core:${ANDROID_TEST_CORE_VERSION_MATCHER}")
-    androidTestImplementation("androidx.test.espresso:espresso-core:${ESPRESSO_VERSION_MATCHER}")
-    androidTestImplementation("androidx.test.espresso:espresso-remote:${ESPRESSO_REMOTE_VERSION_MATCHER}")
-    androidTestImplementation("androidx.test:rules:${ANDROID_SUPPORT_TEST_RULES_VERSION_MATCHER}")
-    androidTestImplementation("androidx.test.ext:junit:${ANDROID_TEST_JUNIT_VERSION_MATCHER}")
-
-    androidTestImplementation(project(":testLib"))
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.espresso.intents)
+    androidTestImplementation(libs.androidx.espresso.remote)
+    androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(projects.testLib)
 
     if (isTestOrchestrator) {
-        androidTestUtil("androidx.test:orchestrator:${ANDROID_TEST_ORCHESTRATOR_VERSION_MATCHER}") {
+        androidTestUtil(libs.androidx.test.orchestrator) {
             artifact {
                 classifier = "apk"
             }
