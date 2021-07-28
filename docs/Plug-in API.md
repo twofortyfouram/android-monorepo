@@ -1,6 +1,6 @@
 # Plugin SDKs for Locale
 ## Overview
-[Locale](https://play.google.com/store/apps/details?id=com.twofortyfouram.locale) allows developers to create plug-in conditions and settings through the [Locale Developer Platform](http://www.twofortyfouram.com/developer).
+[Locale X](https://play.google.com/store/apps/details?id=com.twofortyfouram.locale.x) allows developers to create plug-in conditions and settings through the [Locale Developer Platform](http://www.twofortyfouram.com/developer).
 
 The plug-in architecture is implemented in three different layers (API, SDK, and Example), with each subsequent layer becoming more abstract and easier to work with.
 
@@ -31,19 +31,32 @@ The SDKs are compatible and optimized for Android API Level 19 and above.  Note,
 ### Download
 The library is published as an artifact on GitHub Package Registry.  To use the library, the repository and the artifact need to be added to your build script.
 
-The build.gradle repositories section would look something like the following:
+The dependencies are currently published to GitHub Package Registry which does not allow for anonymous access.  Until we get these packages published to Maven Central use the following steps:
+
+1. Generate a new [Personal Access Token](https://github.com/settings/tokens/new)
+1. Put in a name for the token, such as `package registry`
+1. Check the box for `read:packages` only
+1. Click Generate Token
+1. Save the token, which you'll need to use below
+
+The build.gradle.kts repositories section would look something like the following:
 
     repositories {
-        maven("https://maven.pkg.github.com/twofortyfouram/android-monorepo")
+        maven {
+            // GitHub Package Registry does not allow anonymous access
+            url = java.net.URI("https://maven.pkg.github.com/twofortyfouram/android-monorepo")
+            credentials  {
+                username = "YOUR_GITHUB_USERNAME"
+                password = "YOUR_GITHUB_TOKEN"
+            }
+        }
     }
-
 
 And the dependencies section would look something like this:
     
     dependencies {
         implementation("com.twofortyfouram:android-plugin-host-sdk-for-locale:9.0.0")
     }
-
 <!--
 ### History
 * 1.0.0: Initial release
@@ -136,19 +149,7 @@ The library is compatible and optimized for Android API Level 19 and above.
 
 <!-- 
 ### Download
-The library is published as an artifact to jCenter.  To use the library, the jCenter repository and the artifact need to be added to your build script.
 
-The build.gradle repositories section would look something like the following:
-
-    repositories {
-        jcenter()
-    }
-
-And the dependencies section would look something like this:
-
-    dependencies {
-        compile group:'com.twofortyfouram', name:'android-plugin-client-sdk-for-locale', version:'[4.0.3, 5.0['
-    }
 
 ### History
 * 1.0.0: Initial release

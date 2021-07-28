@@ -1,6 +1,6 @@
 # Plugin API for Locale
 ## Overview
-[Locale](https://play.google.com/store/apps/details?id=com.twofortyfouram.locale) allows developers to create plug-in conditions and settings through the [Locale Developer Platform](http://www.twofortyfouram.com/developer).
+[Locale X](https://play.google.com/store/apps/details?id=com.twofortyfouram.locale.x) allows developers to create plug-in settings through the [Locale Developer Platform](http://www.twofortyfouram.com/developer).
 
 The plug-in architecture is implemented in three different layers (API, SDK, and Example), with each subsequent layer becoming more abstract and easier to work with.  This document covers the low level API.
 

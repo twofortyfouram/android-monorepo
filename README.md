@@ -3,7 +3,7 @@ This repository contains multiple open source libraries.  Because some of the li
 
 Many of these libraries have their own documentation.  A high level of the libraries are:
 
- * Plugin SDKs for Locale — A combination of API specification, client SDK, and host SDK.  See [Plug-in API.md](docs/Plug-in%20Api.md)
+ * Plugin SDKs for Locale — A combination of API specification, client SDK, and host SDK.  See [Plug-in API.md](docs/Plug-in%20API.md)
  * Memento — A SQLite-based Content Provider implementation, with both an API and implementation layer.  See [Memento.md](docs/Memento.md)
  * Spackle — A hodgepodge of utilities, mostly intended to be internal support the other modules.  See [Spackle.md](docs/Spackle.md)
  * Annotation — Simple annotations to better document code
