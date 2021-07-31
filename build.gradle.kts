@@ -54,15 +54,15 @@ subprojects {
                     isUseTestOrchestrator.toBoolean()
                 }
                 if (isTestOrchestrator) {
-                    testInstrumentationRunnerArguments.put("clearPackageData", "true")
+                    testInstrumentationRunnerArguments["clearPackageData"] = "true"
                 }
             }
 
-            lintOptions {
+            lint {
                 lintConfig = File("lint.xml")
             }
 
-            jacoco {
+            testCoverage {
                 val jacocoVersion: String by project
 
                 version = jacocoVersion
