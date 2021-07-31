@@ -18,6 +18,27 @@ plugins {
     id("com.osacky.fulladle")
 }
 
+tasks.withType<com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask> {
+    gradleReleaseChannel = "current"
+    resolutionStrategy {
+        componentSelection {
+            all {
+                if (isNonStable(candidate.version) && !isNonStable(currentVersion)) {
+                    reject("Unstable")
+                }
+            }
+        }
+    }
+}
+
+val UNSTABLE_KEYWORDS = listOf("alpha", "beta", "rc", "m", "ea", "build")
+
+fun isNonStable(version: String): Boolean {
+    val versionLowerCase = version.toLowerCase()
+
+    return UNSTABLE_KEYWORDS.any { versionLowerCase.contains(it) }
+}
+
 fladle {
     val twofortyfouramFirebaseTestLabServiceAccountKeyPath: String by project
 
