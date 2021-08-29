@@ -65,3 +65,8 @@ android {
         }
     }
 }
+
+// This app exists just to provide an APK for Firebase Test Lab, so it should not be tested
+fulladleModuleConfig {
+    enabled.set(false)
+}

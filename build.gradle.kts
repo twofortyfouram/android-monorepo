@@ -44,6 +44,7 @@ fladle {
 
     serviceAccountCredentials.set(File(twofortyfouramFirebaseTestLabServiceAccountKeyPath))
     devices.addAll(mapOf("model" to "NexusLowRes", "version" to "29"))
+    debugApk.set(project.provider { "${projectDir}/emptyApp/build/outputs/apk/debug/*.apk" })
 }
 
 // This should be refactored to a convention plugin under build-conventions

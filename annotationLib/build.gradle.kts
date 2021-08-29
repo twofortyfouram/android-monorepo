@@ -57,6 +57,11 @@ android {
 //    createJavaDocTaskForVariant(variant, "com/twofortyfouram/annotation", "com_twofortyfouram_annotation")
 //}
 
+// There's no code to test with just annotations
+fulladleModuleConfig {
+    enabled.set(false)
+}
+
 publishing {
     publications {
         publications.withType<MavenPublication>().all {

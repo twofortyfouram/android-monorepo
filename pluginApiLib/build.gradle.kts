@@ -53,6 +53,11 @@ dependencies {
 android {
 }
 
+// There's no tests for this module, since it is just API constants
+fulladleModuleConfig {
+    enabled.set(false)
+}
+
 //android.libraryVariants.all { variant ->
 //    task("${variant.name}Javadoc", type: Javadoc) {
 //        description "Generates Javadoc for $variant.name."
