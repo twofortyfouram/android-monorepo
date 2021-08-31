@@ -24,24 +24,17 @@ jobs:
       timeout-minutes: 1
       uses: actions/checkout@v2
 
-    - name: Gradle Validation
-      timeout-minutes: 1
-      uses: gradle/wrapper-validation-action@v1
-
-    - name: Set up Java
-      timeout-minutes: 1
-      uses: actions/setup-java@v2
-      with:
-        distribution: 'zulu'
-        java-version: 15
+    - name: Setup
+      id: setup
+      timeout-minutes: 5
+      uses: ./.github/actions/setup
 
     - name: Setup Secrets
       env:
         FIREBASE_TEST_LAB_API_KEY_BASE_64: ${{ secrets.GCLOUD_JSON_KEY_BASE_64 }}
-        FIREBASE_API_KEY_FILE_NAME: gcloud-key.json
+        GCLOUD_KEY_FILE_PATH: ${{ format('{0}/gcloud-key.json', env.home) }}
       run: |
-           FIREBASE_API_KEY_FILE_PATH=${HOME}/${FIREBASE_API_KEY_FILE_NAME}
-           echo $FIREBASE_TEST_LAB_API_KEY_BASE_64 | base64 --decode > ${FIREBASE_API_KEY_FILE_PATH}
+           echo $FIREBASE_TEST_LAB_API_KEY_BASE_64 | base64 --decode > ${GCLOUD_KEY_FILE_PATH}
 
     - name: Build
       timeout-minutes: 15
@@ -54,23 +47,19 @@ jobs:
       timeout-minutes: 20
       env:
         ORG_GRADLE_PROJECT_isCoverageEnabled: false
-        GCLOUD_KEY_FILENAME: gcloud-key.json
+        ORG_GRADLE_PROJECT_twofortyfouramFirebaseTestLabServiceAccountKeyPath: ${{ format('{0}/gcloud-key.json', env.home) }}
       run: |
-        GCLOUD_KEY_PATH=${HOME}/${GCLOUD_KEY_FILENAME}
-
-        ./gradlew runFlank --no-daemon --parallel --stacktrace -PtwofortyfouramFirebaseTestLabServiceAccountKeyPath=${GCLOUD_KEY_PATH}
+        ./gradlew runFlank --no-daemon --parallel --stacktrace
 
     - name: Collect Artifacts
       timeout-minutes: 1
       env:
-        ARTIFACTS_DIR_NAME: artifacts
-        TEST_RESULTS_FILE_NAME: test_results.zip
+        ARTIFACTS_DIR_PATH: ${{ format('{0}/artifacts', env.home) }}
+        TEST_RESULTS_FILE_PATH: ${{ format('{0}/artifacts/test_results.zip', env.home) }}
       run: |
-        ARTIFACTS_DIR_PATH=~/${ARTIFACTS_DIR_NAME}
         mkdir ${ARTIFACTS_DIR_PATH}
 
-        TEST_RESULTS_ZIP_PATH=${ARTIFACTS_DIR_PATH}/${TEST_RESULTS_FILE_NAME}
-        zip -r ${TEST_RESULTS_ZIP_PATH} . -i *build/outputs/androidTest-results/*
+        zip -r ${TEST_RESULTS_FILE_PATH} . -i *build/outputs/androidTest-results/*
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2

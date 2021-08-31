@@ -1,0 +1,36 @@
+name: 'Setup Java and Restore Cache'
+outputs:
+  gradle-wrapper-cache-hit:
+    description: "Gradle Wrapper Cache Hit"
+    value: ${{ steps.gradle-wrapper-cache.outputs.cache-hit }}
+  gradle-dependency-cache-hit:
+    description: "Gradle Dependency Cache Hit"
+    value: ${{ steps.gradle-dependency-cache.outputs.cache-hit }}
+runs:
+  using: "composite"
+  steps:
+    - name: Gradle Validation
+      uses: gradle/wrapper-validation-action@v1.0.4
+    - name: Set Env
+      shell: bash
+      run: |
+        echo "home=${HOME}" >> $GITHUB_ENV
+    - name: Set up Java
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: 11
+    - name: Gradle Wrapper Cache
+      id: gradle-wrapper-cache
+      uses: actions/cache@v2.1.6
+      with:
+        path: ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles(format('{0}{1}', github.workspace, '/gradle/wrapper/gradle-wrapper.properties')) }}
+    - name: Gradle Dependency Cache
+      id: gradle-dependency-cache
+      uses: actions/cache@v2.1.6
+      with:
+        path: ~/.gradle/caches/modules-2
+        key: ${{ runner.os }}-gradle-deps-${{ hashFiles(format('{0}{1}', github.workspace, '/gradle.properties')) }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-deps
