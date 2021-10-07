@@ -54,7 +54,7 @@ dependencies {
     if (isTestOrchestrator) {
         androidTestUtil(libs.androidx.test.orchestrator) {
             artifact {
-                classifier = "apk"
+                type = "apk"
             }
         }
     }
