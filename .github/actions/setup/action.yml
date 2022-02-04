@@ -1,4 +1,5 @@
-name: 'Setup Java and Restore Cache'
+name: 'Setup'
+description: 'Configures the build environment and build cache'
 outputs:
   gradle-wrapper-cache-hit:
     description: "Gradle Wrapper Cache Hit"
@@ -9,8 +10,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Gradle Validation
-      uses: gradle/wrapper-validation-action@v1.0.4
     - name: Set Env
       shell: bash
       run: |
@@ -18,8 +17,14 @@ runs:
     - name: Set up Java
       uses: actions/setup-java@v2
       with:
-        distribution: 'adopt'
-        java-version: 11
+        distribution: 'zulu'
+        java-version: 17
+    - name: Disable Gradle Daemon
+      shell: bash
+      run: |
+        mkdir ~/.gradle
+
+        echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
     - name: Gradle Wrapper Cache
       id: gradle-wrapper-cache
       uses: actions/cache@v2.1.6
@@ -34,3 +39,14 @@ runs:
         key: ${{ runner.os }}-gradle-deps-${{ hashFiles(format('{0}{1}', github.workspace, '/gradle.properties')) }}
         restore-keys: |
           ${{ runner.os }}-gradle-deps
+    - name: Download Gradle
+      if: steps.gradle-wrapper-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        ./gradlew --version
+    - name: Download Dependencies
+      if: steps.gradle-dependency-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        # This is not great; we need a custom task to resolve all the dependencies
+        ./gradlew dependencies
