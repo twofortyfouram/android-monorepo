@@ -1,7 +1,7 @@
 /*
  * android-memento
  * https://github.com/twofortyfouram/android-monorepo
- * Copyright (C) 2008–2018 two forty four a.m. LLC
+ * Copyright (C) 2008–2021 two forty four a.m. LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
  * this file except in compliance with the License. You may obtain a copy of the
@@ -17,9 +17,10 @@
 
 plugins {
     id("com.android.library")
-    kotlin("android")
+    id("org.jetbrains.kotlin.android")
     `maven-publish`
     id("twofortyfouram.maven-conventions")
+    id("twofortyfouram.android-library-conventions")
 }
 apply(from = "../scripts.gradle")
 

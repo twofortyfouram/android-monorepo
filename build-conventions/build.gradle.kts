@@ -9,3 +9,13 @@ java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
+
+dependencies {
+    val rootProperties = getRootProperties()
+
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${rootProperties.getProperty("kotlinVersion")}")
+    implementation("com.android.tools.build:gradle:${rootProperties.getProperty("androidGradlePluginVersion")}")
+}
+
+// A slightly gross way to use the root gradle.properties as the single source of truth for version numbers
+fun getRootProperties() = org.jetbrains.kotlin.konan.properties.loadProperties(File(project.projectDir.parentFile, "gradle.properties").path)

@@ -2,14 +2,24 @@ enableFeaturePreview("VERSION_CATALOGS")
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
-    plugins {
-        val kotlinVersion: String by settings
-        val gradleVersionsPluginVersion: String by settings
-        val fulladleVersion: String by settings
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        google()
+    }
 
-        kotlin("jvm") version(kotlinVersion)
-        id("com.github.ben-manes.versions") version(gradleVersionsPluginVersion)
-        id("com.osacky.fulladle") version(fulladleVersion)
+    plugins {
+        val androidGradlePluginVersion: String by settings
+        val fulladleVersion: String by settings
+        val gradleVersionsPluginVersion: String by settings
+        val kotlinVersion: String by settings
+
+        id("com.android.application") version (androidGradlePluginVersion) apply (false)
+        id("com.android.library") version (androidGradlePluginVersion) apply (false)
+        id("com.github.ben-manes.versions") version(gradleVersionsPluginVersion) apply (false)
+        id("com.osacky.fulladle") version(fulladleVersion) apply (false)
+        id("org.jetbrains.kotlin.android") version (kotlinVersion) apply (false)
+        kotlin("jvm") version(kotlinVersion) apply (false)
     }
 }
 
