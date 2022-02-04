@@ -6,7 +6,22 @@ on:
 concurrency: publish
 
 jobs:
+  validate_gradle_wrapper:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        timeout-minutes: 1
+        uses: actions/checkout@v2.4.0
+      # Gradle Wrapper validation can be flaky
+      # https://github.com/gradle/wrapper-validation-action/issues/40
+      - name: Gradle Wrapper Validation
+        timeout-minutes: 1
+        uses: gradle/wrapper-validation-action@v1.0.4
+
   publish:
+    needs: validate_gradle_wrapper
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -29,4 +44,4 @@ jobs:
         ORG_GRADLE_PROJECT_twofortyfouramMonorepoMavenToken: ${{ secrets.GITHUB_TOKEN }}
         ORG_GRADLE_PROJECT_isCoverageEnabled: false
       run: |
-        ./gradlew publish --no-daemon
+        ./gradlew publish
