@@ -2,7 +2,7 @@
 <!--
   ~ android-plugin-host-sdk-for-locale
   ~ https://github.com/twofortyfouram/android-monorepo
-  ~ Copyright (C) 2008–2018 two forty four a.m. LLC
+  ~ Copyright (C) 2008–2022 two forty four a.m. LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not use
   ~ this file except in compliance with the License. You may obtain a copy of the
@@ -24,6 +24,21 @@
         android:protectionLevel="signature" />
 
     <uses-permission android:name="${applicationId}.com.twofortyfouram.locale.sdk.host.permission.internal" />
+
+    <queries>
+        <intent>
+            <action android:name="com.twofortyfouram.locale.intent.action.EDIT_CONDITION" />
+        </intent>
+        <intent>
+            <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING" />
+        </intent>
+        <intent>
+            <action android:name="com.twofortyfouram.locale.intent.action.QUERY_CONDITION" />
+        </intent>
+        <intent>
+            <action android:name="com.twofortyfouram.locale.intent.action.FIRE_SETTING" />
+        </intent>
+    </queries>
 
     <application />
 
